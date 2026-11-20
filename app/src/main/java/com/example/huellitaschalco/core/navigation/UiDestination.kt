@@ -1,0 +1,127 @@
+package com.example.huellitaschalco.core.navigation
+
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Stable
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.saveable.listSaver
+import androidx.compose.runtime.saveable.rememberSaveable
+
+enum class UiScreen {
+    Welcome,
+    Login,
+    SignUp,
+    Catalog,
+    DogDetail,
+    Requirements,
+    ApplicationContact,
+    ApplicationHome,
+    ApplicationPets,
+    ApplicationReasons,
+    ApplicationReview,
+    ApplicationSent,
+    MyRequests,
+    RequestDetail,
+    AdopterProfile,
+    ShelterLogin,
+    ShelterDogs,
+    ShelterDogDetail,
+    DogForm,
+    DogPreview,
+    DogPublished,
+    ShelterRequests,
+    EvaluateRequest,
+    AdoptionForm,
+    AdoptionComplete,
+    AdoptionBlocked,
+    FollowUps,
+    FollowUpForm,
+    FollowUpSaved,
+    FollowUpDetail,
+    ShelterProfile,
+    RefugeInformation,
+    AccessRestricted,
+    PreviewGallery,
+}
+
+enum class UiVariant {
+    Normal,
+    Offline,
+    NoCache,
+    Empty,
+    Error,
+    FieldError,
+    Photos,
+    PhotoError,
+    AiSuggestion,
+    AiError,
+    InReview,
+    Approved,
+    NotApproved,
+    ApprovalBlocked,
+    AfterAdoption,
+    History,
+    AfterFollowUp,
+    OldFollowUp,
+    Editing,
+    MapError,
+}
+
+data class UiDestination(
+    val screen: UiScreen,
+    val dogId: Int = 6,
+    val requestId: Int = 1,
+    val variant: UiVariant = UiVariant.Normal,
+) {
+    fun encode() = "${screen.name}|$dogId|$requestId|${variant.name}"
+
+    companion object {
+        fun decode(value: String): UiDestination {
+            val p = value.split('|')
+            return UiDestination(
+                UiScreen.valueOf(p[0]),
+                p[1].toInt(),
+                p[2].toInt(),
+                UiVariant.valueOf(p[3]),
+            )
+        }
+    }
+}
+
+/** Solo navegación de presentación. No ejecuta ni persiste operaciones de adopción. */
+@Stable
+class UiNavigator(initial: List<String> = listOf(UiDestination(UiScreen.Welcome).encode())) {
+    val entries = mutableStateListOf<String>().apply { addAll(initial) }
+    val current: UiDestination
+        get() = UiDestination.decode(entries.last())
+
+    val canGoBack: Boolean
+        get() = entries.size > 1
+
+    fun open(destination: UiDestination) {
+        entries.add(destination.encode())
+    }
+
+    fun open(
+        screen: UiScreen,
+        dogId: Int = current.dogId,
+        requestId: Int = current.requestId,
+        variant: UiVariant = UiVariant.Normal,
+    ) = open(UiDestination(screen, dogId, requestId, variant))
+
+    fun back() {
+        if (canGoBack) entries.removeAt(entries.lastIndex)
+    }
+
+    fun root(screen: UiScreen) {
+        entries.clear()
+        entries.add(UiDestination(screen).encode())
+    }
+}
+
+@Composable
+fun rememberUiNavigator(): UiNavigator =
+    rememberSaveable(
+        saver = listSaver(save = { it.entries.toList() }, restore = { UiNavigator(it) })
+    ) {
+        UiNavigator()
+    }

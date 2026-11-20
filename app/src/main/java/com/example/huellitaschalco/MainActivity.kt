@@ -7,6 +7,7 @@ import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import com.example.huellitaschalco.app.HuellitasApp
+import com.example.huellitaschalco.app.HuellitasApplication
 import com.example.huellitaschalco.core.navigation.UiDestination
 import com.example.huellitaschalco.core.navigation.UiScreen
 import com.example.huellitaschalco.core.navigation.UiVariant
@@ -41,6 +42,7 @@ class MainActivity : ComponentActivity() {
                         .getOrNull()
                 }
             } else null
-        setContent { HuellitasChalcoTheme { HuellitasApp(preview) } }
+        val authRepository = (application as HuellitasApplication).container.authRepository
+        setContent { HuellitasChalcoTheme { HuellitasApp(authRepository, preview) } }
     }
 }

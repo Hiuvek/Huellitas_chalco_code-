@@ -2,7 +2,7 @@
 
 Revisión del 20 de noviembre de 2026. Referencia: las 18 historias del Excel corregido, conservando sus identificadores.
 
-La entrega actual es una interfaz con datos de ejemplo. Escribir en campos, cambiar selecciones, abrir diálogos o llegar a una pantalla de confirmación no guarda una operación real. Una historia se marcará como terminada cuando su comportamiento y sus criterios de aceptación estén implementados y comprobados.
+HU-01 ya usa Firebase Authentication para registrar cuentas e iniciar y cerrar sesión. Las otras 17 historias conservan sus interfaces con datos de ejemplo: escribir en campos o llegar a sus confirmaciones no guarda operaciones reales.
 
 ## Lo que ya está implementado
 
@@ -19,7 +19,7 @@ La entrega actual es una interfaz con datos de ejemplo. Escribir en campos, camb
 
 | ID | Historia resumida | Interfaz actual | Funcionalidad real |
 | --- | --- | --- | --- |
-| HU-01 | Crear cuenta e iniciar sesión | Formularios y error de acceso | Pendiente |
+| HU-01 | Crear cuenta e iniciar sesión | Formularios conectados a Firebase | Implementada y comprobada |
 | HU-02 | Consultar catálogo de perritos en Chalco | Catálogo con registros de ejemplo | Pendiente |
 | HU-03 | Consultar detalle del perrito | Fotografías, características, salud y refugio de ejemplo | Pendiente |
 | HU-04 | Consultar requisitos y pasos | Requisitos de ejemplo y acceso al formulario | Pendiente |
@@ -38,13 +38,28 @@ La entrega actual es una interfaz con datos de ejemplo. Escribir en campos, camb
 | HU-17 | Conservar catálogo y borradores con Room | Avisos y vistas sin conexión; no existe guardado local | Pendiente |
 | HU-18 | Consultar ubicación con Google Maps | Mapa ilustrativo y vista de error; no usa Google Maps | Pendiente |
 
-Ninguna de las 18 historias tiene todavía su funcionalidad real completa. Esto corresponde al alcance solicitado: desarrollar primero la interfaz.
+**Avance: 1 de 18 historias implementada.**
+
+### HU-01 comprobada
+
+- [x] Registro con nombre, correo y contraseña mediante Firebase Authentication.
+- [x] Inicio de sesión y perfil con nombre y correo de la cuenta autenticada.
+- [x] Cierre de sesión real y recuperación de la sesión guardada por Firebase.
+- [x] Validación de campos y errores de correo duplicado y credenciales incorrectas.
+- [x] Conservación de los campos al fallar y posibilidad de reintentar.
+- [x] Envío único mientras está en curso y navegación solo después del resultado correcto.
+- [x] Pruebas unitarias de validación y estado del formulario.
+- [x] Pruebas del SDK Android contra Firebase Auth Emulator.
+- [x] Recorrido de la interfaz en dispositivo físico, incluida recreación de actividad y reintento de acceso.
+- [x] Registro, nombre, cierre, acceso incorrecto/correcto y recuperación de sesión contra el proyecto real `huellitas-chalco`.
+
+Configuración y pruebas reproducibles en [docs/firebase-auth.md](docs/firebase-auth.md).
 
 ## Orden para implementarlas una por una
 
-Primero se necesita configurar Firebase Authentication, Cloud Firestore y Firebase Storage en el proyecto, y conectar los modelos con los repositorios. El diseño previo de la base de datos sirve de referencia; todavía no está integrado en la app.
+Firebase Authentication ya está configurado. Continúa HU-07 para autorizar los refugios; después se integrarán Cloud Firestore, Firebase Storage y los repositorios de datos. El diseño previo de la base de datos sigue como referencia.
 
-1. [ ] **HU-01 — Crear cuenta e iniciar sesión.** Crear usuarios y autenticar con Firebase Authentication. Validar campos, mostrar errores junto al campo y conservar los datos al fallar. Comprobar registro, acceso correcto, acceso incorrecto y cierre de sesión.
+1. [x] **HU-01 — Crear cuenta e iniciar sesión.** Crear usuarios y autenticar con Firebase Authentication. Validar campos, mostrar errores junto al campo y conservar los datos al fallar. Comprobar registro, acceso correcto, acceso incorrecto y cierre de sesión.
 2. [ ] **HU-07 — Autorizar al refugio.** Identificar el rol y el refugio de la cuenta. Restringir también el acceso a los datos: cada refugio administra únicamente sus perritos, solicitudes y seguimientos. Comprobar cuentas de adoptante, visitante y dos refugios distintos.
 3. [ ] **HU-08 — Registrar y publicar perritos.** Validar nombre, edad aproximada, tamaño, sexo, descripción y al menos una fotografía. Subir fotografías a Storage y guardar datos en Firestore. Comprobar reintentos de carga y que no se publique un registro incompleto.
 4. [ ] **HU-09 — Guardar el estado de salud.** Persistir vacunación, desparasitación y esterilización como Sí, No o Sin información, con Sin información como valor inicial. Comprobar que los valores guardados aparezcan en el detalle público.
@@ -70,4 +85,4 @@ Primero se necesita configurar Firebase Authentication, Cloud Firestore y Fireba
 - Se comprueban el caso correcto, los errores relevantes y la conservación o actualización de la información.
 - Las pantallas de éxito aparecen después de que la operación haya terminado correctamente.
 
-La navegación, las selecciones y los campos actuales son estado de presentación. Las confirmaciones y los mensajes de guardado actuales son ejemplos visuales.
+Fuera de HU-01, la navegación, las selecciones y los campos continúan como estado de presentación; sus confirmaciones y mensajes de guardado son ejemplos visuales.

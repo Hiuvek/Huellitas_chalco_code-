@@ -3,6 +3,17 @@ plugins {
     alias(libs.plugins.kotlin.compose)
 }
 
+// La configuración de la cuenta Firebase se agrega localmente, no se inventa para compilar.
+if (file("google-services.json").exists()) {
+    apply(plugin = "com.google.gms.google-services")
+}
+
+val authEmulatorEnabled = providers.gradleProperty("firebaseAuthEmulator").orNull == "true"
+val authEmulatorHost = providers.gradleProperty("firebaseAuthEmulatorHost").getOrElse("10.0.2.2")
+require(authEmulatorHost in setOf("10.0.2.2", "127.0.0.1", "localhost")) {
+    "Usa 10.0.2.2 para el emulador Android o 127.0.0.1 con adb reverse para un dispositivo físico."
+}
+
 android {
     namespace = "com.example.huellitaschalco"
     compileSdk {
@@ -17,9 +28,14 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        buildConfigField("boolean", "FIREBASE_AUTH_EMULATOR", "false")
+        buildConfigField("String", "FIREBASE_AUTH_EMULATOR_HOST", "\"$authEmulatorHost\"")
     }
 
     buildTypes {
+        debug {
+            buildConfigField("boolean", "FIREBASE_AUTH_EMULATOR", authEmulatorEnabled.toString())
+        }
         release {
             optimization {
                 enable = false
@@ -32,6 +48,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
@@ -44,7 +61,13 @@ dependencies {
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.lifecycle.runtime.compose)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.auth)
+    implementation(libs.kotlinx.coroutines.play.services)
     testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     androidTestImplementation(libs.androidx.espresso.core)

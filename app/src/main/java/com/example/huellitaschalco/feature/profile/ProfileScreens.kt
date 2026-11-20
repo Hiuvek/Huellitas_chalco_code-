@@ -11,10 +11,16 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.huellitaschalco.core.designsystem.*
 import com.example.huellitaschalco.core.navigation.*
+import com.example.huellitaschalco.feature.auth.domain.AuthUser
 import com.example.huellitaschalco.ui.theme.*
 
 @Composable
-fun ProfileScreen(nav: UiNavigator, shelter: Boolean) {
+fun ProfileScreen(
+    nav: UiNavigator,
+    shelter: Boolean,
+    user: AuthUser? = null,
+    onSignOut: () -> Unit = {},
+) {
     var logout by remember { mutableStateOf(false) }
     HScaffold(
         nav,
@@ -32,17 +38,20 @@ fun ProfileScreen(nav: UiNavigator, shelter: Boolean) {
                 contentAlignment = Alignment.Center,
             ) {
                 Text(
-                    if (shelter) "R1" else "U1",
+                    if (shelter) "R1" else user?.label?.take(2)?.uppercase() ?: "HC",
                     style = MaterialTheme.typography.titleLarge,
                     color = Color.White,
                 )
             }
             Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
                 Text(
-                    if (shelter) "Refugio 1" else "Usuario 1",
+                    if (shelter) "Refugio 1" else user?.label ?: "Visitante",
                     style = MaterialTheme.typography.titleLarge,
                 )
-                HCaption(if (shelter) "Refugio ficticio · demostración" else "usuario1@demo.mx")
+                HCaption(
+                    if (shelter) "Refugio ficticio · demostración"
+                    else user?.email ?: "Sin sesión iniciada"
+                )
                 if (shelter) HTag("Cuenta autorizada")
             }
         }
@@ -78,9 +87,9 @@ fun ProfileScreen(nav: UiNavigator, shelter: Boolean) {
         } else {
             HHeading("Mis datos")
             HCard {
-                HKeyValue("Correo", "usuario1@demo.mx")
-                HKeyValue("Teléfono", "5500000001", true)
-                HKeyValue("Solicitudes enviadas", "1", true)
+                HKeyValue("Correo", user?.email ?: "Sin sesión iniciada")
+                HKeyValue("Teléfono", "Sin registrar", true)
+                HKeyValue("Solicitudes", "Datos de ejemplo", true)
             }
             HHeading("En este teléfono")
             HCard {
@@ -92,13 +101,15 @@ fun ProfileScreen(nav: UiNavigator, shelter: Boolean) {
             }
         }
         HBanner("Proyecto académico. Los refugios, perritos y personas son ficticios.")
-        HButton(
-            "Cerrar sesión",
-            { logout = true },
-            outlined = true,
-            danger = true,
-            icon = HSymbol.Logout,
-        )
+        if (user == null && !shelter) HButton("Iniciar sesión", { nav.open(UiScreen.Login) })
+        else
+            HButton(
+                "Cerrar sesión",
+                { logout = true },
+                outlined = true,
+                danger = true,
+                icon = HSymbol.Logout,
+            )
         HTextAction(
             "Ver todas las pantallas",
             { nav.open(UiScreen.PreviewGallery) },
@@ -114,6 +125,7 @@ fun ProfileScreen(nav: UiNavigator, shelter: Boolean) {
                 TextButton(
                     onClick = {
                         logout = false
+                        onSignOut()
                         nav.root(UiScreen.Welcome)
                     }
                 ) {

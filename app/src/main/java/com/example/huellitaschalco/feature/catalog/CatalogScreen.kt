@@ -17,14 +17,15 @@ import com.example.huellitaschalco.core.preview.*
 import com.example.huellitaschalco.ui.theme.*
 
 @Composable
-fun CatalogScreen(nav: UiNavigator, destination: UiDestination) {
+fun CatalogScreen(nav: UiNavigator, destination: UiDestination, userName: String? = null) {
     var filters by remember { mutableStateOf(false) }
     val afterAdoption = destination.variant == UiVariant.AfterAdoption
     val dogs = PreviewData.dogs.filter { it.id <= 6 && (!afterAdoption || it.id != 2) }
     HScaffold(
         nav,
         "Perritos en\nadopción en Chalco",
-        "Hola, Usuario",
+        if (userName != null) "Hola, ${userName.substringBefore(' ')}"
+        else "Explora sin iniciar sesión",
         back = false,
         tab = "Explorar",
     ) {

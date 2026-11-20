@@ -1,6 +1,6 @@
 # Huellitas Chalco
 
-Interfaz Android en Kotlin y Jetpack Compose basada en los mockups aprobados. Incluye las vistas del adoptante y del refugio, con navegación de demostración y datos de ejemplo.
+Interfaz Android en Kotlin y Jetpack Compose basada en los mockups aprobados. Incluye las vistas del adoptante y del refugio, con navegación de demostración y datos de ejemplo. HU-01 incorpora registro e inicio de sesión reales con Firebase Authentication.
 
 El estado de las 18 historias y el orden para implementar su funcionalidad están en [CHECKLIST.md](CHECKLIST.md).
 
@@ -27,9 +27,10 @@ app/                          Composición de la aplicación y rutas
 core/
   designsystem/               Componentes e iconos reutilizables
   navigation/                 Destinos y navegación de presentación
+  firebase/                   Inicialización de Firebase y emulador de pruebas
   preview/                    Datos inmutables de ejemplo
 feature/
-  auth/                       Bienvenida y acceso
+  auth/                       Dominio, repositorio Firebase, ViewModel y pantallas de acceso
   catalog/                    Catálogo, detalle y requisitos
   application/                Formulario de solicitud
   requests/                   Solicitudes del adoptante
@@ -47,9 +48,11 @@ Las fotografías extraídas de los mockups están en `app/src/main/res/drawable-
 
 ## Alcance
 
-Esta entrega implementa únicamente la interfaz. Se pueden recorrer pantallas, escribir en campos, cambiar selecciones y abrir diálogos. Los botones de envío, guardado, acceso y confirmación llevan a vistas de ejemplo.
+HU-01 permite crear una cuenta con nombre, correo y contraseña, iniciar sesión, restaurar la sesión y cerrarla. Los formularios validan campos, muestran errores de Firebase y conservan los datos cuando falla una operación.
 
-No hay autenticación, persistencia, consultas, cargas de fotografías ni llamadas a Firebase, Room, Google Maps o Gemini. Los mapas son ilustrativos. Las selecciones y los textos son estado temporal de presentación; las listas no cambian sus datos al enviar formularios.
+Las demás historias mantienen su interfaz de demostración. Todavía no hay consultas de perritos, persistencia en Room, solicitudes guardadas, cargas de fotografías, roles de refugio, Google Maps ni Gemini. Los mapas son ilustrativos.
+
+La configuración de Firebase y los comandos de pruebas están en [docs/firebase-auth.md](docs/firebase-auth.md). El archivo `app/google-services.json` se conserva localmente y no se publica en Git.
 
 ## Ejecutar
 
@@ -62,4 +65,3 @@ Compilar desde la raíz:
 ```
 
 El APK se genera en `app/build/outputs/apk/debug/app-debug.apk`.
-# Huellitas_chalco_code-

@@ -1,0 +1,8 @@
+{
+  "name": "huellitas-firebase-tools",
+  "private": true,
+  "scripts": {
+    "auth:start": "firebase emulators:start --config ../../firebase.json --only auth --project demo-huellitas-chalco"
+  },
+  "devDependencies": { "firebase-tools": "15.37.0" }
+}

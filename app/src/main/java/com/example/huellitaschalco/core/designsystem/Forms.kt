@@ -29,13 +29,42 @@ fun HInput(
     keyboard: KeyboardType = KeyboardType.Text,
 ) {
     var text by rememberSaveable(label) { mutableStateOf(initial) }
+    HInput(
+        label = label,
+        value = text,
+        onValueChange = { text = it },
+        placeholder = placeholder,
+        helper = helper,
+        error = error,
+        password = password,
+        lines = lines,
+        keyboard = keyboard,
+    )
+}
+
+/** Campo controlado: los formularios reales conservan los datos y errores en su ViewModel. */
+@Composable
+fun HInput(
+    label: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
+    placeholder: String = "",
+    helper: String? = null,
+    error: String? = null,
+    password: Boolean = false,
+    lines: Int = 1,
+    keyboard: KeyboardType = KeyboardType.Text,
+    enabled: Boolean = true,
+) {
     var showPassword by rememberSaveable(label) { mutableStateOf(false) }
     Column(verticalArrangement = Arrangement.spacedBy(7.dp)) {
         Text(label, style = MaterialTheme.typography.titleSmall)
         OutlinedTextField(
-            value = text,
-            onValueChange = { text = it },
-            modifier = Modifier.fillMaxWidth(),
+            value = value,
+            onValueChange = onValueChange,
+            modifier = modifier.fillMaxWidth(),
+            enabled = enabled,
             placeholder = {
                 Text(placeholder, style = MaterialTheme.typography.bodyMedium, color = Muted)
             },

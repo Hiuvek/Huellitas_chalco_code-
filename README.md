@@ -1,67 +1,88 @@
-# Huellitas Chalco
+# Checklist de funcionalidades — Huellitas Chalco
 
-Interfaz Android en Kotlin y Jetpack Compose basada en los mockups aprobados. Incluye las vistas del adoptante y del refugio, con navegación de demostración y datos de ejemplo. HU-01 incorpora registro e inicio de sesión reales con Firebase Authentication.
+Revisión del 20 de noviembre de 2026. Referencia: las 18 historias del Excel corregido, conservando sus identificadores.
 
-El estado de las 18 historias y el orden para implementar su funcionalidad están en [CHECKLIST.md](CHECKLIST.md).
+HU-01 ya usa Firebase Authentication para registrar cuentas e iniciar y cerrar sesión. Las otras 17 historias conservan sus interfaces con datos de ejemplo: escribir en campos o llegar a sus confirmaciones no guarda operaciones reales.
 
-## Pantallas
+## Lo que ya está implementado
 
-- Bienvenida, registro e inicio de sesión para ambos roles.
-- Catálogo, detalle del perrito, requisitos e información del refugio.
-- Solicitud de adopción en cinco pasos, confirmación y consulta de solicitudes.
-- Perfil del adoptante y del refugio.
-- Registro, edición, salud, fotografías y vista previa de perritos.
-- Solicitudes recibidas, evaluación, decisiones y registro de adopción.
-- Programación, registro e historial de seguimientos.
-- Variantes visuales de errores, listas vacías, falta de conexión y confirmaciones.
+- [x] Pantallas para adoptantes y responsables del refugio.
+- [x] Navegación de presentación entre pantallas, con regreso y barras inferiores.
+- [x] Componentes comunes: campos, botones, tarjetas, indicadores y diálogos.
+- [x] Tema visual y fotografías locales basados en los mockups.
+- [x] Muestrario de 60 pantallas y variantes, accesible mediante el icono del ojo.
+- [x] Vistas de ejemplo de errores, listas vacías, falta de conexión y confirmaciones.
+- [x] Archivos organizados por pantallas, componentes, navegación, datos de ejemplo y tema.
+- [x] Compilación del APK y Android Lint sin errores.
 
-El icono del ojo abre **Vistas de ejemplo**, donde se pueden consultar directamente todas las pantallas y variantes.
+## Estado por historia
 
-## Organización
+| ID | Historia resumida | Interfaz actual | Funcionalidad real |
+| --- | --- | --- | --- |
+| HU-01 | Crear cuenta e iniciar sesión | Formularios conectados a Firebase | Implementada y comprobada |
+| HU-02 | Consultar catálogo de perritos en Chalco | Catálogo con registros de ejemplo | Pendiente |
+| HU-03 | Consultar detalle del perrito | Fotografías, características, salud y refugio de ejemplo | Pendiente |
+| HU-04 | Consultar requisitos y pasos | Requisitos de ejemplo y acceso al formulario | Pendiente |
+| HU-05 | Enviar solicitud de adopción | Cinco pasos, revisión y confirmación de ejemplo | Pendiente |
+| HU-06 | Consultar mis solicitudes | Lista, detalle y estados de ejemplo | Pendiente |
+| HU-07 | Acceso autorizado del refugio | Acceso y pantalla de restricción de ejemplo | Pendiente |
+| HU-08 | Registrar y publicar perritos | Formulario, fotografías simuladas y vista previa | Pendiente |
+| HU-09 | Registrar estado de salud | Selectores de vacunación, desparasitación y esterilización | Pendiente |
+| HU-10 | Revisar y editar mis perritos | Lista, edición y vista previa | Pendiente |
+| HU-11 | Redactar descripciones con Gemini | Propuesta fija, aceptación, descarte y error de ejemplo | Pendiente |
+| HU-12 | Consultar solicitudes recibidas | Lista, respuestas y vista vacía de ejemplo | Pendiente |
+| HU-13 | Evaluar solicitudes | Revisión, decisión, confirmación y bloqueo de ejemplo | Pendiente |
+| HU-14 | Confirmar adopción realizada | Entrega, carta, confirmación y bloqueo de ejemplo | Pendiente |
+| HU-15 | Programar seguimientos | Campos y lista de revisiones de ejemplo | Pendiente |
+| HU-16 | Registrar seguimientos | Formulario, confirmación e historial de ejemplo | Pendiente |
+| HU-17 | Conservar catálogo y borradores con Room | Avisos y vistas sin conexión; no existe guardado local | Pendiente |
+| HU-18 | Consultar ubicación con Google Maps | Mapa ilustrativo y vista de error; no usa Google Maps | Pendiente |
 
-Todos los paquetes están dentro de `app/src/main/java/com/example/huellitaschalco/`:
+**Avance: 1 de 18 historias implementada.**
 
-```text
-MainActivity.kt               Entrada de Android
-app/                          Composición de la aplicación y rutas
-core/
-  designsystem/               Componentes e iconos reutilizables
-  navigation/                 Destinos y navegación de presentación
-  firebase/                   Inicialización de Firebase y emulador de pruebas
-  preview/                    Datos inmutables de ejemplo
-feature/
-  auth/                       Dominio, repositorio Firebase, ViewModel y pantallas de acceso
-  catalog/                    Catálogo, detalle y requisitos
-  application/                Formulario de solicitud
-  requests/                   Solicitudes del adoptante
-  profile/                    Perfiles
-  shelter/
-    dogs/                     Pantallas de perritos del refugio
-    requests/                 Evaluación de solicitudes
-    adoption/                 Pantallas de entrega y adopción
-    followup/                 Seguimientos posteriores
-  preview/                    Muestrario de pantallas
-ui/theme/                     Colores, tipografía y formas
-```
+### HU-01 comprobada
 
-Las fotografías extraídas de los mockups están en `app/src/main/res/drawable-nodpi/`. No requieren conexión a internet.
+- [x] Registro con nombre, correo y contraseña mediante Firebase Authentication.
+- [x] Inicio de sesión y perfil con nombre y correo de la cuenta autenticada.
+- [x] Cierre de sesión real y recuperación de la sesión guardada por Firebase.
+- [x] Validación de campos y errores de correo duplicado y credenciales incorrectas.
+- [x] Conservación de los campos al fallar y posibilidad de reintentar.
+- [x] Envío único mientras está en curso y navegación solo después del resultado correcto.
+- [x] Pruebas unitarias de validación y estado del formulario.
+- [x] Pruebas del SDK Android contra Firebase Auth Emulator.
+- [x] Recorrido de la interfaz en dispositivo físico, incluida recreación de actividad y reintento de acceso.
+- [x] Registro, nombre, cierre, acceso incorrecto/correcto y recuperación de sesión contra el proyecto real `huellitas-chalco`.
 
-## Alcance
+Configuración y pruebas reproducibles en [docs/firebase-auth.md](docs/firebase-auth.md).
 
-HU-01 permite crear una cuenta con nombre, correo y contraseña, iniciar sesión, restaurar la sesión y cerrarla. Los formularios validan campos, muestran errores de Firebase y conservan los datos cuando falla una operación.
+## Orden para implementarlas una por una
 
-Las demás historias mantienen su interfaz de demostración. Todavía no hay consultas de perritos, persistencia en Room, solicitudes guardadas, cargas de fotografías, roles de refugio, Google Maps ni Gemini. Los mapas son ilustrativos.
+Firebase Authentication ya está configurado. Continúa HU-07 para autorizar los refugios; después se integrarán Cloud Firestore, Firebase Storage y los repositorios de datos. El diseño previo de la base de datos sigue como referencia.
 
-La configuración de Firebase y los comandos de pruebas están en [docs/firebase-auth.md](docs/firebase-auth.md). El archivo `app/google-services.json` se conserva localmente y no se publica en Git.
+1. [x] **HU-01 — Crear cuenta e iniciar sesión.** Crear usuarios y autenticar con Firebase Authentication. Validar campos, mostrar errores junto al campo y conservar los datos al fallar. Comprobar registro, acceso correcto, acceso incorrecto y cierre de sesión.
+2. [ ] **HU-07 — Autorizar al refugio.** Identificar el rol y el refugio de la cuenta. Restringir también el acceso a los datos: cada refugio administra únicamente sus perritos, solicitudes y seguimientos. Comprobar cuentas de adoptante, visitante y dos refugios distintos.
+3. [ ] **HU-08 — Registrar y publicar perritos.** Validar nombre, edad aproximada, tamaño, sexo, descripción y al menos una fotografía. Subir fotografías a Storage y guardar datos en Firestore. Comprobar reintentos de carga y que no se publique un registro incompleto.
+4. [ ] **HU-09 — Guardar el estado de salud.** Persistir vacunación, desparasitación y esterilización como Sí, No o Sin información, con Sin información como valor inicial. Comprobar que los valores guardados aparezcan en el detalle público.
+5. [ ] **HU-10 — Editar mis perritos.** Cargar los datos guardados, permitir corregirlos y mostrar vista previa. Guardar cambios y reflejarlos en el catálogo. Comprobar que otra cuenta de refugio no pueda editar ese registro.
+6. [ ] **HU-02 — Consultar el catálogo real.** Leer perritos de Chalco desde Firestore. Mostrar fotografía, nombre, edad, tamaño y refugio de los disponibles o en proceso. Comprobar que los adoptados queden fuera del catálogo.
+7. [ ] **HU-03 — Consultar el detalle real.** Abrir el registro seleccionado y cargar sus fotografías, edad, tamaño, sexo, descripción, refugio, estado de adopción y salud. Comprobar que los datos correspondan al perrito elegido.
+8. [ ] **HU-04 — Mostrar los requisitos del refugio.** Obtener los requisitos correspondientes al refugio del perrito y los pasos de adopción. Permitir consultarlos sin cuenta e iniciar la solicitud desde esa pantalla. Mantener identificados los datos de demostración.
+9. [ ] **HU-05 — Enviar una solicitud real.** Validar contacto, hogar, otras mascotas y motivos; conservar las respuestas entre pasos y permitir revisarlas. Exigir sesión para enviar. Confirmar el folio solo después de guardar y comprobar que reintentar no duplique la solicitud ni borre las respuestas si falla.
+10. [ ] **HU-06 — Consultar mis solicitudes reales.** Obtener únicamente las solicitudes de la cuenta actual, sus respuestas y cambios de estado con fecha. Mostrar Enviada, En revisión, Aprobada o No aprobada y el siguiente paso correspondiente. Comprobar que otra cuenta no pueda leerlas.
+11. [ ] **HU-12 — Consultar solicitudes recibidas.** Obtener solo solicitudes de perritos del refugio actual, con solicitante, perrito, fecha, estado y respuestas. Comprobar la vista sin registros y el aislamiento entre refugios.
+12. [ ] **HU-13 — Evaluar y guardar decisiones.** Aplicar Enviada → En revisión → Aprobada o No aprobada, con confirmación. Permitir una sola solicitud aprobada por perrito. Al aprobar, cambiarlo a En proceso y bloquear solicitudes nuevas. Comprobar también intentos simultáneos de aprobar dos solicitudes.
+13. [ ] **HU-14 — Registrar la entrega y adopción.** Exigir solicitud aprobada, fecha real de entrega y confirmación de carta firmada. Al confirmar, marcar al perrito Adoptado, impedir otra adopción y pasar las solicitudes restantes a No aprobada con su motivo. Comprobar que desaparezca del catálogo público.
+14. [ ] **HU-15 — Programar revisiones.** Desde una adopción registrada, guardar fecha y tipo de revisión: visita, llamada o videollamada. Mostrar las pendientes y permitir abrir su registro de seguimiento.
+15. [ ] **HU-16 — Guardar seguimientos.** Persistir fecha, adaptación, observaciones y fotografía opcional. Confirmar únicamente tras guardar, actualizar el historial, marcar la revisión como realizada y permitir programar la siguiente o cerrar el seguimiento.
+16. [ ] **HU-17 — Conservar catálogo y borradores con Room.** Implementar entidades, DAO y base local. Guardar el último catálogo y borradores separados por cuenta; restaurarlos al volver a abrir la app. Comprobar uso sin conexión, aviso de información desactualizada, ausencia de caché y eliminación del borrador solo tras confirmar el envío correcto.
+17. [ ] **HU-18 — Mostrar la ubicación con Google Maps.** Cargar la zona pública aproximada del refugio sin mostrar domicilios privados. Conservar nombre y zona si el mapa falla y permitir reintentar. Identificar los datos ficticios como demostración.
+18. [ ] **HU-11 — Conectar Gemini.** Generar una propuesta basada exclusivamente en los datos capturados, sin inventar características ni información médica. Permitir aceptar, editar, descartar y escribir manualmente si falla. Comprobar que nunca se publique automáticamente.
 
-## Ejecutar
+## Cuándo marcar una historia como terminada
 
-Abrir la carpeta raíz en Android Studio, sincronizar Gradle y ejecutar el módulo `app`. Se conserva la configuración del proyecto: Android SDK 37 y Android mínimo 24.
+- El comportamiento funciona con datos guardados y cuentas reales de prueba, no únicamente con `PreviewData` o `UiVariant`.
+- Se cumplen los criterios de aceptación correspondientes y las restricciones de acceso.
+- Se comprueban el caso correcto, los errores relevantes y la conservación o actualización de la información.
+- Las pantallas de éxito aparecen después de que la operación haya terminado correctamente.
 
-Compilar desde la raíz:
-
-```bash
-./gradlew :app:assembleDebug
-```
-
-El APK se genera en `app/build/outputs/apk/debug/app-debug.apk`.
+Fuera de HU-01, la navegación, las selecciones y los campos continúan como estado de presentación; sus confirmaciones y mensajes de guardado son ejemplos visuales.

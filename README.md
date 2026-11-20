@@ -2,6 +2,8 @@
 
 Interfaz Android en Kotlin y Jetpack Compose basada en los mockups aprobados. Incluye las vistas del adoptante y del refugio, con navegación de demostración y datos de ejemplo.
 
+El estado de las 18 historias y el orden para implementar su funcionalidad están en [CHECKLIST.md](CHECKLIST.md).
+
 ## Pantallas
 
 - Bienvenida, registro e inicio de sesión para ambos roles.

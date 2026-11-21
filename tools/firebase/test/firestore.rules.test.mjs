@@ -287,3 +287,29 @@ test('HU10 revocación de membresía o perfil bloquea la edición',async()=>{
     await adminUpdate(path,{activo:true});
   }
 });
+
+// HU-02: consultas públicas no amplían permisos de escritura o de lectura privada.
+test('HU02 visitante consulta catálogo publicado disponible o en proceso',async()=>{
+  const db=as();
+  await publish();
+  await env.withSecurityRulesDisabled(ctx=>setDoc(doc(ctx.firestore(),'perritos','proceso'),{...newDog(),estado:'En proceso',creadoEn:new Date(),actualizadoEn:new Date()}));
+  await env.withSecurityRulesDisabled(ctx=>setDoc(doc(ctx.firestore(),'perritos','adoptado'),{...newDog(),estado:'Adoptado',creadoEn:new Date(),actualizadoEn:new Date()}));
+  const result=await assertSucceeds(getDocs(query(collection(db,'perritos'),where('publicado','==',true),where('estado','in',['Disponible','En proceso']))));
+  const ids=result.docs.map(d=>d.id);
+  if(!ids.includes('nuevo')||!ids.includes('proceso')||ids.includes('adoptado')||ids.includes('private-a')) throw Error('Catálogo inesperado');
+});
+test('HU02 consulta sin restricciones públicas o incluyendo adoptados se rechaza',async()=>{
+  await assertFails(getDocs(collection(as(),'perritos')));
+  await assertFails(getDocs(query(collection(as(),'perritos'),where('publicado','==',true))));
+  await assertFails(getDocs(query(collection(as(),'perritos'),where('publicado','==',true),where('estado','in',['Disponible','Adoptado']))));
+});
+test('HU02 consulta refugios activos de Chalco sin permisos administrativos',async()=>{
+  await assertSucceeds(getDocs(query(collection(as(),'refugios'),where('activo','==',true),where('municipio','==','Chalco'),where('entidad','==','Estado de México'))));
+  await assertFails(getDocs(collection(as(),'refugios')));
+});
+test('HU02 adoptar o consultar catálogo no concede permiso de publicar o editar',async()=>{
+  const db=as('adopter');
+  await assertSucceeds(getDocs(query(collection(db,'perritos'),where('publicado','==',true),where('estado','in',['Disponible','En proceso']))));
+  await assertFails(publish('adopter','a','intento-catalogo'));
+  await assertFails(updateDoc(doc(db,'perritos','public-a'),{nombre:'Cambio ajeno',actualizadoEn:serverTimestamp()}));
+});

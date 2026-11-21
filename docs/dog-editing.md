@@ -2,7 +2,7 @@
 
 Desde **Mis perritos**, el responsable abre una ficha guardada y pulsa **Editar perrito**. Se cargan sus datos y fotografías originales. Puede corregir nombre, edad (meses o años), tamaño, sexo y descripción, agregar o quitar fotografías y elegir la portada. Debe conservar entre una y seis imágenes y revisar los cambios antes de guardarlos.
 
-La edición conserva el folio, refugio, fecha de creación, estado de adopción y control privado. La salud sigue administrándose por separado mediante HU-09. La lista propia y la ficha pública por identificador consultan el registro actualizado en Firestore. El catálogo general conserva los ejemplos hasta conectar HU-02; HU-10 no completa esa historia.
+La edición conserva el folio, refugio, fecha de creación, estado de adopción y control privado. La salud sigue administrándose por separado mediante HU-09. La lista propia y la ficha pública por identificador consultan el registro actualizado en Firestore. HU-02 conecta también el catálogo general a los registros actualizados; consulta [public-catalog.md](public-catalog.md).
 
 ## Comprobar en la tableta
 

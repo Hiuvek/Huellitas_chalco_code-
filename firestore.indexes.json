@@ -1,6 +1,51 @@
 {
   "indexes": [
-    {"collectionGroup":"membresias","queryScope":"COLLECTION","fields":[{"fieldPath":"usuarioUid","order":"ASCENDING"},{"fieldPath":"activo","order":"ASCENDING"}]}
+    {
+      "collectionGroup": "membresias",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "usuarioUid",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "activo",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "perritos",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "publicado",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "estado",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "refugios",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "activo",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "municipio",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "entidad",
+          "order": "ASCENDING"
+        }
+      ]
+    }
   ],
   "fieldOverrides": []
 }

@@ -173,7 +173,81 @@ class DogRegistrationFlowTest {
         }
         compose.onNodeWithText("Desparasitación: Sí").assertExists()
         compose.onNodeWithText("Esterilización: Sí").assertExists()
+        compose.onNodeWithContentDescription("Regresar").performClick()
+        waitForTag("dog-edit")
+        clickTag("dog-edit")
+        waitForTag("edit-name")
+        compose.onNodeWithTag("edit-name").assertTextContains(name)
+        compose
+            .onNodeWithTag("edit-name")
+            .performScrollTo()
+            .performTextReplacement("Cambio descartado")
+        Espresso.closeSoftKeyboard()
+        compose.onNodeWithText("Cancelar edición").performClick()
+        compose.onNodeWithText("Continuar editando").performClick()
+        compose.onNodeWithTag("edit-name").assertTextContains("Cambio descartado")
+        compose.onNodeWithText("Cancelar edición").performClick()
+        compose.onNodeWithText("Salir", substring = false).performClick()
+        waitForTag("dog-edit")
+        clickTag("dog-edit")
+        waitForTag("edit-name")
+        compose.onNodeWithTag("edit-name").assertTextContains(name)
+        compose.onNodeWithTag("edit-name").performScrollTo().performTextClearance()
+        Espresso.closeSoftKeyboard()
+        clickTag("edit-remove-0")
+        clickTag("edit-review")
+        compose.onNodeWithText("Escribe un nombre de 1 a 60 caracteres.").assertExists()
+        compose.onNodeWithText("Agrega entre 1 y 6 fotografías distintas.").assertExists()
+        compose.onNodeWithTag("edit-save").assertDoesNotExist()
+        clickTag("edit-add-photos")
+        compose.waitUntil(10_000) {
+            compose
+                .onAllNodesWithText("1 de 6 fotografías.", substring = true)
+                .fetchSemanticsNodes()
+                .isNotEmpty()
+        }
+        val editedName = "$name editada"
+        compose.onNodeWithTag("edit-name").performScrollTo().performTextReplacement(editedName)
+        compose.onNodeWithTag("edit-age").performScrollTo().performTextReplacement("18")
+        compose
+            .onNodeWithTag("edit-description")
+            .performScrollTo()
+            .performTextReplacement(
+                "Descripción actualizada de esta perrita ficticia, juguetona y acostumbrada a pasear acompañada."
+            )
+        Espresso.closeSoftKeyboard()
+        clickTag("edit-review")
+        waitForTag("edit-save")
+        compose.onNodeWithText(editedName).assertExists()
+        compose.onNodeWithText("18 meses · Mediano · Hembra").assertExists()
+        compose.onNodeWithText("Volver a editar").performClick()
+        compose.onNodeWithTag("edit-name").assertTextContains(editedName)
+        clickTag("edit-review")
+        clickTag("edit-save")
+        compose.waitUntil(30_000) {
+            compose.onAllNodesWithText("¡Cambios guardados!").fetchSemanticsNodes().isNotEmpty()
+        }
+        clickTag("edit-done")
+        waitForTag("dog-edit")
+        compose.onNodeWithText("18 meses · Mediano · Hembra").assertExists()
+        compose.onNodeWithText("Ver ficha pública").performScrollTo().performSemanticsAction(
+            SemanticsActions.OnClick
+        ) {
+            it()
+        }
+        compose.waitUntil(15_000) {
+            compose.onAllNodesWithText(editedName).fetchSemanticsNodes().isNotEmpty()
+        }
+        compose.onNodeWithText("Vacunación: No").assertExists()
+        compose.onNodeWithText("Desparasitación: Sí").assertExists()
+        compose.onNodeWithText("Esterilización: Sí").assertExists()
         assertTrue(source.exists())
+    }
+
+    private fun clickTag(tag: String) {
+        val node = compose.onNodeWithTag(tag)
+        if (tag !in listOf("edit-review", "edit-save", "edit-done")) node.performScrollTo()
+        node.performSemanticsAction(SemanticsActions.OnClick) { it() }
     }
 
     private fun choose(tag: String) {

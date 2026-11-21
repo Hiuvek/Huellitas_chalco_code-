@@ -137,6 +137,74 @@ class FirebaseDogRepository(
         return result()
     }
 
+    override suspend fun updateDog(
+        attempt: DogEditAttempt,
+        progress: (String) -> Unit,
+    ): RegisteredDog {
+        val (uid, base, draft) = attempt
+        require(auth.user.value?.uid == uid)
+        require(draft.errors().isEmpty())
+        require(draft.photos.all { it.remote == null || it.remote in base.photos })
+        val database = requireNotNull(db)
+        val bucket = requireNotNull(storage)
+        val ref = database.collection("perritos").document(base.id)
+        val desired = draft.content(uid, base)
+        val expected = DogContent.from(base)
+        progress("Comprobando registro…")
+        val previous = requireNotNull(parse(ref.get(Source.SERVER).await()))
+        check(previous.shelterId == base.shelterId)
+        if (DogContent.from(previous) == desired) return previous
+        if (DogContent.from(previous) != expected) throw DogEditConflict(previous)
+        draft.photos.forEachIndexed { index, photo ->
+            photo.local?.let { local ->
+                require(auth.user.value?.uid == uid)
+                require(local.id.matches(Regex("^[A-Za-z0-9-]{1,100}$")))
+                val file = File(local.filePath)
+                require(file.length() in 1..(2 * 1024 * 1024).toLong())
+                progress("Subiendo fotografía ${index + 1} de ${draft.photos.size}…")
+                val task =
+                    bucket.reference
+                        .child(desired.photos[index].path)
+                        .putFile(
+                            Uri.fromFile(file),
+                            StorageMetadata.Builder().setContentType("image/jpeg").build(),
+                        )
+                suspendCancellableCoroutine<Unit> { continuation ->
+                    task.addOnSuccessListener {
+                        if (continuation.isActive) continuation.resume(Unit)
+                    }
+                    task.addOnFailureListener {
+                        if (continuation.isActive) continuation.resumeWithException(it)
+                    }
+                    continuation.invokeOnCancellation { task.cancel() }
+                }
+            }
+        }
+        progress("Guardando cambios…")
+        val (result, conflict) =
+            database
+                .runTransaction { transaction ->
+                    require(auth.user.value?.uid == uid)
+                    val actual = requireNotNull(parse(transaction.get(ref)))
+                    check(actual.shelterId == base.shelterId)
+                    when (DogContent.from(actual)) {
+                        desired -> actual to false
+                        expected -> {
+                            transaction.update(
+                                ref,
+                                desired.fields() +
+                                    mapOf("actualizadoEn" to FieldValue.serverTimestamp()),
+                            )
+                            desired.applyTo(actual) to false
+                        }
+                        else -> actual to true
+                    }
+                }
+                .await()
+        if (conflict) throw DogEditConflict(result)
+        return result
+    }
+
     override fun observe(shelterId: String): Flow<ShelterDogs> = callbackFlow {
         val database = db
         if (database == null) {

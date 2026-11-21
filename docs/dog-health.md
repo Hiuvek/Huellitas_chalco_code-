@@ -9,7 +9,7 @@ Vacunación, desparasitación y esterilización se capturan por separado como **
 3. En **Mis perritos**, abrir el registro, cambiar los selectores y pulsar **Guardar salud**.
 4. Esperar **Salud guardada correctamente** y abrir **Ver ficha pública**. Deben aparecer los valores guardados.
 
-El catálogo todavía muestra ejemplos (HU-02). La ficha pública por identificador ya consulta el registro y su salud; los requisitos y la ficha completa del refugio corresponden a HU-03/HU-04. La edición de nombre, edad, descripción y fotos corresponde a HU-10.
+El catálogo todavía muestra ejemplos (HU-02). La ficha pública por identificador ya consulta el registro y su salud; los requisitos y la ficha completa del refugio corresponden a HU-03/HU-04. La edición de nombre, edad, tamaño, sexo, descripción y fotos se implementa en [HU-10](dog-editing.md).
 
 ## Datos y permisos
 

@@ -78,6 +78,8 @@ interface DogRepository {
 
     suspend fun publish(publication: DogPublication, progress: (String) -> Unit): RegisteredDog
 
+    suspend fun updateDog(attempt: DogEditAttempt, progress: (String) -> Unit): RegisteredDog
+
     fun observe(shelterId: String): Flow<ShelterDogs>
 
     suspend fun photo(path: String): ByteArray

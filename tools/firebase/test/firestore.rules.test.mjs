@@ -234,3 +234,56 @@ test('HU09 revocar membresía, perfil o refugio impide guardar salud',async()=>{
     await adminUpdate(path,{activo:true});
   }
 });
+
+// HU-10: datos generales y fotos, sin modificar salud ni ciclo de adopción.
+const editPatch=(extra={})=>({nombre:'Luna editada',edadMeses:30,tamano:'Grande',sexo:'Hembra',descripcion:'Perrita ficticia con descripción actualizada, tranquila y acostumbrada a pasear.',actualizadoEn:serverTimestamp(),...extra});
+test('HU10 edita datos generales y conserva identidad, salud y control',async()=>{
+  await publish();
+  await assertSucceeds(updateDoc(doc(as('a'),'perritos','nuevo'),editPatch()));
+  const snapshot=await assertSucceeds(getDoc(doc(as(),'perritos','nuevo')));
+  if(snapshot.data().nombre!=='Luna editada'||snapshot.data().vacunacion!=='Sin información') throw Error('Datos inesperados');
+  await assertSucceeds(getDoc(doc(as('a'),'perritos_control','nuevo')));
+});
+test('HU10 visitante, adoptante y otro refugio no editan',async()=>{
+  await publish();
+  for(const uid of [null,'adopter','b']) await assertFails(updateDoc(doc(as(uid),'perritos','nuevo'),editPatch()));
+});
+test('HU10 rechaza campos vacíos, edad inválida y pérdida de fotografías',async()=>{
+  await publish();
+  for(const extra of [{nombre:''},{nombre:'   '},{nombre:'x'.repeat(61)},{edadMeses:-1},{edadMeses:361},{edadMeses:2.5},{tamano:'Gigante'},{sexo:'Otro'},{descripcion:'Corta'},{descripcion:' '.repeat(40)},{fotos:[]},{fotos:newDog('a','a','nuevo',7).fotos}])
+    await assertFails(updateDoc(doc(as('a'),'perritos','nuevo'),editPatch(extra)));
+});
+test('HU10 no cambia propietario, creación, publicación, estado ni salud en la misma edición',async()=>{
+  await publish();
+  for(const extra of [{refugioId:'b'},{creadoEn:serverTimestamp()},{publicado:false},{estado:'Adoptado'},{vacunacion:'Sí'},{esDemostracion:false},{rol:'admin'},{actualizadoEn:new Date(0)}])
+    await assertFails(updateDoc(doc(as('a'),'perritos','nuevo'),editPatch(extra)));
+});
+test('HU10 admite nuevas fotos propias, portada y eliminación de referencias antiguas',async()=>{
+  await publish();
+  const fresh={archivoId:'nueva',ruta:'perritos/a/a/nuevo/nueva.jpg',orden:0};
+  await assertSucceeds(updateDoc(doc(as('a'),'perritos','nuevo'),editPatch({fotos:[fresh,{...newDog().fotos[0],orden:1}]})));
+  await assertSucceeds(updateDoc(doc(as('a'),'perritos','nuevo'),editPatch({fotos:[fresh]})));
+});
+test('HU10 otro miembro del mismo refugio conserva las fotos originales y agrega propias',async()=>{
+  await publish();
+  await env.withSecurityRulesDisabled(ctx=>setDoc(doc(ctx.firestore(),'membresias','b__a'),{usuarioUid:'b',refugioId:'a',activo:true}));
+  await assertSucceeds(updateDoc(doc(as('b'),'perritos','nuevo'),editPatch({fotos:[newDog().fotos[0],{archivoId:'nueva',ruta:'perritos/a/b/nuevo/nueva.jpg',orden:1}]})));
+});
+test('HU10 no permite inyectar nuevas rutas ajenas ni identidades alteradas o repetidas',async()=>{
+  await publish();
+  for(const fotos of [
+    [{archivoId:'nueva',ruta:'perritos/a/b/nuevo/nueva.jpg',orden:0}],
+    [{...newDog().fotos[0],archivoId:'mentira'}],
+    [{...newDog().fotos[0],orden:1}],
+    [newDog().fotos[0],{...newDog().fotos[0],orden:1}],
+    [{archivoId:'nueva',ruta:'perritos/b/a/nuevo/nueva.jpg',orden:0}],
+  ]) await assertFails(updateDoc(doc(as('a'),'perritos','nuevo'),editPatch({fotos})));
+});
+test('HU10 revocación de membresía o perfil bloquea la edición',async()=>{
+  await publish();
+  for(const path of ['membresias/a__a','usuarios/a','refugios/a']) {
+    await adminUpdate(path,{activo:false});
+    await assertFails(updateDoc(doc(as('a'),'perritos','nuevo'),editPatch()));
+    await adminUpdate(path,{activo:true});
+  }
+});

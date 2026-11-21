@@ -132,7 +132,17 @@ class DogRegistrationFlowTest {
         compose.waitUntil(15_000) {
             compose.onAllNodesWithText(name).fetchSemanticsNodes().isNotEmpty()
         }
-        compose.onNodeWithText(name).performScrollTo().performClick()
+        compose.onNodeWithText(name).performScrollTo().performSemanticsAction(
+            SemanticsActions.OnClick
+        ) {
+            it()
+        }
+        compose.waitUntil(15_000) {
+            compose
+                .onAllNodesWithText("Folio:", substring = true)
+                .fetchSemanticsNodes()
+                .isNotEmpty()
+        }
         compose.onNodeWithText("12 meses · Mediano · Hembra").assertExists()
         assertTrue(source.exists())
     }

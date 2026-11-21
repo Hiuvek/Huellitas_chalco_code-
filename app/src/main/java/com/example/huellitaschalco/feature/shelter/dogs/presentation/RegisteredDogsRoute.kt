@@ -5,6 +5,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
@@ -90,13 +91,19 @@ private fun StoredDogPhoto(path: String?, repository: DogRepository) {
                         null
                     }
         }
-    image?.let {
-        Image(
-            it,
-            "Fotografía del perrito",
-            Modifier.fillMaxWidth().height(200.dp),
-            contentScale = ContentScale.Crop,
-        )
+    // Reserva el espacio para que una imagen tardía no cambie la tarjeta bajo un toque.
+    Box(Modifier.fillMaxWidth().height(200.dp), contentAlignment = Alignment.Center) {
+        when {
+            image != null ->
+                Image(
+                    requireNotNull(image),
+                    "Fotografía del perrito",
+                    Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop,
+                )
+            failed -> TextButton(onClick = { retry++ }) { Text("Reintentar fotografía") }
+            path == null -> HCaption("Sin fotografía")
+            else -> CircularProgressIndicator()
+        }
     }
-    if (failed) TextButton(onClick = { retry++ }) { Text("Reintentar fotografía") }
 }

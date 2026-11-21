@@ -50,7 +50,7 @@ test('HU08 Storage permite reintentar antes de publicar y borrar una foto pendie
 });
 test('HU08 Storage publicación habilita lectura pública, pero impide sobrescribir y borrar fotos',async()=>{
   await assertSucceeds(put());
-  await adminSet('perritos','nuevo',{refugioId:'a',publicado:true,estado:'Disponible'});
+  await adminSet('perritos','nuevo',{refugioId:'a',publicado:true,estado:'Disponible',fotos:[{archivoId:'foto',ruta:path,orden:0}]});
   await assertSucceeds(getBytes(ref(storage(),path)));
   await assertFails(put()); await assertFails(deleteObject(ref(storage('a'),path)));
   await assertFails(listAll(ref(storage(),'perritos/a')));
@@ -66,4 +66,30 @@ test('HU08 Storage adopción o refugio ajeno no habilita la lectura pública',as
   await assertFails(getBytes(ref(storage(),path)));
   await adminSet('perritos','nuevo',{refugioId:'b',publicado:true,estado:'Disponible'});
   await assertFails(getBytes(ref(storage(),path)));
+});
+
+// HU-10: fotos nuevas en fichas existentes sin sobrescribir referencias publicadas.
+test('HU10 Storage permite preparar fotos nuevas sin publicarlas antes del guardado',async()=>{
+  await put();
+  await adminSet('perritos','nuevo',{refugioId:'a',publicado:true,estado:'Disponible',fotos:[{archivoId:'foto',ruta:path,orden:0}]});
+  const fresh='perritos/a/a/nuevo/nueva.jpg';
+  await assertSucceeds(put('a',fresh));
+  await assertSucceeds(put('a',fresh));
+  await assertFails(getBytes(ref(storage(),fresh)));
+  await assertFails(put());
+  await assertFails(deleteObject(ref(storage('a'),path)));
+  await adminSet('perritos','nuevo',{refugioId:'a',publicado:true,estado:'Disponible',fotos:[{archivoId:'nueva',ruta:fresh,orden:0}]});
+  await assertSucceeds(getBytes(ref(storage(),fresh)));
+  await assertFails(getBytes(ref(storage(),path)));
+});
+test('HU10 Storage no permite subir usando ID de un perrito de otro refugio',async()=>{
+  await adminSet('perritos','nuevo',{refugioId:'b',publicado:true,estado:'Disponible',fotos:[]});
+  await assertFails(put());
+});
+test('HU10 Storage otra cuenta del mismo refugio no sobrescribe una imagen usada',async()=>{
+  await put();
+  await adminSet('membresias','b__a',{usuarioUid:'b',refugioId:'a',activo:true});
+  await adminSet('perritos','nuevo',{refugioId:'a',publicado:true,estado:'Disponible',fotos:[{archivoId:'foto',ruta:path,orden:0}]});
+  await assertFails(put('b',path));
+  await assertSucceeds(put('b','perritos/a/b/nuevo/nueva.jpg'));
 });

@@ -221,7 +221,13 @@ class DogPublicationSdkTest {
         val ref = db.collection("perritos").document(input.id)
         val before = ref.get(Source.SERVER).await()
         val desired = DogHealth(HealthStatus.No, HealthStatus.Yes, HealthStatus.Yes)
-        repository.updateHealth(input.userUid, input.shelterId, input.id, input.draft.health, desired)
+        repository.updateHealth(
+            input.userUid,
+            input.shelterId,
+            input.id,
+            input.draft.health,
+            desired,
+        )
         val after = ref.get(Source.SERVER).await()
         assertEquals("No", after.getString("vacunacion"))
         assertEquals("Sí", after.getString("desparasitacion"))
@@ -234,7 +240,13 @@ class DogPublicationSdkTest {
                 it !in setOf("vacunacion", "desparasitacion", "esterilizacion", "actualizadoEn")
             },
         )
-        repository.updateHealth(input.userUid, input.shelterId, input.id, input.draft.health, desired)
+        repository.updateHealth(
+            input.userUid,
+            input.shelterId,
+            input.id,
+            input.draft.health,
+            desired,
+        )
         assertEquals(
             after.getTimestamp("actualizadoEn"),
             ref.get(Source.SERVER).await().getTimestamp("actualizadoEn"),
@@ -325,5 +337,237 @@ class DogPublicationSdkTest {
         } catch (error: FirebaseFirestoreException) {
             assertEquals(FirebaseFirestoreException.Code.PERMISSION_DENIED, error.code)
         }
+    }
+
+    @Test
+    fun editsFieldsAndPhotosPubliclyWithoutChangingIdentityHealthOrControl(): Unit = runBlocking {
+        val input = publication()
+        val original = repository.publish(input) {}
+        val before = db.collection("perritos").document(input.id).get(Source.SERVER).await()
+        val control =
+            db.collection("perritos_control").document(input.id).get(Source.SERVER).await().data
+        val local = importer.import(Uri.fromFile(image()).toString()).also { photos += it }
+        val draft =
+            DogEditDraft.from(original).let {
+                it.copy(
+                    form =
+                        it.form.copy(
+                            name = "Luna actualizada",
+                            age = "3",
+                            ageUnit = "Años",
+                            size = "Grande",
+                            sex = "Hembra",
+                            description =
+                                "Perrita ficticia con sus características actualizadas para la prueba de edición.",
+                        ),
+                    photos = listOf(EditableDogPhoto(local = local)) + it.photos,
+                )
+            }
+        val attempt = DogEditAttempt(input.userUid, original, draft)
+        val edited = repository.updateDog(attempt) {}
+        assertEquals("Luna actualizada", edited.name)
+        assertEquals(36, edited.ageMonths)
+        assertEquals(2, edited.photos.size)
+        assertEquals(original.photos[0].path, edited.photos[1].path)
+        assertEquals(1, edited.photos[1].order)
+        assertTrue(repository.photo(edited.photos[0].path).isNotEmpty())
+        val after = db.collection("perritos").document(input.id).get(Source.SERVER).await()
+        assertEquals(before.getTimestamp("creadoEn"), after.getTimestamp("creadoEn"))
+        for (key in
+            listOf(
+                "refugioId",
+                "estado",
+                "publicado",
+                "vacunacion",
+                "desparasitacion",
+                "esterilizacion",
+                "esDemostracion",
+            )) assertEquals(before.get(key), after.get(key))
+        assertEquals(
+            control,
+            db.collection("perritos_control").document(input.id).get(Source.SERVER).await().data,
+        )
+        assertEquals(edited, repository.updateDog(attempt) {})
+        assertEquals(
+            after.getTimestamp("actualizadoEn"),
+            db.collection("perritos")
+                .document(input.id)
+                .get(Source.SERVER)
+                .await()
+                .getTimestamp("actualizadoEn"),
+        )
+        val shortened =
+            repository.updateDog(
+                DogEditAttempt(
+                    input.userUid,
+                    edited,
+                    DogEditDraft.from(edited)
+                        .copy(photos = listOf(EditableDogPhoto(remote = edited.photos[0]))),
+                )
+            ) {}
+        assertEquals(1, shortened.photos.size)
+        auth.signOut()
+        val public =
+            kotlinx.coroutines.withTimeout(10_000) {
+                repository.observePublic(input.id).first { !it.loading }
+            }
+        assertEquals("Luna actualizada", public.dog!!.name)
+        assertEquals(shortened.photos, public.dog!!.photos)
+        try {
+            repository.photo(original.photos[0].path)
+            fail("No debe leer públicamente una foto retirada")
+        } catch (_: com.google.firebase.storage.StorageException) {}
+    }
+
+    @Test
+    fun editDoesNotLoseAConcurrentHealthUpdate(): Unit = runBlocking {
+        val input = publication()
+        val original = repository.publish(input) {}
+        val health = DogHealth(HealthStatus.Yes, HealthStatus.No, HealthStatus.Yes)
+        repository.updateHealth(input.userUid, input.shelterId, input.id, original.health, health)
+        val draft =
+            DogEditDraft.from(original).let {
+                it.copy(form = it.form.copy(name = "Nombre actualizado"))
+            }
+        val result = repository.updateDog(DogEditAttempt(input.userUid, original, draft)) {}
+        assertEquals(health, result.health)
+        assertEquals(
+            "Sí",
+            db.collection("perritos")
+                .document(input.id)
+                .get(Source.SERVER)
+                .await()
+                .getString("esterilizacion"),
+        )
+    }
+
+    @Test
+    fun staleDogEditReportsConflictAndCannotOverwrite(): Unit = runBlocking {
+        val input = publication()
+        val original = repository.publish(input) {}
+        fun change(name: String) =
+            DogEditDraft.from(original).let { it.copy(form = it.form.copy(name = name)) }
+        val actual =
+            repository.updateDog(
+                DogEditAttempt(input.userUid, original, change("Cambio primero"))
+            ) {}
+        try {
+            repository.updateDog(
+                DogEditAttempt(input.userUid, original, change("Cambio obsoleto"))
+            ) {}
+            fail("Debe detectar conflicto")
+        } catch (conflict: DogEditConflict) {
+            assertEquals(actual, conflict.actual)
+        }
+        assertEquals(
+            "Cambio primero",
+            db.collection("perritos")
+                .document(input.id)
+                .get(Source.SERVER)
+                .await()
+                .getString("nombre"),
+        )
+    }
+
+    @Test
+    fun failedPhotoEditKeepsOriginalAndRetriesSameFiles(): Unit = runBlocking {
+        val input = publication()
+        val original = repository.publish(input) {}
+        val first = importer.import(Uri.fromFile(image()).toString()).also { photos += it }
+        val broken = image().also { it.writeBytes(ByteArray(2 * 1024 * 1024 + 1)) }
+        val draft =
+            DogEditDraft.from(original).let {
+                it.copy(
+                    form = it.form.copy(name = "Cambio con fotos"),
+                    photos =
+                        it.photos +
+                            listOf(
+                                EditableDogPhoto(local = first),
+                                EditableDogPhoto(
+                                    local = LocalDogPhoto(UUID.randomUUID().toString(), broken.path)
+                                ),
+                            ),
+                )
+            }
+        val attempt = DogEditAttempt(input.userUid, original, draft)
+        try {
+            repository.updateDog(attempt) {}
+            fail("No debe guardar una carga parcial")
+        } catch (_: IllegalArgumentException) {}
+        assertEquals(
+            original.name,
+            db.collection("perritos")
+                .document(input.id)
+                .get(Source.SERVER)
+                .await()
+                .getString("nombre"),
+        )
+        broken.writeBytes(File(first.filePath).readBytes())
+        assertEquals(3, repository.updateDog(attempt) {}.photos.size)
+    }
+
+    @Test
+    fun offlineDogEditDoesNotQueueChangesAndCanRetry(): Unit = runBlocking {
+        val input = publication()
+        val original = repository.publish(input) {}
+        val draft =
+            DogEditDraft.from(original).let {
+                it.copy(form = it.form.copy(name = "Cambio tras conexión"))
+            }
+        val attempt = DogEditAttempt(input.userUid, original, draft)
+        db.disableNetwork().await()
+        try {
+            repository.updateDog(attempt) {}
+            fail("No debe confirmar sin servidor")
+        } catch (_: FirebaseFirestoreException) {} finally {
+            db.enableNetwork().await()
+        }
+        assertEquals(
+            original.name,
+            db.collection("perritos")
+                .document(input.id)
+                .get(Source.SERVER)
+                .await()
+                .getString("nombre"),
+        )
+        assertEquals("Cambio tras conexión", repository.updateDog(attempt) {}.name)
+    }
+
+    @Test
+    fun otherShelterCannotEditDogFields(): Unit = runBlocking {
+        val input = publication()
+        val original = repository.publish(input) {}
+        val draft =
+            DogEditDraft.from(original).let { it.copy(form = it.form.copy(name = "Cambio ajeno")) }
+        auth.signOut()
+        auth.signIn("hu07-b@example.test", "PruebaHU07!")
+        try {
+            repository.updateDog(DogEditAttempt(auth.user.value!!.uid, original, draft)) {}
+            fail("Otro refugio no debe editar")
+        } catch (error: FirebaseFirestoreException) {
+            assertEquals(FirebaseFirestoreException.Code.PERMISSION_DENIED, error.code)
+        }
+    }
+
+    @Test
+    fun emptyPhotoEditIsRejectedBeforeWriting(): Unit = runBlocking {
+        val input = publication()
+        val original = repository.publish(input) {}
+        try {
+            repository.updateDog(
+                DogEditAttempt(
+                    input.userUid,
+                    original,
+                    DogEditDraft.from(original).copy(photos = emptyList()),
+                )
+            ) {}
+            fail("Debe conservar una fotografía")
+        } catch (_: IllegalArgumentException) {}
+        assertEquals(
+            original.photos.size,
+            (db.collection("perritos").document(input.id).get(Source.SERVER).await().get("fotos")
+                    as List<*>)
+                .size,
+        )
     }
 }

@@ -152,6 +152,11 @@ class DogHealthViewModelTest {
             progress: (String) -> Unit,
         ): RegisteredDog = error("unused")
 
+        override suspend fun updateDog(
+            attempt: DogEditAttempt,
+            progress: (String) -> Unit,
+        ): RegisteredDog = error("unused")
+
         override fun observe(shelterId: String) = flowOf(ShelterDogs(false))
 
         override fun observePublic(id: String) = flowOf(PublicDog(false))

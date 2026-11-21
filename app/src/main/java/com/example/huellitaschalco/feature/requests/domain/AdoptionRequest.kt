@@ -53,3 +53,9 @@ interface AdoptionRequestsRepository {
 
     fun observeOwnDetail(uid: String, id: String): Flow<RequestDetailState>
 }
+
+interface ReceivedRequestsRepository {
+    fun observeReceived(uid: String, shelterId: String): Flow<RequestListState>
+
+    fun observeReceivedDetail(uid: String, shelterId: String, id: String): Flow<RequestDetailState>
+}

@@ -212,8 +212,26 @@ fun HuellitasApp(
                                 container.dogPhotoImporter,
                             )
                         }
-                    UiScreen.ShelterRequests -> ShelterRequestsScreen(nav, destination)
-                    UiScreen.EvaluateRequest -> EvaluateRequestScreen(nav, destination)
+                    UiScreen.ShelterRequests,
+                    UiScreen.EvaluateRequest ->
+                        if (destination.variant != UiVariant.Normal) {
+                            if (destination.screen == UiScreen.ShelterRequests)
+                                ShelterRequestsScreen(nav, destination)
+                            else EvaluateRequestScreen(nav, destination)
+                        } else
+                            LocalShelterScope.current?.let { scope ->
+                                com.example.huellitaschalco.feature.shelter.requests.presentation
+                                    .ReceivedRequestsRoute(
+                                        nav,
+                                        requireNotNull(user).uid,
+                                        scope.current.id,
+                                        scope.current.name,
+                                        if (destination.screen == UiScreen.EvaluateRequest)
+                                            destination.recordId
+                                        else null,
+                                        container.adoptionRequestsRepository,
+                                    )
+                            }
                     UiScreen.AdoptionForm -> AdoptionFormScreen(nav)
                     UiScreen.AdoptionComplete -> AdoptionCompleteScreen(nav)
                     UiScreen.AdoptionBlocked -> AdoptionBlockedScreen(nav)

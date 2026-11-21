@@ -14,16 +14,41 @@ class FirebaseAdoptionRequestsRepository(
     private val auth: AuthRepository,
     private val db: FirebaseFirestore?,
     private val waitMillis: Long = 12_000,
-) : AdoptionRequestsRepository {
-    override fun observeOwn(uid: String): Flow<RequestListState> =
+) : AdoptionRequestsRepository, ReceivedRequestsRepository {
+    override fun observeOwn(uid: String) = observeList(uid, null)
+
+    override fun observeOwnDetail(uid: String, id: String) = observeDetail(uid, null, id)
+
+    override fun observeReceived(uid: String, shelterId: String) = observeList(uid, shelterId)
+
+    override fun observeReceivedDetail(uid: String, shelterId: String, id: String) =
+        observeDetail(uid, shelterId, id)
+
+    private fun scopedQuery(collection: String, uid: String, shelterId: String?): Query =
+        requireNotNull(db)
+            .collection(collection)
+            .whereEqualTo(if (shelterId == null) "usuarioUid" else "refugioId", shelterId ?: uid)
+
+    private fun parseScoped(
+        doc: DocumentSnapshot,
+        uid: String,
+        shelterId: String?,
+    ): AdoptionRequest {
+        if (shelterId != null) check(doc.getString("refugioId") == shelterId)
+        return parseRequest(
+            doc,
+            if (shelterId == null) uid else requireNotNull(doc.getString("usuarioUid")),
+        )
+    }
+
+    private fun observeList(uid: String, shelterId: String?): Flow<RequestListState> =
         auth.user.flatMapLatest { user ->
             if (user?.uid != uid || db == null)
                 flowOf(
                     RequestListState(false, error = "Inicia sesión para consultar tus solicitudes.")
                 )
             else
-                db.collection("solicitudes")
-                    .whereEqualTo("usuarioUid", uid)
+                scopedQuery("solicitudes", uid, shelterId)
                     .serverValues()
                     .mapLatest { result ->
                         when (result) {
@@ -39,7 +64,11 @@ class FirebaseAdoptionRequestsRepository(
                                     val items = coroutineScope {
                                         result.snapshot.documents
                                             .map { document ->
-                                                async { withDogName(parseRequest(document, uid)) }
+                                                async {
+                                                    withDogName(
+                                                        parseScoped(document, uid, shelterId)
+                                                    )
+                                                }
                                             }
                                             .awaitAll()
                                     }
@@ -77,7 +106,11 @@ class FirebaseAdoptionRequestsRepository(
                     }
         }
 
-    override fun observeOwnDetail(uid: String, id: String): Flow<RequestDetailState> =
+    private fun observeDetail(
+        uid: String,
+        shelterId: String?,
+        id: String,
+    ): Flow<RequestDetailState> =
         auth.user.flatMapLatest { user ->
             if (user?.uid != uid || db == null)
                 flowOf(
@@ -88,13 +121,11 @@ class FirebaseAdoptionRequestsRepository(
                 )
             else {
                 val request =
-                    db.collection("solicitudes")
-                        .whereEqualTo("usuarioUid", uid)
+                    scopedQuery("solicitudes", uid, shelterId)
                         .whereEqualTo(FieldPath.documentId(), id)
                         .serverValues()
                 val history =
-                    db.collection("historial_solicitudes")
-                        .whereEqualTo("usuarioUid", uid)
+                    scopedQuery("historial_solicitudes", uid, shelterId)
                         .whereEqualTo("solicitudId", id)
                         .serverValues()
                 combine(request, history) { record, events -> record to events }
@@ -117,13 +148,19 @@ class FirebaseAdoptionRequestsRepository(
                                 try {
                                     val item =
                                         withDogName(
-                                            parseRequest(record.snapshot.documents.single(), uid)
+                                            parseScoped(
+                                                record.snapshot.documents.single(),
+                                                uid,
+                                                shelterId,
+                                            )
                                         )
                                     val changes =
                                         events.snapshot.documents
                                             .map { event ->
                                                 check(
-                                                    event.getString("usuarioUid") == uid &&
+                                                    event.getString("usuarioUid") == item.uid &&
+                                                        event.getString("refugioId") ==
+                                                            item.shelterId &&
                                                         event.getString("solicitudId") == id
                                                 )
                                                 RequestHistory(

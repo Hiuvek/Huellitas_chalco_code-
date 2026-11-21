@@ -97,6 +97,11 @@ fun PublicDogDetailRoute(
                         Modifier.testTag("detail-refuge"),
                         outlined = true,
                     )
+                    HButton(
+                        "Conocer requisitos",
+                        { nav.open(UiScreen.Requirements, recordId = id) },
+                        Modifier.testTag("detail-requirements"),
+                    )
                     if (dog.demonstration || shelter.demonstration)
                         HCaption("Registro de demostración local.")
                 } else {
@@ -107,6 +112,12 @@ fun PublicDogDetailRoute(
                         HKeyValue("Zona", shelter.zone, true)
                         HKeyValue("Horario", shelter.hours, true)
                     }
+                    HButton(
+                        "Ver requisitos de adopción",
+                        { nav.open(UiScreen.Requirements, recordId = id) },
+                        Modifier.testTag("refuge-requirements"),
+                        outlined = true,
+                    )
                     HBanner(
                         "La dirección exacta se comparte cuando el refugio agenda tu visita.",
                         HSymbol.Shield,

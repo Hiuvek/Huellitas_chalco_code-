@@ -233,9 +233,20 @@ fun HuellitasApp(
                                         container.evaluationRepository,
                                     )
                             }
-                    UiScreen.AdoptionForm -> AdoptionFormScreen(nav)
-                    UiScreen.AdoptionComplete -> AdoptionCompleteScreen(nav)
-                    UiScreen.AdoptionBlocked -> AdoptionBlockedScreen(nav)
+                    UiScreen.AdoptionForm,
+                    UiScreen.AdoptionComplete,
+                    UiScreen.AdoptionBlocked ->
+                        LocalShelterScope.current?.let { scope ->
+                            com.example.huellitaschalco.feature.shelter.adoption.presentation
+                                .AdoptionRoute(
+                                    nav,
+                                    requireNotNull(user).uid,
+                                    scope.current.id,
+                                    destination.recordId,
+                                    container.adoptionRequestsRepository,
+                                    container.adoptionRepository,
+                                )
+                        }
                     UiScreen.FollowUps -> FollowUpsScreen(nav, destination)
                     UiScreen.FollowUpForm -> FollowUpFormScreen(nav)
                     UiScreen.FollowUpSaved -> FollowUpSavedScreen(nav)

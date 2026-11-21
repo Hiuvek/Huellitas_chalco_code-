@@ -96,6 +96,12 @@ fun ReceivedRequestsRoute(
                         HHeading(item.dogName ?: item.dogId)
                         HTag(item.status)
                         EvaluationActions(item, uid, shelterId, evaluationRepository)
+                        if (item.status == "Aprobada")
+                            HButton(
+                                "Registrar entrega",
+                                { nav.open(UiScreen.AdoptionForm, recordId = item.id) },
+                                Modifier.testTag("adoption-open"),
+                            )
                         HKeyValue("Enviada", requestDate(item.createdAt))
                         item.rejectionReason?.let { HKeyValue("Motivo de la decisión", it) }
                         RequestAnswers(item)

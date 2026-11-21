@@ -28,7 +28,7 @@ Para autorizar una cuenta existente: obtener su UID desde Authentication, crear 
 
 `firestore.rules` limita perfiles y membresías a su propietario, permite consultar datos públicos y restringe registros privados al refugio con membresía activa. Las solicitudes, su historial y las adopciones también pueden ser consultados por su adoptante propietario con perfil activo. Las consultas administrativas deben incluir `whereEqualTo("refugioId", idAutorizado)`; Firestore rechaza una consulta global de registros privados.
 
-Las escrituras de negocio continúan bloqueadas. Se habilitarán con la validación y las transiciones de la historia correspondiente (HU-08, HU-05, HU-13, etc.). Así, esta entrega no habilita aprobaciones o adopciones sin validar su proceso. La creación de documentos mediante las pruebas se realiza solo con privilegios del emulador.
+En las reglas de HU-07 publicadas en el proyecto real, las escrituras de negocio continúan bloqueadas. HU-08 incorpora el alta de perritos y su control en las reglas locales; consulta [dog-publication.md](dog-publication.md). Las demás escrituras se habilitarán con la validación y las transiciones de su historia (HU-05, HU-13, etc.). Así, esta entrega no habilita aprobaciones o adopciones sin validar su proceso. La creación de documentos mediante las pruebas se realiza solo con privilegios del emulador.
 
 Configuración del proyecto: `firebase.json`, `firestore.rules` y `firestore.indexes.json`. El índice compuesto corresponde a `membresias(usuarioUid, activo)`. No se cambia a un plan de pago.
 
@@ -73,7 +73,7 @@ Las pruebas H1 continúan vigentes. `CloudAuthSmokeTest` se omite por defecto pa
 
 ## Alcance
 
-La autorización y las restricciones se conectan a Firebase. Las pantallas de perritos, solicitudes y seguimientos continúan como ejemplos y muestran ese aviso. Su registro y gestión real pertenecen a las siguientes historias. Las reglas están publicadas y la membresía de la cuenta autorizada está activa en el proyecto real. El acceso y el aislamiento entre refugios están comprobados con la sesión autorizada en la tableta.
+La autorización y las restricciones se conectan a Firebase. HU-08 conecta el registro y una consulta mínima de perritos a emuladores. Las variantes del muestrario, las solicitudes y los seguimientos continúan como ejemplos y muestran ese aviso. Su registro y gestión real pertenecen a las siguientes historias. Las reglas están publicadas y la membresía de la cuenta autorizada está activa en el proyecto real. El acceso y el aislamiento entre refugios están comprobados con la sesión autorizada en la tableta.
 
 Referencias oficiales: [condiciones de seguridad](https://firebase.google.com/docs/firestore/security/rules-conditions), [pruebas de reglas](https://firebase.google.com/docs/rules/unit-tests) y [listeners del SDK](https://firebase.google.com/docs/firestore/query-data/listen).
 

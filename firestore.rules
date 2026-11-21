@@ -26,10 +26,18 @@ service cloud.firestore {
       allow read: if resource.data.activo == true;
       allow write: if false;
     }
+    function samePhoto(a, b) { return a.archivoId == b.archivoId && a.ruta == b.ruta; }
+    function retainedPhoto(photo) {
+      let old = resource.data.fotos;
+      return samePhoto(photo,old[0]) || (old.size() > 1 && samePhoto(photo,old[1])) ||
+        (old.size() > 2 && samePhoto(photo,old[2])) || (old.size() > 3 && samePhoto(photo,old[3])) ||
+        (old.size() > 4 && samePhoto(photo,old[4])) || (old.size() > 5 && samePhoto(photo,old[5]));
+    }
     function validPhoto(photo, index, dogId, shelterId) {
       return photo is map && photo.keys().hasOnly(['archivoId', 'ruta', 'orden']) &&
         photo.archivoId is string && photo.archivoId.matches('[A-Za-z0-9-]{1,100}') &&
-        photo.orden == index && photo.ruta == 'perritos/' + shelterId + '/' + request.auth.uid + '/' + dogId + '/' + photo.archivoId + '.jpg';
+        photo.orden == index && (photo.ruta == 'perritos/' + shelterId + '/' + request.auth.uid + '/' + dogId + '/' + photo.archivoId + '.jpg' ||
+          (resource != null && retainedPhoto(photo)));
     }
     function validPhotos(photos, dogId, shelterId) {
       let n = photos.size();
@@ -61,15 +69,25 @@ service cloud.firestore {
         d.creadoEn == request.time && d.actualizadoEn == request.time && validPhotos(d.fotos,id,d.refugioId) &&
         getAfter(/databases/$(database)/documents/perritos_control/$(id)).data.refugioId == d.refugioId;
     }
+    function validEditedDog(d,id) {
+      return d.nombre is string && d.nombre.size() >= 1 && d.nombre.size() <= 60 && d.nombre.matches('\\S([\\s\\S]*\\S)?') &&
+        d.edadMeses is int && d.edadMeses >= 0 && d.edadMeses <= 360 &&
+        d.tamano in ['Chico','Mediano','Grande'] && d.sexo in ['Hembra','Macho'] &&
+        d.descripcion is string && d.descripcion.size() >= 40 && d.descripcion.size() <= 2000 && d.descripcion.matches('\\S([\\s\\S]*\\S)?') &&
+        validHealth(d) && validPhotos(d.fotos,id,resource.data.refugioId);
+    }
     match /perritos/{id} {
       allow read: if (resource.data.publicado == true && resource.data.estado in ['Disponible', 'En proceso']) || manages(resource.data.refugioId);
       // Permite comprobar un ID nuevo en una transacción, sin revelar documentos privados existentes.
       allow get: if resource == null && activeUser();
       allow create: if validNewDog(request.resource.data, id);
-      // HU-09 permite cambiar exclusivamente salud y su fecha, dentro del mismo refugio.
-      allow update: if manages(resource.data.refugioId) && validHealth(request.resource.data) &&
-        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['vacunacion','desparasitacion','esterilizacion','actualizadoEn']) &&
-        request.resource.data.actualizadoEn == request.time;
+      // Salud y datos generales se guardan por separado; propietario y ciclo de adopción son inmutables aquí.
+      allow update: if manages(resource.data.refugioId) && request.resource.data.actualizadoEn == request.time && (
+        (validHealth(request.resource.data) && request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['vacunacion','desparasitacion','esterilizacion','actualizadoEn'])) ||
+        (validEditedDog(request.resource.data,id) && request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['nombre','edadMeses','tamano','sexo','descripcion','fotos','actualizadoEn']))
+      );
       allow delete: if false;
     }
     match /solicitudes/{id} { allow read: if ownsRecord() || manages(resource.data.refugioId); }

@@ -9,7 +9,7 @@ try {
   await env.withSecurityRulesDisabled(async ctx=>{
     const db=ctx.firestore();
     for(const [id,activo,municipio] of [['hu02-chalco',true,'Chalco'],['hu02-otro',true,'Ixtapaluca'],['hu02-inactivo',false,'Chalco']])
-      await setDoc(doc(db,'refugios',id),{nombre:`Refugio catálogo ${id}`,activo,municipio,entidad:'Estado de México',zonaPublica:'Zona de demostración',horarioPublico:'10 a 17 h',esDemostracion:true,requisitos:[],pasos:[]});
+      await setDoc(doc(db,'refugios',id),{nombre:`Refugio catálogo ${id}`,activo,municipio,entidad:'Estado de México',zonaPublica:'Zona de demostración',horarioPublico:'10 a 17 h',esDemostracion:true,requisitos:['Ser mayor de edad y presentar identificación.','Contar con un espacio seguro y agua limpia.','Aceptar entrevista y seguimiento.'],pasos:['Solicitud','Revisión','Entrevista','Entrega y carta','Seguimiento']});
     const fixtures=[
       ['available','Lunita HU02','hu02-chalco','Disponible',true,8,'Chico','Hembra'],
       ['process','Óscar HU02','hu02-chalco','En proceso',true,24,'Grande','Macho'],

@@ -54,6 +54,10 @@ class FirebasePublicShelterRepository(private val db: FirebaseFirestore?) :
                                             it.isNotBlank()
                                         } ?: "Horario no registrado",
                                         doc.get("esDemostracion") == true,
+                                        AdoptionPolicy.fromStored(
+                                            doc.get("requisitos"),
+                                            doc.get("pasos"),
+                                        ),
                                     ),
                                 )
                         }

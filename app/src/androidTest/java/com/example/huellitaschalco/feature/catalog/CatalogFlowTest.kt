@@ -248,6 +248,36 @@ class CatalogFlowTest {
         }
     }
 
+    @Test
+    fun publicRequirementsShowStoredConditionsAndStepsForTheChosenDog() {
+        compose.setContent {
+            HuellitasChalcoTheme {
+                HuellitasApp(
+                    container.authRepository,
+                    container.shelterAccessRepository,
+                    UiDestination(UiScreen.Catalog),
+                )
+            }
+        }
+        waitTag("catalog-search")
+        compose.onNodeWithTag("catalog-search").performTextInput("Lunita HU02")
+        Espresso.closeSoftKeyboard()
+        waitTag("catalog-dog-hu02-catalog-available")
+        clickTag("catalog-dog-hu02-catalog-available")
+        waitTag("detail-requirements")
+        clickTag("detail-requirements")
+        waitTag("requirements-ready")
+        compose.onNodeWithText("Lunita HU02 · Refugio catálogo hu02-chalco").assertExists()
+        compose.onNodeWithText("Ser mayor de edad y presentar identificación.").assertExists()
+        compose.onNodeWithText("Contar con un espacio seguro y agua limpia.").assertExists()
+        compose.onNodeWithText("Aceptar entrevista y seguimiento.").assertExists()
+        compose.onNodeWithText("1. Solicitud").assertExists()
+        compose.onNodeWithText("5. Seguimiento").assertExists()
+        compose.onNodeWithContentDescription("Regresar").performClick()
+        waitTag("detail-refuge")
+        compose.onNodeWithText("Sobre Lunita HU02").assertExists()
+    }
+
     private fun clickTag(tag: String) {
         compose.onNodeWithTag(tag).performScrollTo().performSemanticsAction(
             SemanticsActions.OnClick

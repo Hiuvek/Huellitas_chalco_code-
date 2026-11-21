@@ -22,7 +22,7 @@ HU-01 usa Firebase Authentication para registrar cuentas e iniciar y cerrar sesi
 | HU-01 | Crear cuenta e iniciar sesión | Formularios conectados a Firebase | Implementada y comprobada |
 | HU-02 | Consultar catálogo de perritos en Chalco | Consulta pública de Firebase, fotografías, refugio, búsqueda y filtros reales | Implementada y comprobada en emuladores; nube pospuesta |
 | HU-03 | Consultar detalle del perrito | Galería, características, salud y refugio del registro seleccionado desde Firebase | Implementada y comprobada en emuladores; nube pospuesta |
-| HU-04 | Consultar requisitos y pasos | Requisitos de ejemplo y acceso al formulario | Pendiente |
+| HU-04 | Consultar requisitos y pasos | Condiciones y pasos de Firestore por refugio, consulta pública | Parcial: lectura comprobada; inicio de solicitud se completa con HU-05 |
 | HU-05 | Enviar solicitud de adopción | Cinco pasos, revisión y confirmación de ejemplo | Pendiente |
 | HU-06 | Consultar mis solicitudes | Lista, detalle y estados de ejemplo | Pendiente |
 | HU-07 | Acceso autorizado del refugio | Inicio de sesión real, verificación de membresías y bloqueo central | Implementada y comprobada |
@@ -164,9 +164,21 @@ Uso, consultas, límites y pruebas: [docs/public-catalog.md](docs/public-catalog
 
 Datos, uso y pruebas: [docs/public-dog-detail.md](docs/public-dog-detail.md). Los requisitos se conectan en HU-04 y Google Maps en HU-18.
 
+### HU-04 — Lectura comprobada; inicio pendiente de HU-05
+
+- [x] Rama `codex/hu-04-adoption-requirements`.
+- [x] Consulta sin sesión de requisitos y pasos del refugio del perrito elegido.
+- [x] Orden conservado y datos de demostración identificados.
+- [x] Configuración incompleta detectada, sin inventar ni omitir condiciones.
+- [x] Navegación desde la ficha, información del refugio y regreso al registro seleccionado.
+- [x] 64 pruebas unitarias totales y 16 Android de requisitos, ficha y catálogo, sin fallos; compilación normal/local y Lint sin errores.
+- [ ] Inicio de solicitud desde requisitos, conectado al formulario autenticado de HU-05.
+
+Uso y alcance: [docs/adoption-requirements.md](docs/adoption-requirements.md). HU-04 no se cuenta como terminada hasta completar ese criterio.
+
 ## Orden para implementarlas una por una
 
-Firebase Authentication y la base Firestore están configurados. HU-07 está desplegada y comprobada con la cuenta autorizada en la tableta. HU-08 está comprobada con servicios locales; su activación en la nube está pospuesta para conservar Spark. HU-09 y HU-10 también están comprobadas en emuladores. HU-02 ya está comprobada en emuladores. HU-03 ya está comprobada en emuladores. Continúa HU-04 para conectar los requisitos del refugio. El diseño original se conserva como referencia.
+Firebase Authentication y la base Firestore están configurados. HU-07 está desplegada y comprobada con la cuenta autorizada en la tableta. HU-08 está comprobada con servicios locales; su activación en la nube está pospuesta para conservar Spark. HU-09 y HU-10 también están comprobadas en emuladores. HU-02 ya está comprobada en emuladores. HU-03 ya está comprobada en emuladores. La lectura de HU-04 está comprobada en emuladores; continúa HU-05 para completar también el inicio de la solicitud. El diseño original se conserva como referencia.
 
 1. [x] **HU-01 — Crear cuenta e iniciar sesión.** Crear usuarios y autenticar con Firebase Authentication. Validar campos, mostrar errores junto al campo y conservar los datos al fallar. Comprobar registro, acceso correcto, acceso incorrecto y cierre de sesión.
 2. [x] **HU-07 — Autorizar al refugio.** Identificar el rol y el refugio de la cuenta. Restringir también el acceso a los datos: cada refugio administra únicamente sus perritos, solicitudes y seguimientos. Comprobar cuentas de adoptante, visitante y dos refugios distintos.

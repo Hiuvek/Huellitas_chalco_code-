@@ -180,6 +180,42 @@ class FirebaseCatalogSdkTest {
         }
     }
 
+    @Test
+    fun requirementsBelongToTheSelectedRefuge(): Unit = runBlocking {
+        val shelters =
+            com.example.huellitaschalco.feature.refuge.data.FirebasePublicShelterRepository(db)
+        val value = withTimeout(10_000) { shelters.observe("hu02-chalco").first { !it.loading } }
+        assertEquals("hu02-chalco", value.shelter!!.id)
+        assertEquals(3, value.shelter!!.policy!!.requirements.size)
+        assertEquals(
+            "Ser mayor de edad y presentar identificación.",
+            value.shelter!!.policy!!.requirements.first(),
+        )
+        assertEquals(
+            listOf("Solicitud", "Revisión", "Entrevista", "Entrega y carta", "Seguimiento"),
+            value.shelter!!.policy!!.steps,
+        )
+    }
+
+    @Test
+    fun invalidRequirementsAreNotDisplayedAsACompletePolicy(): Unit = runBlocking {
+        val shelters =
+            com.example.huellitaschalco.feature.refuge.data.FirebasePublicShelterRepository(db)
+        val original =
+            withTimeout(10_000) { shelters.observe("hu02-chalco").first { !it.loading } }
+                .shelter!!
+                .policy!!
+        try {
+            patch("refugios/hu02-chalco", "requisitos", false)
+            val value =
+                withTimeout(10_000) { shelters.observe("hu02-chalco").first { !it.loading } }
+            assertNull(value.shelter!!.policy)
+            assertEquals("Refugio catálogo hu02-chalco", value.shelter!!.name)
+        } finally {
+            patch("refugios/hu02-chalco", "requisitos", original.requirements)
+        }
+    }
+
     private suspend fun patch(document: String, field: String, value: Any) =
         withContext(Dispatchers.IO) {
             check(BuildConfig.FIREBASE_AUTH_EMULATOR)
@@ -197,8 +233,22 @@ class FirebaseCatalogSdkTest {
                 connection.readTimeout = 5_000
                 connection.doOutput = true
                 val typed =
-                    if (value is Boolean) JSONObject().put("booleanValue", value)
-                    else JSONObject().put("stringValue", value)
+                    when (value) {
+                        is Boolean -> JSONObject().put("booleanValue", value)
+                        is List<*> ->
+                            JSONObject()
+                                .put(
+                                    "arrayValue",
+                                    JSONObject()
+                                        .put(
+                                            "values",
+                                            org.json.JSONArray(
+                                                value.map { JSONObject().put("stringValue", it) }
+                                            ),
+                                        ),
+                                )
+                        else -> JSONObject().put("stringValue", value)
+                    }
                 connection.outputStream.use {
                     it.write(
                         JSONObject()

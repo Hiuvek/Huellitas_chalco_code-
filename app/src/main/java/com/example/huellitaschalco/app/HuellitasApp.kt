@@ -113,7 +113,16 @@ fun HuellitasApp(
                                     container.dogPhotoImporter,
                                 )
                             }
-                    UiScreen.Requirements -> RequirementsScreen(nav)
+                    UiScreen.Requirements ->
+                        if (destination.recordId != null)
+                            com.example.huellitaschalco.feature.refuge.presentation
+                                .RequirementsRoute(
+                                    nav,
+                                    destination.recordId,
+                                    container.dogRepository,
+                                    container.publicShelterRepository,
+                                )
+                        else RequirementsScreen(nav)
                     UiScreen.RefugeInformation ->
                         if (destination.recordId != null)
                             PublicDogDetailRoute(

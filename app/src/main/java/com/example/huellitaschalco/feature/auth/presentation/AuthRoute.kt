@@ -25,7 +25,12 @@ fun AuthRoute(nav: UiNavigator, destination: UiDestination, repository: AuthRepo
     val state by model.state.collectAsStateWithLifecycle()
     LaunchedEffect(state.completed) {
         if (state.completed) {
+            val applicationDog = destination.recordId.takeIf { !shelter }
             nav.root(if (shelter) UiScreen.ShelterDogs else UiScreen.Catalog)
+            if (applicationDog != null) {
+                nav.open(UiScreen.Requirements, recordId = applicationDog)
+                nav.open(UiScreen.ApplicationContact, recordId = applicationDog)
+            }
             model.clear()
         }
     }
@@ -45,7 +50,10 @@ fun AuthRoute(nav: UiNavigator, destination: UiDestination, repository: AuthRepo
             if (!shelter)
                 TextButton(
                     onClick = {
-                        nav.open(if (signUp) UiScreen.Login else UiScreen.SignUp)
+                        nav.open(
+                            if (signUp) UiScreen.Login else UiScreen.SignUp,
+                            recordId = destination.recordId,
+                        )
                     },
                     enabled = !state.isLoading,
                     modifier = Modifier.fillMaxWidth(),

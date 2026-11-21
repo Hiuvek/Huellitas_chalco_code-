@@ -137,7 +137,18 @@ fun HuellitasApp(
                     UiScreen.ApplicationHome,
                     UiScreen.ApplicationPets,
                     UiScreen.ApplicationReasons,
-                    UiScreen.ApplicationReview -> ApplicationScreen(nav, destination)
+                    UiScreen.ApplicationReview ->
+                        if (destination.recordId != null && destination.variant == UiVariant.Normal)
+                            com.example.huellitaschalco.feature.application.presentation
+                                .ApplicationRoute(
+                                    nav,
+                                    destination.recordId,
+                                    user,
+                                    container.adoptionApplicationRepository,
+                                    container.dogRepository,
+                                    container.publicShelterRepository,
+                                )
+                        else ApplicationScreen(nav, destination)
                     UiScreen.ApplicationSent -> ApplicationSentScreen(nav)
                     UiScreen.MyRequests -> MyRequestsScreen(nav, destination)
                     UiScreen.RequestDetail -> RequestDetailScreen(nav, destination)

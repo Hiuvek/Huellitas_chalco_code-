@@ -22,6 +22,7 @@ try {
       const id=`hu02-catalog-${key}`,ruta=`perritos/${refugioId}/fixture/${id}/foto.jpg`;
       await uploadBytes(ref(ctx.storage('gs://demo-huellitas-chalco.appspot.com'),ruta),image,{contentType:'image/jpeg'});
       if(key==='available') await uploadBytes(ref(ctx.storage('gs://demo-huellitas-chalco.appspot.com'),`perritos/${refugioId}/fixture/${id}/foto2.jpg`),image,{contentType:'image/jpeg'});
+      await setDoc(doc(db,'perritos_control',id),{refugioId,solicitudAprobadaId:estado==='Disponible' ? null : 'fixture-approved',adopcionId:estado==='Adoptado' ? id : null});
       await setDoc(doc(db,'perritos',id),{refugioId,nombre,edadMeses,tamano,sexo,descripcion:'Perrito ficticio para comprobar el catálogo escolar; esta ficha no representa un animal real.',vacunacion:'Sin información',desparasitacion:'Sin información',esterilizacion:'Sin información',estado,publicado,esDemostracion:true,fotos:key==='available' ? [{archivoId:'foto',ruta,orden:0},{archivoId:'foto2',ruta:`perritos/${refugioId}/fixture/${id}/foto2.jpg`,orden:1}] : [{archivoId:'foto',ruta,orden:0}],creadoEn:Timestamp.now(),actualizadoEn:Timestamp.now()});
     }
   });

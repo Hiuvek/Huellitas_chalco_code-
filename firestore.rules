@@ -11,7 +11,14 @@ service cloud.firestore {
         membership.data.usuarioUid == request.auth.uid && membership.data.refugioId == refugioId &&
         membership.data.activo == true && get(/databases/$(database)/documents/refugios/$(refugioId)).data.activo == true;
     }
-    function ownsRecord() { return activeUser() && resource.data.usuarioUid == request.auth.uid; }
+    // Authentication basta para un adoptante nuevo; un perfil desactivado sigue bloqueado.
+    // Las membresías administrativas mantienen el requisito estricto de perfil activo.
+    function adopterEnabled() {
+      return signedIn() && (!exists(/databases/$(database)/documents/usuarios/$(request.auth.uid)) ||
+        get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data.activo == true);
+    }
+    function ownsRecord() { return adopterEnabled() && resource.data.usuarioUid == request.auth.uid; }
+    function applicationKey(uid,dogId) { return hashing.sha256(uid + '\u0000' + dogId).toHexString().lower(); }
 
     match /usuarios/{uid} {
       allow get: if signedIn() && request.auth.uid == uid;
@@ -90,8 +97,68 @@ service cloud.firestore {
       );
       allow delete: if false;
     }
-    match /solicitudes/{id} { allow read: if ownsRecord() || manages(resource.data.refugioId); }
-    match /historial_solicitudes/{id} { allow read: if ownsRecord() || manages(resource.data.refugioId); }
+    function validContact(c) {
+      return c is map && c.keys().hasOnly(['nombre','correo','telefono']) &&
+        c.nombre is string && c.nombre.size() >= 2 && c.nombre.size() <= 100 && c.nombre.matches('\\S([\\s\\S]*\\S)?') &&
+        c.correo is string && c.correo.size() <= 254 && c.correo.matches('[^\\s@]+@[^\\s@]+\\.[^\\s@]+') &&
+        c.telefono is string && c.telefono.matches('[0-9]{10}');
+    }
+    function validHome(h) {
+      return h is map && h.keys().hasOnly(['tipoVivienda','tenencia','espacioExterior','personas','horasSolo']) &&
+        h.tipoVivienda in ['CASA','DEPARTAMENTO','OTRO'] && h.tenencia in ['PROPIA','RENTADA','FAMILIAR'] &&
+        h.espacioExterior is bool && h.personas is int && h.personas >= 1 && h.personas <= 20 &&
+        h.horasSolo in ['MENOS_DE_4','DE_4_A_8','MAS_DE_8'];
+    }
+    function validPets(p) {
+      return p is map && p.keys().hasOnly(['tiene','detalle']) && p.tiene is bool &&
+        ((!p.tiene && p.detalle == null) || (p.tiene && (p.detalle == null ||
+          (p.detalle is string && p.detalle.size() >= 1 && p.detalle.size() <= 500 && p.detalle.matches('\\S([\\s\\S]*\\S)?')))));
+    }
+    function acceptsRequests(d) {
+      let dog = get(/databases/$(database)/documents/perritos/$(d.perritoId)).data;
+      let shelter = get(/databases/$(database)/documents/refugios/$(d.refugioId)).data;
+      let control = get(/databases/$(database)/documents/perritos_control/$(d.perritoId)).data;
+      return dog.publicado == true && dog.estado == 'Disponible' && dog.refugioId == d.refugioId &&
+        shelter.activo == true && shelter.municipio == 'Chalco' && shelter.entidad == 'Estado de México' &&
+        shelter.requisitos is list && shelter.requisitos.size() > 0 && shelter.pasos is list && shelter.pasos.size() > 0 &&
+        control.refugioId == d.refugioId && control.solicitudAprobadaId == null && control.adopcionId == null;
+    }
+    function validNewApplication(d,id) {
+      let key = applicationKey(request.auth.uid,d.perritoId);
+      let unique = getAfter(/databases/$(database)/documents/solicitudes_claves/$(key)).data;
+      let history = getAfter(/databases/$(database)/documents/historial_solicitudes/$(id + '-1')).data;
+      return adopterEnabled() && id.matches('[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}') &&
+        d.keys().hasAll(['folio','usuarioUid','perritoId','refugioId','estado','contacto','hogar','otrasMascotas','motivos','motivoNoAprobacion','creadoEn','actualizadoEn']) &&
+        d.keys().hasOnly(['folio','usuarioUid','perritoId','refugioId','estado','contacto','hogar','otrasMascotas','motivos','motivoNoAprobacion','creadoEn','actualizadoEn']) &&
+        d.usuarioUid == request.auth.uid && d.folio == 'HC-' + id && d.estado == 'Enviada' &&
+        d.perritoId is string && d.refugioId is string && d.motivoNoAprobacion == null &&
+        validContact(d.contacto) && validHome(d.hogar) && validPets(d.otrasMascotas) &&
+        d.motivos is string && d.motivos.size() >= 30 && d.motivos.size() <= 2000 && d.motivos.matches('\\S([\\s\\S]*\\S)?') &&
+        d.creadoEn == request.time && d.actualizadoEn == request.time && acceptsRequests(d) &&
+        !exists(/databases/$(database)/documents/solicitudes_claves/$(key)) &&
+        unique.usuarioUid == request.auth.uid && unique.perritoId == d.perritoId && unique.solicitudId == id &&
+        history.solicitudId == id && history.usuarioUid == request.auth.uid && history.refugioId == d.refugioId && history.creadoEn == request.time;
+    }
+    function validInitialHistory(d,id) {
+      let application = getAfter(/databases/$(database)/documents/solicitudes/$(d.solicitudId)).data;
+      return adopterEnabled() && id == d.solicitudId + '-1' &&
+        d.keys().hasAll(['solicitudId','usuarioUid','refugioId','estadoAnterior','estadoNuevo','motivo','actorUid','creadoEn']) &&
+        d.keys().hasOnly(['solicitudId','usuarioUid','refugioId','estadoAnterior','estadoNuevo','motivo','actorUid','creadoEn']) &&
+        d.usuarioUid == request.auth.uid && d.actorUid == request.auth.uid && d.estadoAnterior == null && d.estadoNuevo == 'Enviada' &&
+        d.motivo == null && d.creadoEn == request.time && application.creadoEn == request.time &&
+        application.usuarioUid == request.auth.uid && application.refugioId == d.refugioId && application.estado == 'Enviada';
+    }
+    match /solicitudes/{id} {
+      allow read: if ownsRecord() || manages(resource.data.refugioId);
+      allow get: if resource == null && adopterEnabled();
+      allow create: if validNewApplication(request.resource.data,id);
+      allow update,delete: if false;
+    }
+    match /historial_solicitudes/{id} {
+      allow read: if ownsRecord() || manages(resource.data.refugioId);
+      allow create: if validInitialHistory(request.resource.data,id);
+      allow update,delete: if false;
+    }
     match /adopciones/{id} { allow read: if ownsRecord() || manages(resource.data.refugioId); }
     match /revisiones/{id} { allow read: if manages(resource.data.refugioId); }
     match /seguimientos/{id} { allow read: if manages(resource.data.refugioId); }
@@ -105,7 +172,17 @@ service cloud.firestore {
         getAfter(/databases/$(database)/documents/perritos/$(id)).data.refugioId == request.resource.data.refugioId;
       allow update, delete: if false;
     }
-    match /solicitudes_claves/{id} { allow read: if ownsRecord(); }
+    match /solicitudes_claves/{id} {
+      allow read: if ownsRecord();
+      allow get: if resource == null && adopterEnabled();
+      allow create: if adopterEnabled() && request.resource.data.keys().hasAll(['usuarioUid','perritoId','solicitudId']) &&
+        request.resource.data.keys().hasOnly(['usuarioUid','perritoId','solicitudId']) &&
+        request.resource.data.usuarioUid == request.auth.uid && id == applicationKey(request.auth.uid,request.resource.data.perritoId) &&
+        getAfter(/databases/$(database)/documents/solicitudes/$(request.resource.data.solicitudId)).data.usuarioUid == request.auth.uid &&
+        getAfter(/databases/$(database)/documents/solicitudes/$(request.resource.data.solicitudId)).data.perritoId == request.resource.data.perritoId &&
+        getAfter(/databases/$(database)/documents/solicitudes/$(request.resource.data.solicitudId)).data.creadoEn == request.time;
+      allow update,delete: if false;
+    }
     // Las escrituras de negocio se habilitan al implementar y validar su historia.
     match /{document=**} { allow read, write: if false; }
   }

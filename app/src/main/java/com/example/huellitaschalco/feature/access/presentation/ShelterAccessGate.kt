@@ -111,7 +111,7 @@ fun ShelterScopeHeader(scope: ShelterScope) {
             }
         } else HCaption(scope.current.name)
         HCaption(
-            "Las pantallas de perritos, solicitudes y seguimientos aún muestran datos de ejemplo."
+            "Solicitudes, seguimientos y variantes del muestrario aún muestran datos de ejemplo."
         )
     }
 }

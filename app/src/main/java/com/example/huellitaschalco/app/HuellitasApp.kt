@@ -4,6 +4,7 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -21,6 +22,7 @@ import com.example.huellitaschalco.feature.profile.*
 import com.example.huellitaschalco.feature.requests.*
 import com.example.huellitaschalco.feature.shelter.adoption.*
 import com.example.huellitaschalco.feature.shelter.dogs.*
+import com.example.huellitaschalco.feature.shelter.dogs.presentation.*
 import com.example.huellitaschalco.feature.shelter.followup.*
 import com.example.huellitaschalco.feature.shelter.requests.*
 
@@ -30,6 +32,7 @@ fun HuellitasApp(
     accessRepository: ShelterAccessRepository,
     initialPreview: UiDestination? = null,
 ) {
+    val container = (LocalContext.current.applicationContext as HuellitasApplication).container
     val nav = rememberUiNavigator()
     val user by authRepository.user.collectAsStateWithLifecycle()
     val access by accessRepository.access.collectAsStateWithLifecycle()
@@ -78,8 +81,20 @@ fun HuellitasApp(
                             },
                         )
                     UiScreen.Catalog -> CatalogScreen(nav, destination, user?.label)
-                    UiScreen.DogDetail,
-                    UiScreen.DogPreview -> DogDetailScreen(nav, destination)
+                    UiScreen.DogDetail -> DogDetailScreen(nav, destination)
+                    UiScreen.DogPreview ->
+                        if (destination.variant != UiVariant.Normal)
+                            DogDetailScreen(nav, destination)
+                        else
+                            LocalShelterScope.current?.let { scope ->
+                                DogRegistrationRoute(
+                                    nav,
+                                    requireNotNull(user).uid,
+                                    scope.current.id,
+                                    container.dogRepository,
+                                    container.dogPhotoImporter,
+                                )
+                            }
                     UiScreen.Requirements -> RequirementsScreen(nav)
                     UiScreen.RefugeInformation -> RefugeInformationScreen(nav)
                     UiScreen.ApplicationContact,
@@ -94,10 +109,38 @@ fun HuellitasApp(
                         ProfileScreen(nav, false, user, authRepository::signOut)
                     UiScreen.ShelterProfile ->
                         ProfileScreen(nav, true, user, authRepository::signOut)
-                    UiScreen.ShelterDogs -> ShelterDogsScreen(nav, destination)
-                    UiScreen.ShelterDogDetail -> ShelterDogDetailScreen(nav, destination)
-                    UiScreen.DogForm -> DogFormScreen(nav, destination)
-                    UiScreen.DogPublished -> DogPublishedScreen(nav)
+                    UiScreen.ShelterDogs,
+                    UiScreen.ShelterDogDetail ->
+                        if (destination.variant != UiVariant.Normal) {
+                            if (destination.screen == UiScreen.ShelterDogs)
+                                ShelterDogsScreen(nav, destination)
+                            else ShelterDogDetailScreen(nav, destination)
+                        } else
+                            LocalShelterScope.current?.let { scope ->
+                                RegisteredDogsRoute(nav, scope.current.id, container.dogRepository)
+                            }
+                    UiScreen.DogForm ->
+                        if (destination.variant != UiVariant.Normal) DogFormScreen(nav, destination)
+                        else
+                            LocalShelterScope.current?.let { scope ->
+                                DogRegistrationRoute(
+                                    nav,
+                                    requireNotNull(user).uid,
+                                    scope.current.id,
+                                    container.dogRepository,
+                                    container.dogPhotoImporter,
+                                )
+                            }
+                    UiScreen.DogPublished ->
+                        LocalShelterScope.current?.let { scope ->
+                            DogRegistrationRoute(
+                                nav,
+                                requireNotNull(user).uid,
+                                scope.current.id,
+                                container.dogRepository,
+                                container.dogPhotoImporter,
+                            )
+                        }
                     UiScreen.ShelterRequests -> ShelterRequestsScreen(nav, destination)
                     UiScreen.EvaluateRequest -> EvaluateRequestScreen(nav, destination)
                     UiScreen.AdoptionForm -> AdoptionFormScreen(nav)

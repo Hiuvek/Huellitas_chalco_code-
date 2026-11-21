@@ -71,8 +71,9 @@ data class UiDestination(
     val dogId: Int = 6,
     val requestId: Int = 1,
     val variant: UiVariant = UiVariant.Normal,
+    val recordId: String? = null,
 ) {
-    fun encode() = "${screen.name}|$dogId|$requestId|${variant.name}"
+    fun encode() = "${screen.name}|$dogId|$requestId|${variant.name}|${recordId.orEmpty()}"
 
     companion object {
         fun decode(value: String): UiDestination {
@@ -82,6 +83,7 @@ data class UiDestination(
                 p[1].toInt(),
                 p[2].toInt(),
                 UiVariant.valueOf(p[3]),
+                p.getOrNull(4)?.takeIf { it.isNotBlank() },
             )
         }
     }
@@ -106,7 +108,8 @@ class UiNavigator(initial: List<String> = listOf(UiDestination(UiScreen.Welcome)
         dogId: Int = current.dogId,
         requestId: Int = current.requestId,
         variant: UiVariant = UiVariant.Normal,
-    ) = open(UiDestination(screen, dogId, requestId, variant))
+        recordId: String? = null,
+    ) = open(UiDestination(screen, dogId, requestId, variant, recordId))
 
     fun back() {
         if (canGoBack) entries.removeAt(entries.lastIndex)

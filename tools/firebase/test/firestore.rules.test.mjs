@@ -1,7 +1,7 @@
 import { before, after, beforeEach, test } from 'node:test';
 import { readFile } from 'node:fs/promises';
 import { initializeTestEnvironment, assertSucceeds, assertFails } from '@firebase/rules-unit-testing';
-import { doc, setDoc, getDoc, getDocs, collection, query, where, updateDoc, deleteDoc } from 'firebase/firestore';
+import { doc, setDoc, getDoc, getDocs, collection, query, where, updateDoc, deleteDoc, writeBatch, serverTimestamp } from 'firebase/firestore';
 let env;
 const privateCollections = ['solicitudes','historial_solicitudes','adopciones','revisiones','seguimientos','perritos_control'];
 before(async () => {
@@ -116,4 +116,76 @@ test('no se pueden cambiar propietarios ni adelantar escrituras de otras histori
 test('colecciones desconocidas permanecen bloqueadas',async()=>{
   await assertFails(setDoc(doc(as('a'),'admins','a'),{rol:'admin'}));
   await assertFails(getDoc(doc(as('a'),'admins','a')));
+});
+
+// HU-08: alta atómica, datos completos y referencias de fotografías propias.
+const newDog = (uid='a', shelter='a', id='nuevo', count=1) => ({
+  refugioId:shelter,nombre:'Luna',edadMeses:24,tamano:'Mediano',sexo:'Hembra',
+  descripcion:'Perrita tranquila y sociable que disfruta salir a caminar acompañada.',
+  vacunacion:'Sin información',desparasitacion:'Sin información',esterilizacion:'Sin información',
+  estado:'Disponible',publicado:true,esDemostracion:true,
+  fotos:Array.from({length:count},(_,i)=>({archivoId:`foto-${i}`,ruta:`perritos/${shelter}/${uid}/${id}/foto-${i}.jpg`,orden:i})),
+  creadoEn:serverTimestamp(),actualizadoEn:serverTimestamp(),
+});
+const publish = (uid='a', shelter='a', id='nuevo', change={}) => {
+  const db=as(uid); const batch=writeBatch(db);
+  batch.set(doc(db,'perritos',id),{...newDog(uid,shelter,id),...change});
+  batch.set(doc(db,'perritos_control',id),{refugioId:shelter,solicitudAprobadaId:null,adopcionId:null});
+  return batch.commit();
+};
+test('HU08 responsable publica ficha completa y control en una operación',async()=>{
+  await assertSucceeds(publish());
+  const snapshot=await assertSucceeds(getDoc(doc(as(),'perritos','nuevo')));
+  if(snapshot.data().nombre!=='Luna') throw Error('Registro inesperado');
+  await assertSucceeds(getDoc(doc(as('a'),'perritos_control','nuevo')));
+  await assertFails(getDoc(doc(as('b'),'perritos_control','nuevo')));
+});
+test('HU08 visitante y adoptante no publican, ni responsable en otro refugio',async()=>{
+  await assertFails(publish(null,'a','sin-cuenta'));
+  await assertFails(publish('adopter','a','adoptante'));
+  await assertFails(publish('a','b','otro-refugio'));
+});
+test('HU08 sin membresía o perfil activo no se permite publicar',async()=>{
+  await adminUpdate('membresias/a__a',{activo:false});
+  await assertFails(publish());
+  await adminUpdate('membresias/a__a',{activo:true});
+  await adminUpdate('usuarios/a',{activo:false});
+  await assertFails(publish());
+});
+test('HU08 no se permite publicar sin control, ni control sin ficha',async()=>{
+  await assertFails(setDoc(doc(as('a'),'perritos','nuevo'),newDog()));
+  await assertFails(setDoc(doc(as('a'),'perritos_control','nuevo'),{refugioId:'a',solicitudAprobadaId:null,adopcionId:null}));
+});
+test('HU08 datos incompletos, estados adelantados y campos ajenos se rechazan',async()=>{
+  for(const patch of [
+    {nombre:''},{nombre:'   '},{nombre:'x'.repeat(61)},{edadMeses:-1},{edadMeses:361},{edadMeses:1.5},
+    {tamano:'Gigante'},{sexo:'Otro'},{descripcion:'Corta'},{descripcion:' '.repeat(40)},{descripcion:'x'.repeat(2001)},
+    {publicado:false},{estado:'Adoptado'},{vacunacion:'Sí'},{rol:'admin'},
+    {creadoEn:new Date(0)},{fotos:[]},
+  ]) await assertFails(publish('a','a','nuevo',patch));
+  const {sexo,...missing}=newDog();
+  await assertFails(setDoc(doc(as('a'),'perritos','nuevo'),missing));
+});
+test('HU08 permite seis fotos, rechaza siete, orden y rutas de otras cuentas',async()=>{
+  await assertSucceeds(publish('a','a','seis',{fotos:newDog('a','a','seis',6).fotos}));
+  for(const photos of [
+    newDog('a','a','nuevo',7).fotos,
+    newDog('b','a','nuevo').fotos,
+    newDog('a','b','nuevo').fotos,
+    [{...newDog().fotos[0],orden:1}],
+    [{...newDog().fotos[0],ruta:'https://ejemplo.test/foto.jpg'}],
+    [newDog().fotos[0],{...newDog().fotos[0],orden:1}],
+  ]) await assertFails(publish('a','a','nuevo',{fotos:photos}));
+});
+test('HU08 una publicación existente no se sobrescribe ni se elimina',async()=>{
+  await assertSucceeds(publish());
+  await assertFails(publish('a','a','nuevo',{nombre:'Otro'}));
+  await assertFails(updateDoc(doc(as('a'),'perritos','nuevo'),{estado:'Adoptado'}));
+  await assertFails(deleteDoc(doc(as('a'),'perritos','nuevo')));
+  await assertFails(deleteDoc(doc(as('a'),'perritos_control','nuevo')));
+});
+test('HU08 la lectura de un ID nuevo requiere perfil activo y no revela registros privados',async()=>{
+  await assertSucceeds(getDoc(doc(as('a'),'perritos','inexistente')));
+  await assertFails(getDoc(doc(as(),'perritos','inexistente')));
+  await assertFails(getDoc(doc(as('a'),'perritos','private-b')));
 });

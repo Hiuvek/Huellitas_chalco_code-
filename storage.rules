@@ -1,0 +1,28 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    function manages(shelterId) {
+      let uid = request.auth.uid;
+      let membership = firestore.get(/databases/(default)/documents/membresias/$(uid + '__' + shelterId)).data;
+      return request.auth != null &&
+        firestore.get(/databases/(default)/documents/usuarios/$(uid)).data.activo == true &&
+        membership.usuarioUid == uid && membership.refugioId == shelterId && membership.activo == true &&
+        firestore.get(/databases/(default)/documents/refugios/$(shelterId)).data.activo == true;
+    }
+    function published(dogId, shelterId) {
+      let dog = firestore.get(/databases/(default)/documents/perritos/$(dogId)).data;
+      return dog.refugioId == shelterId && dog.publicado == true && dog.estado in ['Disponible','En proceso'];
+    }
+    match /perritos/{shelterId}/{uid}/{dogId}/{fileName} {
+      allow get: if published(dogId,shelterId) || manages(shelterId);
+      allow create, update: if request.auth != null && request.auth.uid == uid && manages(shelterId) &&
+        dogId.matches('[A-Za-z0-9-]{1,100}') && fileName.matches('[A-Za-z0-9-]{1,100}\\.jpg') &&
+        request.resource.size > 0 && request.resource.size <= 2 * 1024 * 1024 &&
+        request.resource.contentType == 'image/jpeg' &&
+        !firestore.exists(/databases/(default)/documents/perritos/$(dogId));
+      allow delete: if request.auth != null && request.auth.uid == uid && manages(shelterId) &&
+        !firestore.exists(/databases/(default)/documents/perritos/$(dogId));
+    }
+    match /{allPaths=**} { allow read, write: if false; }
+  }
+}

@@ -5,6 +5,8 @@ import com.example.huellitaschalco.core.firebase.FirebaseProvider
 import com.example.huellitaschalco.feature.access.data.FirestoreShelterAccessRepository
 import com.example.huellitaschalco.feature.auth.data.FirebaseAuthRepository
 import com.example.huellitaschalco.feature.auth.domain.AuthRepository
+import com.example.huellitaschalco.feature.shelter.dogs.data.AndroidDogPhotoImporter
+import com.example.huellitaschalco.feature.shelter.dogs.data.FirebaseDogRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -14,6 +16,14 @@ class AppContainer(context: Context) {
     private val firebase = FirebaseProvider(context.applicationContext)
     val authRepository: AuthRepository =
         FirebaseAuthRepository(firebase.auth, firebase.usesEmulator)
+    val dogPhotoImporter = AndroidDogPhotoImporter(context.applicationContext)
+    val dogRepository =
+        FirebaseDogRepository(
+            authRepository,
+            firebase.firestore,
+            firebase.storage,
+            firebase.usesEmulator,
+        )
     val shelterAccessRepository =
         FirestoreShelterAccessRepository(authRepository, firebase.firestore, scope)
 }

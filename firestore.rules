@@ -90,11 +90,12 @@ service cloud.firestore {
       allow create: if validNewDog(request.resource.data, id);
       // Salud y datos generales se guardan por separado; propietario y ciclo de adopción son inmutables aquí.
       allow update: if manages(resource.data.refugioId) && request.resource.data.actualizadoEn == request.time && (
-        (validHealth(request.resource.data) && request.resource.data.diff(resource.data).affectedKeys()
-          .hasOnly(['vacunacion','desparasitacion','esterilizacion','actualizadoEn'])) ||
-        (validEditedDog(request.resource.data,id) && request.resource.data.diff(resource.data).affectedKeys()
-          .hasOnly(['nombre','edadMeses','tamano','sexo','descripcion','fotos','actualizadoEn']))
+        (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['vacunacion','desparasitacion','esterilizacion','actualizadoEn']) &&
+          validHealth(request.resource.data)) ||
+        (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['nombre','edadMeses','tamano','sexo','descripcion','fotos','actualizadoEn']) &&
+          validEditedDog(request.resource.data,id))
       );
+      allow update: if validApprovalDog(request.resource.data,id);
       allow delete: if false;
     }
     function validContact(c) {
@@ -148,15 +149,69 @@ service cloud.firestore {
         d.motivo == null && d.creadoEn == request.time && application.creadoEn == request.time &&
         application.usuarioUid == request.auth.uid && application.refugioId == d.refugioId && application.estado == 'Enviada';
     }
+    function decisionSuffix(state) { return state == 'En revisión' ? 'revision' : state == 'Aprobada' ? 'aprobada' : 'no-aprobada'; }
+    function decisionTransition(before,after) {
+      return (before == 'Enviada' && after == 'En revisión') ||
+        (before == 'En revisión' && after in ['Aprobada','No aprobada']);
+    }
+    function decisionReason(d) {
+      return d.estado == 'No aprobada' ? (d.motivoNoAprobacion is string && d.motivoNoAprobacion.size() >= 5 &&
+        d.motivoNoAprobacion.size() <= 1000 && d.motivoNoAprobacion.matches('\\S([\\s\\S]*\\S)?')) : d.motivoNoAprobacion == null;
+    }
+    function validDecision(d,id) {
+      let old = resource.data;
+      let history = getAfter(/databases/$(database)/documents/historial_solicitudes/$(id + '-' + decisionSuffix(d.estado))).data;
+      let control = get(/databases/$(database)/documents/perritos_control/$(old.perritoId)).data;
+      let nextControl = getAfter(/databases/$(database)/documents/perritos_control/$(old.perritoId)).data;
+      return manages(old.refugioId) && d.diff(old).affectedKeys().hasOnly(['estado','motivoNoAprobacion','actualizadoEn']) &&
+        decisionTransition(old.estado,d.estado) && decisionReason(d) && d.actualizadoEn == request.time && control.adopcionId == null &&
+        history.solicitudId == id && history.usuarioUid == old.usuarioUid && history.refugioId == old.refugioId &&
+        history.estadoAnterior == old.estado && history.estadoNuevo == d.estado && history.motivo == d.motivoNoAprobacion &&
+        history.actorUid == request.auth.uid && history.creadoEn == request.time &&
+        (d.estado != 'Aprobada' || (control.solicitudAprobadaId == null && nextControl.solicitudAprobadaId == id &&
+          get(/databases/$(database)/documents/perritos/$(old.perritoId)).data.estado == 'Disponible' &&
+          get(/databases/$(database)/documents/perritos/$(old.perritoId)).data.publicado == true &&
+          getAfter(/databases/$(database)/documents/perritos/$(old.perritoId)).data.actualizadoEn == request.time &&
+          getAfter(/databases/$(database)/documents/perritos/$(old.perritoId)).data.estado == 'En proceso'));
+    }
+    function validDecisionHistory(d,id) {
+      let old = get(/databases/$(database)/documents/solicitudes/$(d.solicitudId)).data;
+      let after = getAfter(/databases/$(database)/documents/solicitudes/$(d.solicitudId)).data;
+      return manages(old.refugioId) &&
+        d.keys().hasAll(['solicitudId','usuarioUid','refugioId','estadoAnterior','estadoNuevo','motivo','actorUid','creadoEn']) &&
+        d.keys().hasOnly(['solicitudId','usuarioUid','refugioId','estadoAnterior','estadoNuevo','motivo','actorUid','creadoEn']) &&
+        id == d.solicitudId + '-' + decisionSuffix(d.estadoNuevo) && decisionTransition(old.estado,after.estado) &&
+        d.usuarioUid == old.usuarioUid && d.refugioId == old.refugioId && d.estadoAnterior == old.estado && d.estadoNuevo == after.estado &&
+        d.motivo == after.motivoNoAprobacion && d.actorUid == request.auth.uid && d.creadoEn == request.time && after.actualizadoEn == request.time;
+    }
+    function validApprovalControl(d,id) {
+      let old = resource.data;
+      let application = get(/databases/$(database)/documents/solicitudes/$(d.solicitudAprobadaId)).data;
+      let next = getAfter(/databases/$(database)/documents/solicitudes/$(d.solicitudAprobadaId)).data;
+      return manages(old.refugioId) && old.solicitudAprobadaId == null && old.adopcionId == null &&
+        d.diff(old).affectedKeys().hasOnly(['solicitudAprobadaId']) && d.solicitudAprobadaId is string &&
+        application.refugioId == old.refugioId && application.perritoId == id && application.estado == 'En revisión' &&
+        next.estado == 'Aprobada' && next.actualizadoEn == request.time &&
+        getAfter(/databases/$(database)/documents/perritos/$(id)).data.estado == 'En proceso';
+    }
+    function validApprovalDog(d,id) {
+      let control = getAfter(/databases/$(database)/documents/perritos_control/$(id)).data;
+      let application = getAfter(/databases/$(database)/documents/solicitudes/$(control.solicitudAprobadaId)).data;
+      return manages(resource.data.refugioId) && resource.data.estado == 'Disponible' && resource.data.publicado == true &&
+        d.estado == 'En proceso' && d.actualizadoEn == request.time && d.diff(resource.data).affectedKeys().hasOnly(['estado','actualizadoEn']) &&
+        control.refugioId == resource.data.refugioId && control.adopcionId == null &&
+        application.perritoId == id && application.refugioId == resource.data.refugioId && application.estado == 'Aprobada' && application.actualizadoEn == request.time;
+    }
     match /solicitudes/{id} {
       allow read: if ownsRecord() || manages(resource.data.refugioId);
       allow get: if resource == null && adopterEnabled();
       allow create: if validNewApplication(request.resource.data,id);
-      allow update,delete: if false;
+      allow update: if validDecision(request.resource.data,id);
+      allow delete: if false;
     }
     match /historial_solicitudes/{id} {
       allow read: if ownsRecord() || manages(resource.data.refugioId);
-      allow create: if validInitialHistory(request.resource.data,id);
+      allow create: if validInitialHistory(request.resource.data,id) || validDecisionHistory(request.resource.data,id);
       allow update,delete: if false;
     }
     match /adopciones/{id} { allow read: if ownsRecord() || manages(resource.data.refugioId); }
@@ -170,7 +225,8 @@ service cloud.firestore {
         request.resource.data.solicitudAprobadaId == null && request.resource.data.adopcionId == null &&
         !exists(/databases/$(database)/documents/perritos/$(id)) &&
         getAfter(/databases/$(database)/documents/perritos/$(id)).data.refugioId == request.resource.data.refugioId;
-      allow update, delete: if false;
+      allow update: if validApprovalControl(request.resource.data,id);
+      allow delete: if false;
     }
     match /solicitudes_claves/{id} {
       allow read: if ownsRecord();

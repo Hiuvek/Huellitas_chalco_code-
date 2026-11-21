@@ -17,6 +17,7 @@ import com.example.huellitaschalco.feature.auth.*
 import com.example.huellitaschalco.feature.auth.domain.AuthRepository
 import com.example.huellitaschalco.feature.auth.presentation.AuthRoute
 import com.example.huellitaschalco.feature.catalog.*
+import com.example.huellitaschalco.feature.catalog.presentation.CatalogRoute
 import com.example.huellitaschalco.feature.preview.*
 import com.example.huellitaschalco.feature.profile.*
 import com.example.huellitaschalco.feature.requests.*
@@ -80,7 +81,16 @@ fun HuellitasApp(
                                 nav.root(UiScreen.ShelterLogin)
                             },
                         )
-                    UiScreen.Catalog -> CatalogScreen(nav, destination, user?.label)
+                    UiScreen.Catalog ->
+                        if (destination.variant != UiVariant.Normal)
+                            CatalogScreen(nav, destination, user?.label)
+                        else
+                            CatalogRoute(
+                                nav,
+                                user?.label,
+                                container.catalogRepository,
+                                container.dogRepository,
+                            )
                     UiScreen.DogDetail ->
                         if (destination.recordId != null)
                             PublicDogDetailRoute(nav, destination.recordId, container.dogRepository)

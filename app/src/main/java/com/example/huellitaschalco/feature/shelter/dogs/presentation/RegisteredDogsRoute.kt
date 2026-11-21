@@ -61,7 +61,7 @@ fun RegisteredDogsRoute(
                 HBody("No encontramos este registro en el refugio seleccionado.")
             selected != null -> {
                 StoredDogPhoto(selected.photos.firstOrNull()?.path, repository)
-                HTag("Disponible")
+                HTag(selected.status)
                 HHeading(selected.name)
                 HBody("${selected.ageMonths} meses · ${selected.size} · ${selected.sex}")
                 HBody(selected.description)
@@ -89,7 +89,7 @@ fun RegisteredDogsRoute(
                         StoredDogPhoto(dog.photos.firstOrNull()?.path, repository)
                         HHeading(dog.name)
                         HBody("${dog.ageMonths} meses · ${dog.size} · ${dog.sex}")
-                        HTag("Disponible")
+                        HTag(dog.status)
                     }
                 }
         }

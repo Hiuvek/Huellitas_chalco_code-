@@ -26,6 +26,7 @@ fun PublicDogDetailRoute(nav: UiNavigator, id: String, repository: DogRepository
                 state.dog?.let { dog ->
                     StoredDogPhoto(dog.photos.firstOrNull()?.path, repository)
                     HHeading(dog.name)
+                    HTag(dog.status)
                     HBody("${dog.ageMonths} meses · ${dog.size} · ${dog.sex}")
                     HBody(dog.description)
                     DogHealthSummary(dog.health)

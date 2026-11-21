@@ -8,7 +8,7 @@ Una configuración ausente, vacía, con valores que no sean texto o con entradas
 
 ## Estado de esta entrega
 
-La lectura de condiciones y pasos está conectada. El criterio **iniciar la solicitud desde esta pantalla** se completa junto con HU-05, para conservar el perrito seleccionado al iniciar sesión y al enviar. Hasta conectarlo, HU-04 se mantiene parcial en el checklist y no navega hacia una confirmación de ejemplo.
+La lectura y el inicio están conectados. **Iniciar solicitud** abre HU-05 para el mismo perrito; si no hay sesión, permite iniciar sesión o registrarse y regresar al formulario. El botón se deshabilita para perritos En proceso o una configuración incompleta. Véase [adoption-application.md](adoption-application.md).
 
 ## Comprobar
 

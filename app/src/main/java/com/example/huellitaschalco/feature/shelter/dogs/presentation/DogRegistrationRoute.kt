@@ -101,7 +101,7 @@ fun DogRegistrationRoute(
                         if (repository.usesEmulator)
                             "Publicación de prueba local. No aparece en Firebase real."
                         else
-                            "El registro está disponible para el catálogo. La consulta pública se conectará en HU-02."
+                            "El registro está disponible en el catálogo de adopción."
                     )
                 } else
                     HBody(

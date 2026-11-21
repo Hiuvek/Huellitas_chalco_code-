@@ -81,7 +81,10 @@ fun HuellitasApp(
                             },
                         )
                     UiScreen.Catalog -> CatalogScreen(nav, destination, user?.label)
-                    UiScreen.DogDetail -> DogDetailScreen(nav, destination)
+                    UiScreen.DogDetail ->
+                        if (destination.recordId != null)
+                            PublicDogDetailRoute(nav, destination.recordId, container.dogRepository)
+                        else DogDetailScreen(nav, destination)
                     UiScreen.DogPreview ->
                         if (destination.variant != UiVariant.Normal)
                             DogDetailScreen(nav, destination)
@@ -117,7 +120,12 @@ fun HuellitasApp(
                             else ShelterDogDetailScreen(nav, destination)
                         } else
                             LocalShelterScope.current?.let { scope ->
-                                RegisteredDogsRoute(nav, scope.current.id, container.dogRepository)
+                                RegisteredDogsRoute(
+                                    nav,
+                                    requireNotNull(user).uid,
+                                    scope.current.id,
+                                    container.dogRepository,
+                                )
                             }
                     UiScreen.DogForm ->
                         if (destination.variant != UiVariant.Normal) DogFormScreen(nav, destination)

@@ -54,6 +54,17 @@ class DogRegistrationViewModel(
         }
     }
 
+    fun editHealth(field: HealthField, value: HealthStatus) {
+        if (current.value.locked || current.value.importing) return
+        current.update {
+            it.copy(
+                draft = it.draft.copy(health = it.draft.health.withValue(field, value)),
+                review = false,
+                error = null,
+            )
+        }
+    }
+
     fun addPhotos(uris: List<String>) {
         if (current.value.locked || current.value.importing || uris.isEmpty()) return
         current.update { it.copy(importing = true, error = null) }

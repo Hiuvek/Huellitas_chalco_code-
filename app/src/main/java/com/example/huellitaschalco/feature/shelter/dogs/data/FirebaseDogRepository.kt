@@ -241,33 +241,7 @@ class FirebaseDogRepository(
         awaitClose { listener.remove() }
     }
 
-    private fun parse(doc: DocumentSnapshot): RegisteredDog? = runCatching {
-        if (doc.getBoolean("publicado") != true) return null
-        val photos =
-            (doc.get("fotos") as List<*>)
-                .map { raw ->
-                    val map = raw as Map<*, *>
-                    DogPhoto(
-                        map["archivoId"] as String,
-                        map["ruta"] as String,
-                        (map["orden"] as Number).toInt(),
-                    )
-                }
-                .sortedBy { it.order }
-        RegisteredDog(
-            doc.id,
-            doc.getString("refugioId")!!,
-            doc.getString("nombre")!!,
-            doc.getLong("edadMeses")!!.toInt(),
-            doc.getString("tamano")!!,
-            doc.getString("sexo")!!,
-            doc.getString("descripcion")!!,
-            photos,
-            doc.getBoolean("esDemostracion") == true,
-            readHealth(doc),
-        )
-    }
-        .getOrNull()
+    private fun parse(doc: DocumentSnapshot) = parseRegisteredDog(doc)
 
     private fun readHealth(doc: DocumentSnapshot) =
         DogHealth(

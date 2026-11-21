@@ -16,6 +16,10 @@ class AppContainer(context: Context) {
     private val firebase = FirebaseProvider(context.applicationContext)
     val authRepository: AuthRepository =
         FirebaseAuthRepository(firebase.auth, firebase.usesEmulator)
+    val catalogRepository =
+        com.example.huellitaschalco.feature.catalog.data.FirebaseCatalogRepository(
+            firebase.firestore
+        )
     val dogPhotoImporter = AndroidDogPhotoImporter(context.applicationContext)
     val dogRepository =
         FirebaseDogRepository(

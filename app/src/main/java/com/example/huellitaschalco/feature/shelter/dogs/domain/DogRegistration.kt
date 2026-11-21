@@ -64,6 +64,7 @@ data class RegisteredDog(
     val photos: List<DogPhoto>,
     val demonstration: Boolean,
     val health: DogHealth = DogHealth(),
+    val status: String = "Disponible",
 )
 
 data class ShelterDogs(

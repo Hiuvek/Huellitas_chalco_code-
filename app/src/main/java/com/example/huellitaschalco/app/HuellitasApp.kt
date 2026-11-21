@@ -150,8 +150,26 @@ fun HuellitasApp(
                                 )
                         else ApplicationScreen(nav, destination)
                     UiScreen.ApplicationSent -> ApplicationSentScreen(nav)
-                    UiScreen.MyRequests -> MyRequestsScreen(nav, destination)
-                    UiScreen.RequestDetail -> RequestDetailScreen(nav, destination)
+                    UiScreen.MyRequests ->
+                        if (destination.variant == UiVariant.Normal)
+                            com.example.huellitaschalco.feature.requests.presentation
+                                .MyRequestsRoute(
+                                    nav,
+                                    user,
+                                    null,
+                                    container.adoptionRequestsRepository,
+                                )
+                        else MyRequestsScreen(nav, destination)
+                    UiScreen.RequestDetail ->
+                        if (destination.variant == UiVariant.Normal)
+                            com.example.huellitaschalco.feature.requests.presentation
+                                .MyRequestsRoute(
+                                    nav,
+                                    user,
+                                    destination.recordId,
+                                    container.adoptionRequestsRepository,
+                                )
+                        else RequestDetailScreen(nav, destination)
                     UiScreen.AdopterProfile ->
                         ProfileScreen(nav, false, user, authRepository::signOut)
                     UiScreen.ShelterProfile ->

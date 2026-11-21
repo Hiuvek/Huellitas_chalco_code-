@@ -136,6 +136,11 @@ fun ApplicationRoute(
             HKeyValue("Folio", receipt.folio)
             HTag(receipt.status)
             HBody("El refugio revisará tus respuestas y actualizará el estado de la solicitud.")
+            HButton(
+                "Ver mi solicitud",
+                { nav.open(UiScreen.RequestDetail, recordId = receipt.id) },
+                Modifier.testTag("application-view-request"),
+            )
         } else {
             HBody(shelter.name)
             HCaption("Tus respuestas se conservan durante esta sesión.")

@@ -20,7 +20,12 @@ import kotlinx.coroutines.withContext
 
 /** Consulta mínima para comprobar el alta de HU-08; la edición queda pendiente de HU-10. */
 @Composable
-fun RegisteredDogsRoute(nav: UiNavigator, shelterId: String, repository: DogRepository) {
+fun RegisteredDogsRoute(
+    nav: UiNavigator,
+    uid: String,
+    shelterId: String,
+    repository: DogRepository,
+) {
     var refresh by remember { mutableIntStateOf(0) }
     val flow = remember(shelterId, refresh) { repository.observe(shelterId) }
     val state by flow.collectAsStateWithLifecycle(ShelterDogs())
@@ -52,9 +57,13 @@ fun RegisteredDogsRoute(nav: UiNavigator, shelterId: String, repository: DogRepo
                 HBody("${selected.ageMonths} meses · ${selected.size} · ${selected.sex}")
                 HBody(selected.description)
                 HCaption("Folio: ${selected.id}")
-                HCaption(
-                    "Salud: Sin información. La edición y el estado de salud se conectarán en sus siguientes historias."
+                DogHealthEditor(uid, selected, repository)
+                HButton(
+                    "Ver ficha pública",
+                    { nav.open(UiScreen.DogDetail, recordId = selected.id) },
+                    outlined = true,
                 )
+                HCaption("La edición de los demás datos se conectará en HU-10.")
             }
             state.dogs.isEmpty() -> HBody("Todavía no has publicado perritos en este refugio.")
             else ->
@@ -71,7 +80,7 @@ fun RegisteredDogsRoute(nav: UiNavigator, shelterId: String, repository: DogRepo
 }
 
 @Composable
-private fun StoredDogPhoto(path: String?, repository: DogRepository) {
+internal fun StoredDogPhoto(path: String?, repository: DogRepository) {
     var retry by remember(path) { mutableIntStateOf(0) }
     var failed by remember(path, retry) { mutableStateOf(false) }
     val image by

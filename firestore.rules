@@ -43,6 +43,11 @@ service cloud.firestore {
         [photos[0].archivoId, n > 1 ? photos[1].archivoId : '_unused1', n > 2 ? photos[2].archivoId : '_unused2',
           n > 3 ? photos[3].archivoId : '_unused3', n > 4 ? photos[4].archivoId : '_unused4', n > 5 ? photos[5].archivoId : '_unused5'].toSet().size() == 6;
     }
+    function validHealth(d) {
+      return d.vacunacion in ['Sí', 'No', 'Sin información'] &&
+        d.desparasitacion in ['Sí', 'No', 'Sin información'] &&
+        d.esterilizacion in ['Sí', 'No', 'Sin información'];
+    }
     function validNewDog(d, id) {
       return id.matches('[A-Za-z0-9-]{1,100}') &&
         d.keys().hasAll(['refugioId','nombre','edadMeses','tamano','sexo','descripcion','vacunacion','desparasitacion','esterilizacion','estado','publicado','fotos','esDemostracion','creadoEn','actualizadoEn']) &&
@@ -51,7 +56,7 @@ service cloud.firestore {
         d.edadMeses is int && d.edadMeses >= 0 && d.edadMeses <= 360 &&
         d.tamano in ['Chico','Mediano','Grande'] && d.sexo in ['Hembra','Macho'] &&
         d.descripcion is string && d.descripcion.size() >= 40 && d.descripcion.size() <= 2000 && d.descripcion.matches('\\S([\\s\\S]*\\S)?') &&
-        d.vacunacion == 'Sin información' && d.desparasitacion == 'Sin información' && d.esterilizacion == 'Sin información' &&
+        validHealth(d) &&
         d.estado == 'Disponible' && d.publicado == true && d.esDemostracion is bool &&
         d.creadoEn == request.time && d.actualizadoEn == request.time && validPhotos(d.fotos,id,d.refugioId) &&
         getAfter(/databases/$(database)/documents/perritos_control/$(id)).data.refugioId == d.refugioId;
@@ -61,8 +66,11 @@ service cloud.firestore {
       // Permite comprobar un ID nuevo en una transacción, sin revelar documentos privados existentes.
       allow get: if resource == null && activeUser();
       allow create: if validNewDog(request.resource.data, id);
-      // La edición y los cambios de estado se implementan en sus historias.
-      allow update, delete: if false;
+      // HU-09 permite cambiar exclusivamente salud y su fecha, dentro del mismo refugio.
+      allow update: if manages(resource.data.refugioId) && validHealth(request.resource.data) &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['vacunacion','desparasitacion','esterilizacion','actualizadoEn']) &&
+        request.resource.data.actualizadoEn == request.time;
+      allow delete: if false;
     }
     match /solicitudes/{id} { allow read: if ownsRecord() || manages(resource.data.refugioId); }
     match /historial_solicitudes/{id} { allow read: if ownsRecord() || manages(resource.data.refugioId); }

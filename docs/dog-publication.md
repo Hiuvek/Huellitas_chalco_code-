@@ -33,7 +33,7 @@ Se conserva el [modelo original](https://gist.github.com/Hiuvek/2fa98a6526de2a67
 | `perritos_control/{id}` | `refugioId`, `solicitudAprobadaId`, `adopcionId` |
 | Storage | `perritos/{refugioId}/{uid}/{perritoId}/{archivoId}.jpg` |
 
-El ID es la clave del documento. `estado` inicia en Disponible, `publicado` en true y la salud en Sin información. La captura de salud se implementará en HU-09. Los enlaces de solicitud aprobada y adopción inician en null. Las fechas de creación y actualización las asigna el servidor. Los registros locales tienen `esDemostracion=true`.
+El ID es la clave del documento. `estado` inicia en Disponible, `publicado` en true y la salud en Sin información. HU-09 permite seleccionar la salud durante el alta y actualizarla después; consulta [dog-health.md](dog-health.md). Los enlaces de solicitud aprobada y adopción inician en null. Las fechas de creación y actualización las asigna el servidor. Los registros locales tienen `esDemostracion=true`.
 
 Las reglas exigen perfil, refugio y membresía activos, validan los campos, límites y rutas de fotografías, y obligan a crear ficha y control juntos. No permiten editar, borrar ni adelantar una adopción. Storage limita rutas a la cuenta y refugio autorizados, acepta JPEG de hasta 2 MB y bloquea la modificación de imágenes de fichas ya publicadas. Los archivos de fichas públicas se pueden leer; listar todo el almacenamiento está bloqueado.
 

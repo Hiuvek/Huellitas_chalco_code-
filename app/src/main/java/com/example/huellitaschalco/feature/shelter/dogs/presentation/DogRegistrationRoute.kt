@@ -141,7 +141,8 @@ fun DogRegistrationRoute(
                         "${state.draft.ageMonths()} meses · ${state.draft.size} · ${state.draft.sex}"
                     )
                     HBody(state.draft.description.trim())
-                    HCaption("Estado inicial: Disponible. Salud: Sin información.")
+                    HCaption("Estado inicial: Disponible.")
+                    DogHealthSummary(state.draft.health)
                     if (repository.usesEmulator)
                         HBanner(
                             "Prueba local: los datos y fotografías se guardan únicamente en los emuladores.",
@@ -241,9 +242,8 @@ fun DogRegistrationRoute(
                     lines = 5,
                     enabled = editable,
                 )
-                HCaption(
-                    "La captura del estado de salud se conectará en HU-09. Por ahora se guarda como Sin información."
-                )
+                HHeading("Salud")
+                DogHealthChoices(state.draft.health, editable, "register-health", model::editHealth)
                 state.error?.let { HBanner(it, HSymbol.Alert, error = true) }
                 if (!state.locked && !state.importing)
                     HTextAction(

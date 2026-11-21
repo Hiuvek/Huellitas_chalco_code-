@@ -202,6 +202,16 @@ class DogRegistrationTest {
 
         override fun observe(shelterId: String) = flowOf(ShelterDogs(false))
 
+        override fun observePublic(id: String) = flowOf(PublicDog(false))
+
+        override suspend fun updateHealth(
+            uid: String,
+            shelterId: String,
+            dogId: String,
+            expected: DogHealth,
+            desired: DogHealth,
+        ) {}
+
         override suspend fun photo(path: String) = byteArrayOf()
     }
 }

@@ -85,6 +85,8 @@ service cloud.firestore {
     }
     match /perritos/{id} {
       allow read: if (resource.data.publicado == true && resource.data.estado in ['Disponible', 'En proceso']) || manages(resource.data.refugioId);
+      allow get: if resource.data.publicado == true && resource.data.estado == 'Adoptado' && adopterEnabled() &&
+        get(/databases/$(database)/documents/adopciones/$(id)).data.usuarioUid == request.auth.uid;
       // Permite comprobar un ID nuevo en una transacción, sin revelar documentos privados existentes.
       allow get: if resource == null && activeUser();
       allow create: if validNewDog(request.resource.data, id);

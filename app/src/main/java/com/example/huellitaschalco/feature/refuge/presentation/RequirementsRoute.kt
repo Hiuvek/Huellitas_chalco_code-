@@ -66,6 +66,12 @@ fun RequirementsRoute(
                         policy.steps.forEachIndexed { index, step ->
                             HCard { HHeading("${index + 1}. $step") }
                         }
+                        HButton(
+                            "Iniciar solicitud",
+                            { nav.open(UiScreen.ApplicationContact, recordId = id) },
+                            Modifier.testTag("requirements-start"),
+                            enabled = dog.status == "Disponible",
+                        )
                         if (dog.status == "En proceso")
                             HBanner(
                                 "Este perrito está en proceso de adopción. No admite nuevas solicitudes.",

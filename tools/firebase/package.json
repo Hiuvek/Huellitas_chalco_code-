@@ -6,7 +6,8 @@
     "start": "firebase emulators:start --config ../../firebase.json --only auth,firestore,storage --project demo-huellitas-chalco",
     "test:rules": "firebase emulators:exec --config ../../firebase.json --only firestore,storage --project demo-huellitas-chalco \"node --test --test-concurrency=1 test/*.test.mjs\"",
     "seed:local": "node seed-local.mjs",
-    "seed:catalog": "node seed-catalog.mjs"
+    "seed:catalog": "node seed-catalog.mjs",
+    "seed:requests": "node seed-requests.mjs"
   },
   "devDependencies": {
     "firebase-tools": "15.37.0",

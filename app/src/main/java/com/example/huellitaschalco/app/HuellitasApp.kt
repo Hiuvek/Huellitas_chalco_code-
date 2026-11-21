@@ -125,6 +125,7 @@ fun HuellitasApp(
                                     requireNotNull(user).uid,
                                     scope.current.id,
                                     container.dogRepository,
+                                    container.dogPhotoImporter,
                                 )
                             }
                     UiScreen.DogForm ->

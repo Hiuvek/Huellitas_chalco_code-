@@ -5,11 +5,13 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.huellitaschalco.core.designsystem.*
@@ -25,12 +27,19 @@ fun RegisteredDogsRoute(
     uid: String,
     shelterId: String,
     repository: DogRepository,
+    importer: DogPhotoImporter,
 ) {
     var refresh by remember { mutableIntStateOf(0) }
     val flow = remember(shelterId, refresh) { repository.observe(shelterId) }
     val state by flow.collectAsStateWithLifecycle(ShelterDogs())
     val recordId = nav.current.recordId
     val selected = state.dogs.firstOrNull { it.id == recordId }
+    var editing by rememberSaveable(uid, shelterId, recordId) { mutableStateOf(false) }
+    var session by rememberSaveable(uid, shelterId, recordId) { mutableIntStateOf(0) }
+    if (editing && selected != null) {
+        DogEditRoute(nav, uid, selected, session, repository, importer) { editing = false }
+        return
+    }
     HScaffold(
         nav,
         if (recordId == null) "Mis perritos" else selected?.name ?: "Registro del perrito",
@@ -63,7 +72,15 @@ fun RegisteredDogsRoute(
                     { nav.open(UiScreen.DogDetail, recordId = selected.id) },
                     outlined = true,
                 )
-                HCaption("La edición de los demás datos se conectará en HU-10.")
+                HButton(
+                    "Editar perrito",
+                    {
+                        session++
+                        editing = true
+                    },
+                    Modifier.testTag("dog-edit"),
+                    icon = HSymbol.Edit,
+                )
             }
             state.dogs.isEmpty() -> HBody("Todavía no has publicado perritos en este refugio.")
             else ->

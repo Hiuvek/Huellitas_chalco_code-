@@ -265,7 +265,7 @@ fun DogRegistrationRoute(
 }
 
 @Composable
-private fun DogChoices(
+internal fun DogChoices(
     label: String,
     options: List<String>,
     selected: String,
@@ -291,7 +291,11 @@ private fun DogChoices(
 }
 
 @Composable
-private fun PhotoStrip(photos: List<LocalDogPhoto>, remove: ((String) -> Unit)? = null) {
+internal fun PhotoStrip(
+    photos: List<LocalDogPhoto>,
+    remove: ((String) -> Unit)? = null,
+    showCaption: Boolean = true,
+) {
     Row(
         Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
         horizontalArrangement = Arrangement.spacedBy(10.dp),
@@ -313,7 +317,7 @@ private fun PhotoStrip(photos: List<LocalDogPhoto>, remove: ((String) -> Unit)? 
                         contentScale = ContentScale.Crop,
                     )
                 }
-                HCaption(if (index == 0) "Portada" else "Fotografía ${index+1}")
+                if (showCaption) HCaption(if (index == 0) "Portada" else "Fotografía ${index+1}")
                 if (remove != null) TextButton(onClick = { remove(photo.id) }) { Text("Quitar") }
             }
         }

@@ -12,6 +12,6 @@ Se conservan Spark y los emuladores. Preparar `seed:local`, `seed:catalog` y `se
 
 Entrar por Acceso refugios con `hu07-a@example.test` y contraseña local `PruebaHU07!`. Solicitudes debe mostrar las dos solicitudes de A; abrir una y comprobar las respuestas. La cuenta B solo verá la suya. Un adoptante no obtiene acceso administrativo, aunque sea propietario de una solicitud.
 
-La preparación usa únicamente IDs `hu12-*` y folios de demostración `12000000-*`. Volver a ejecutarla restablece esos registros para la revisión escolar.
+La preparación usa únicamente IDs `hu12-*` y folios de demostración `12000000-*`. Volver a ejecutarla restablece esos registros y sus entregas/revisiones de demostración para la revisión escolar. No debe usarse para conservar avances del escenario ficticio.
 
 Verificación: **78 pruebas unitarias totales y 25 Android**, sin fallos; compilación normal/local y Android Lint sin errores. Se conservan las reglas probadas en HU-05.

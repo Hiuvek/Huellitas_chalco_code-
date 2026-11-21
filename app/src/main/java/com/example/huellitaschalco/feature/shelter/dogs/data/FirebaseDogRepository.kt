@@ -51,9 +51,9 @@ class FirebaseDogRepository(
                 "tamano" to draft.size,
                 "sexo" to draft.sex,
                 "descripcion" to draft.description.trim(),
-                "vacunacion" to "Sin información",
-                "desparasitacion" to "Sin información",
-                "esterilizacion" to "Sin información",
+                "vacunacion" to draft.health.vaccination.label,
+                "desparasitacion" to draft.health.deworming.label,
+                "esterilizacion" to draft.health.sterilization.label,
                 "estado" to "Disponible",
                 "publicado" to true,
                 "esDemostracion" to usesEmulator,
@@ -78,6 +78,7 @@ class FirebaseDogRepository(
                 draft.description.trim(),
                 photos,
                 usesEmulator,
+                draft.health,
             )
         progress("Comprobando publicación…")
         val previous = reference.get(Source.SERVER).await()
@@ -195,9 +196,93 @@ class FirebaseDogRepository(
             doc.getString("descripcion")!!,
             photos,
             doc.getBoolean("esDemostracion") == true,
+            readHealth(doc),
         )
     }
         .getOrNull()
+
+    private fun readHealth(doc: DocumentSnapshot) =
+        DogHealth(
+            HealthStatus.fromStored(doc.getString("vacunacion")),
+            HealthStatus.fromStored(doc.getString("desparasitacion")),
+            HealthStatus.fromStored(doc.getString("esterilizacion")),
+        )
+
+    override suspend fun updateHealth(
+        uid: String,
+        shelterId: String,
+        dogId: String,
+        expected: DogHealth,
+        desired: DogHealth,
+    ) {
+        require(auth.user.value?.uid == uid)
+        val database = requireNotNull(db)
+        val reference = database.collection("perritos").document(dogId)
+        val conflict =
+            database
+                .runTransaction<DogHealth?> { transaction ->
+                    require(auth.user.value?.uid == uid)
+                    val snapshot = transaction.get(reference)
+                    check(snapshot.exists() && snapshot.getString("refugioId") == shelterId)
+                    val actual = readHealth(snapshot)
+                    when {
+                        actual == desired -> null
+                        actual != expected -> actual
+                        else -> {
+                            transaction.update(
+                                reference,
+                                desired.stored() +
+                                    mapOf("actualizadoEn" to FieldValue.serverTimestamp()),
+                            )
+                            null
+                        }
+                    }
+                }
+                .await()
+        if (conflict != null) throw HealthConflict(conflict)
+    }
+
+    override fun observePublic(id: String): Flow<PublicDog> = callbackFlow {
+        val database = db
+        if (database == null) {
+            trySend(PublicDog(false, error = "No pudimos consultar esta ficha."))
+            close()
+            return@callbackFlow
+        }
+        val listener =
+            database.collection("perritos").document(id).addSnapshotListener(
+                MetadataChanges.INCLUDE
+            ) { snapshot, error ->
+                when {
+                    error != null || snapshot == null ->
+                        trySend(
+                            PublicDog(
+                                false,
+                                error =
+                                    "Esta ficha no está disponible. Revisa tu conexión e intenta de nuevo.",
+                            )
+                        )
+                    snapshot.metadata.isFromCache || snapshot.metadata.hasPendingWrites() ->
+                        trySend(PublicDog())
+                    snapshot.getBoolean("publicado") != true ||
+                        snapshot.getString("estado") !in listOf("Disponible", "En proceso") ->
+                        trySend(
+                            PublicDog(
+                                false,
+                                error = "Esta ficha ya no está disponible para adopción.",
+                            )
+                        )
+                    else -> {
+                        val dog = parse(snapshot)
+                        trySend(
+                            if (dog == null) PublicDog(false, error = "No pudimos leer esta ficha.")
+                            else PublicDog(false, dog)
+                        )
+                    }
+                }
+            }
+        awaitClose { listener.remove() }
+    }
 
     override suspend fun photo(path: String): ByteArray =
         requireNotNull(storage).reference.child(path).getBytes(2L * 1024 * 1024).await()

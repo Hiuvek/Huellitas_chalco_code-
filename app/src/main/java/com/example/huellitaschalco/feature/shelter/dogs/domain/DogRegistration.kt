@@ -22,6 +22,7 @@ data class DogDraft(
     val sex: String = "",
     val description: String = "",
     val photos: List<LocalDogPhoto> = emptyList(),
+    val health: DogHealth = DogHealth(),
 ) {
     fun ageMonths(): Int? =
         age.toIntOrNull()?.let {
@@ -62,6 +63,7 @@ data class RegisteredDog(
     val description: String,
     val photos: List<DogPhoto>,
     val demonstration: Boolean,
+    val health: DogHealth = DogHealth(),
 )
 
 data class ShelterDogs(
@@ -79,6 +81,16 @@ interface DogRepository {
     fun observe(shelterId: String): Flow<ShelterDogs>
 
     suspend fun photo(path: String): ByteArray
+
+    fun observePublic(id: String): Flow<PublicDog>
+
+    suspend fun updateHealth(
+        uid: String,
+        shelterId: String,
+        dogId: String,
+        expected: DogHealth,
+        desired: DogHealth,
+    )
 }
 
 interface DogPhotoImporter {

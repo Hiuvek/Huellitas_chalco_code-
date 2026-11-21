@@ -42,6 +42,7 @@ class AndroidDogPhotoImporter(context: Context) : DogPhotoImporter {
                 require(options.outWidth in 1..20000 && options.outHeight in 1..20000)
                 require(options.outMimeType in listOf("image/jpeg", "image/png", "image/webp"))
                 options.inJustDecodeBounds = false
+                options.inSampleSize = 1
                 while (
                     options.outWidth / options.inSampleSize > 1600 ||
                         options.outHeight / options.inSampleSize > 1600

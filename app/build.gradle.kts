@@ -14,6 +14,11 @@ require(authEmulatorHost in setOf("10.0.2.2", "127.0.0.1", "localhost")) {
     "Usa 10.0.2.2 para el emulador Android o 127.0.0.1 con adb reverse para un dispositivo físico."
 }
 
+// El proyecto demo se inicializa por código y no usa la configuración de la app real.
+tasks.matching { it.name == "processDebugGoogleServices" }.configureEach {
+    enabled = !authEmulatorEnabled
+}
+
 android {
     namespace = "com.example.huellitaschalco"
     compileSdk {
@@ -28,12 +33,17 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        manifestPlaceholders["appLabel"] = "@string/app_name"
         buildConfigField("boolean", "FIREBASE_AUTH_EMULATOR", "false")
         buildConfigField("String", "FIREBASE_AUTH_EMULATOR_HOST", "\"$authEmulatorHost\"")
     }
 
     buildTypes {
         debug {
+            if (authEmulatorEnabled) {
+                applicationIdSuffix = ".local"
+                manifestPlaceholders["appLabel"] = "Huellitas Chalco (local)"
+            }
             buildConfigField("boolean", "FIREBASE_AUTH_EMULATOR", authEmulatorEnabled.toString())
         }
         release {

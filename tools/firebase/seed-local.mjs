@@ -18,7 +18,7 @@ try {
       const db=ctx.firestore();
       await setDoc(doc(db,'usuarios',uid),{uid,nombre:`Prueba ${id}`,correo:email,activo:true,creadoEn:Timestamp.now()});
       if(id!=='adopter') {
-        await setDoc(doc(db,'refugios',`hu07-${id}`),{nombre:`Refugio de prueba ${id.toUpperCase()}`,activo:true,municipio:'Chalco',entidad:'Estado de México',zonaPublica:'Centro de Chalco',horarioPublico:'10 a 17 h',esDemostracion:true,requisitos:[],pasos:[],actualizadoEn:Timestamp.now()});
+        await setDoc(doc(db,'refugios',`hu07-${id}`),{nombre:`Refugio de prueba ${id.toUpperCase()}`,activo:true,municipio:'Chalco',entidad:'Estado de México',zonaPublica:'Centro de Chalco',horarioPublico:'10 a 17 h',esDemostracion:true,requisitos:['Ser mayor de edad y presentar identificación.','Contar con un espacio seguro y agua limpia.','Aceptar entrevista y seguimiento.'],pasos:['Solicitud','Revisión','Entrevista','Entrega y carta','Seguimiento'],actualizadoEn:Timestamp.now()});
         await setDoc(doc(db,'membresias',`${uid}__hu07-${id}`),{usuarioUid:uid,refugioId:`hu07-${id}`,activo:true,creadoEn:Timestamp.now()});
         await setDoc(doc(db,'seguimientos',`hu07-${id}`),{refugioId:`hu07-${id}`,observaciones:`Privado ${id}`});
       }

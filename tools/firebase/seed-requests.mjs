@@ -23,6 +23,11 @@ try {
     const db=ctx.firestore();
     for(const code of ['a','b']) {
       const dogId=`hu12-dog-${code}`,refugioId=`hu07-${code}`,ruta=`perritos/${refugioId}/fixture/${dogId}/foto.jpg`,stamp=Timestamp.now();
+      for(const name of ['revisiones','seguimientos']) {
+        const old=await getDocs(query(collection(db,name),where('adopcionId','==',dogId)));
+        for(const item of old.docs) await deleteDoc(item.ref);
+      }
+      await deleteDoc(doc(db,'adopciones',dogId));
       await uploadBytes(ref(ctx.storage('gs://demo-huellitas-chalco.appspot.com'),ruta),image,{contentType:'image/jpeg'});
       await setDoc(doc(db,'perritos',dogId),{refugioId,nombre:`Perrito solicitudes ${code.toUpperCase()}`,edadMeses:12,tamano:'Mediano',sexo:'Macho',descripcion:'Perrito ficticio del escenario de solicitudes escolares. No representa un animal real.',vacunacion:'Sin información',desparasitacion:'Sin información',esterilizacion:'Sin información',estado:'Disponible',publicado:true,esDemostracion:true,fotos:[{archivoId:'foto',ruta,orden:0}],creadoEn:stamp,actualizadoEn:stamp});
       await setDoc(doc(db,'perritos_control',dogId),{refugioId,solicitudAprobadaId:null,adopcionId:null});

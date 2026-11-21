@@ -26,5 +26,5 @@ try {
       await setDoc(doc(db,'perritos',id),{refugioId,nombre,edadMeses,tamano,sexo,descripcion:'Perrito ficticio para comprobar el catálogo escolar; esta ficha no representa un animal real.',vacunacion:'Sin información',desparasitacion:'Sin información',esterilizacion:'Sin información',estado,publicado,esDemostracion:true,fotos:key==='available' ? [{archivoId:'foto',ruta,orden:0},{archivoId:'foto2',ruta:`perritos/${refugioId}/fixture/${id}/foto2.jpg`,orden:1}] : [{archivoId:'foto',ruta,orden:0}],creadoEn:Timestamp.now(),actualizadoEn:Timestamp.now()});
     }
   });
-  console.log('HU-02: seis fichas ficticias preparadas; solo Lunita y Óscar deben aparecer.');
+  console.log('HU-02: seis fichas ficticias preparadas; de estas seis solo Lunita y Óscar deben aparecer.');
 } finally {await env.cleanup();}

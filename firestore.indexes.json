@@ -73,6 +73,34 @@
           "order": "ASCENDING"
         }
       ]
+    },
+    {
+      "collectionGroup": "solicitudes",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "refugioId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "perritoId",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "adopciones",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "refugioId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "perritoId",
+          "order": "ASCENDING"
+        }
+      ]
     }
   ],
   "fieldOverrides": []

@@ -1,0 +1,6 @@
+{
+  "indexes": [
+    {"collectionGroup":"membresias","queryScope":"COLLECTION","fields":[{"fieldPath":"usuarioUid","order":"ASCENDING"},{"fieldPath":"activo","order":"ASCENDING"}]}
+  ],
+  "fieldOverrides": []
+}

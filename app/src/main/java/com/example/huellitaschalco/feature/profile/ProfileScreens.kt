@@ -11,6 +11,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.huellitaschalco.core.designsystem.*
 import com.example.huellitaschalco.core.navigation.*
+import com.example.huellitaschalco.feature.access.presentation.LocalShelterScope
 import com.example.huellitaschalco.feature.auth.domain.AuthUser
 import com.example.huellitaschalco.ui.theme.*
 
@@ -21,6 +22,7 @@ fun ProfileScreen(
     user: AuthUser? = null,
     onSignOut: () -> Unit = {},
 ) {
+    val refuge = LocalShelterScope.current?.current
     var logout by remember { mutableStateOf(false) }
     HScaffold(
         nav,
@@ -38,20 +40,18 @@ fun ProfileScreen(
                 contentAlignment = Alignment.Center,
             ) {
                 Text(
-                    if (shelter) "R1" else user?.label?.take(2)?.uppercase() ?: "HC",
+                    if (shelter) refuge?.name?.take(2)?.uppercase() ?: "HC"
+                    else user?.label?.take(2)?.uppercase() ?: "HC",
                     style = MaterialTheme.typography.titleLarge,
                     color = Color.White,
                 )
             }
             Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
                 Text(
-                    if (shelter) "Refugio 1" else user?.label ?: "Visitante",
+                    if (shelter) refuge?.name ?: "Refugio" else user?.label ?: "Visitante",
                     style = MaterialTheme.typography.titleLarge,
                 )
-                HCaption(
-                    if (shelter) "Refugio ficticio · demostración"
-                    else user?.email ?: "Sin sesión iniciada"
-                )
+                HCaption(user?.email ?: "Sin sesión iniciada")
                 if (shelter) HTag("Cuenta autorizada")
             }
         }
@@ -63,9 +63,9 @@ fun ProfileScreen(
             }
             HHeading("Información pública")
             HCard {
-                HKeyValue("Zona", "Centro de Chalco")
-                HKeyValue("Horario", "Lunes a sábado · 10 a 17 h", true)
-                HKeyValue("Responsable", "Responsable 1", true)
+                HKeyValue("Zona", refuge?.publicZone.orEmpty())
+                HKeyValue("Horario", refuge?.publicHours.orEmpty(), true)
+                HKeyValue("Responsable", user?.label.orEmpty(), true)
             }
             HHeading("Administración")
             HButton(

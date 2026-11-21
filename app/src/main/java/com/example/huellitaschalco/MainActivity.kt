@@ -42,7 +42,12 @@ class MainActivity : ComponentActivity() {
                         .getOrNull()
                 }
             } else null
-        val authRepository = (application as HuellitasApplication).container.authRepository
-        setContent { HuellitasChalcoTheme { HuellitasApp(authRepository, preview) } }
+        val container = (application as HuellitasApplication).container
+        val authRepository = container.authRepository
+        setContent {
+            HuellitasChalcoTheme {
+                HuellitasApp(authRepository, container.shelterAccessRepository, preview)
+            }
+        }
     }
 }

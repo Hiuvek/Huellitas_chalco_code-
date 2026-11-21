@@ -10,6 +10,9 @@ import androidx.compose.ui.unit.dp
 import com.example.huellitaschalco.core.navigation.*
 import com.example.huellitaschalco.ui.theme.*
 
+/** La pantalla que requiere contexto proporciona su cabecera sin acoplar el diseño a un feature. */
+val LocalWorkspaceHeader = staticCompositionLocalOf<(@Composable () -> Unit)?> { null }
+
 @Composable
 fun HScaffold(
     nav: UiNavigator,
@@ -51,6 +54,11 @@ fun HScaffold(
                     }
                     IconButton(onClick = { nav.open(UiScreen.PreviewGallery) }) {
                         HIcon(HSymbol.Eye, description = "Ver todas las pantallas")
+                    }
+                }
+                LocalWorkspaceHeader.current?.let { header ->
+                    Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 8.dp)) {
+                        header()
                     }
                 }
                 HorizontalDivider(color = Line)

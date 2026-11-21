@@ -16,46 +16,51 @@ import com.example.huellitaschalco.feature.auth.domain.*
 @Composable
 fun AuthRoute(nav: UiNavigator, destination: UiDestination, repository: AuthRepository) {
     val signUp = destination.screen == UiScreen.SignUp
+    val shelter = destination.screen == UiScreen.ShelterLogin
     val model: AuthViewModel =
         viewModel(
-            key = if (signUp) "register" else "login",
+            key = if (signUp) "register" else if (shelter) "shelter-login" else "login",
             factory = AuthViewModel.factory(repository, signUp),
         )
     val state by model.state.collectAsStateWithLifecycle()
     LaunchedEffect(state.completed) {
         if (state.completed) {
-            nav.root(UiScreen.Catalog)
+            nav.root(if (shelter) UiScreen.ShelterDogs else UiScreen.Catalog)
             model.clear()
         }
     }
     HScaffold(
         nav,
-        if (signUp) "Crear cuenta" else "Iniciar sesión",
+        if (signUp) "Crear cuenta" else if (shelter) "Acceso para refugios" else "Iniciar sesión",
         bottom = {
             HButton(
                 if (state.isLoading) "Espera un momento…"
-                else if (signUp) "Crear cuenta" else "Iniciar sesión",
+                else if (signUp) "Crear cuenta"
+                else if (shelter) "Iniciar sesión como refugio" else "Iniciar sesión",
                 model::submit,
                 Modifier.testTag("auth-submit"),
                 enabled = !state.isLoading && repository.isConfigured,
             )
             if (state.isLoading) LinearProgressIndicator(Modifier.fillMaxWidth())
-            TextButton(
-                onClick = {
-                    nav.open(if (signUp) UiScreen.Login else UiScreen.SignUp)
-                },
-                enabled = !state.isLoading,
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Text(
-                    if (signUp) "¿Ya tienes cuenta? Iniciar sesión"
-                    else "¿No tienes cuenta? Crear cuenta"
-                )
-            }
+            if (!shelter)
+                TextButton(
+                    onClick = {
+                        nav.open(if (signUp) UiScreen.Login else UiScreen.SignUp)
+                    },
+                    enabled = !state.isLoading,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text(
+                        if (signUp) "¿Ya tienes cuenta? Iniciar sesión"
+                        else "¿No tienes cuenta? Crear cuenta"
+                    )
+                }
         },
     ) {
         HBody(
             if (signUp) "Crea tu cuenta para enviar solicitudes de adopción."
+            else if (shelter)
+                "Solo las cuentas con una membresía activa pueden administrar su refugio."
             else "Ingresa para enviar solicitudes y consultar su estado.",
             muted = true,
         )
@@ -80,7 +85,7 @@ fun AuthRoute(nav: UiNavigator, destination: UiDestination, repository: AuthRepo
                 enabled = !state.isLoading,
             )
         HInput(
-            label = "Correo electrónico",
+            label = if (shelter) "Correo del refugio" else "Correo electrónico",
             value = state.email,
             onValueChange = { model.edit(AuthField.Email, it) },
             modifier = Modifier.testTag("auth-email"),

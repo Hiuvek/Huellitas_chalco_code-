@@ -5,6 +5,9 @@ import com.example.huellitaschalco.BuildConfig
 import com.google.firebase.FirebaseApp
 import com.google.firebase.FirebaseOptions
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.FirebaseFirestoreSettings
+import com.google.firebase.firestore.MemoryCacheSettings
 
 /** Un proyecto demo y una app separada aíslan las pruebas del proyecto real. */
 class FirebaseProvider(context: Context) {
@@ -27,6 +30,17 @@ class FirebaseProvider(context: Context) {
             }
         } else {
             FirebaseApp.initializeApp(context)?.let { FirebaseAuth.getInstance(it) }
+        }
+
+    val firestore: FirebaseFirestore? =
+        auth?.app?.let { app ->
+            FirebaseFirestore.getInstance(app).apply {
+                firestoreSettings =
+                    FirebaseFirestoreSettings.Builder()
+                        .setLocalCacheSettings(MemoryCacheSettings.newBuilder().build())
+                        .build()
+                if (usesEmulator) useEmulator(BuildConfig.FIREBASE_AUTH_EMULATOR_HOST, 8180)
+            }
         }
 
     private companion object {

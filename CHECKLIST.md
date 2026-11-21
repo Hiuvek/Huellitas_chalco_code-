@@ -1,8 +1,8 @@
 # Checklist de funcionalidades — Huellitas Chalco
 
-Revisión del 20 de noviembre de 2026. Referencia: las 18 historias del Excel corregido, conservando sus identificadores.
+Revisión del 21 de noviembre de 2026. Referencia: las 18 historias del Excel corregido, conservando sus identificadores.
 
-HU-01 ya usa Firebase Authentication para registrar cuentas e iniciar y cerrar sesión. Las otras 17 historias conservan sus interfaces con datos de ejemplo: escribir en campos o llegar a sus confirmaciones no guarda operaciones reales.
+HU-01 usa Firebase Authentication para registrar cuentas e iniciar y cerrar sesión. HU-07 usa membresías activas de Cloud Firestore para autorizar al responsable y limitarlo a sus refugios; su acceso y el rechazo de consultas a un refugio ajeno están comprobados con una sesión del proyecto real. Las otras 16 historias conservan sus interfaces con datos de ejemplo.
 
 ## Lo que ya está implementado
 
@@ -25,7 +25,7 @@ HU-01 ya usa Firebase Authentication para registrar cuentas e iniciar y cerrar s
 | HU-04 | Consultar requisitos y pasos | Requisitos de ejemplo y acceso al formulario | Pendiente |
 | HU-05 | Enviar solicitud de adopción | Cinco pasos, revisión y confirmación de ejemplo | Pendiente |
 | HU-06 | Consultar mis solicitudes | Lista, detalle y estados de ejemplo | Pendiente |
-| HU-07 | Acceso autorizado del refugio | Acceso y pantalla de restricción de ejemplo | Pendiente |
+| HU-07 | Acceso autorizado del refugio | Inicio de sesión real, verificación de membresías y bloqueo central | Implementada y comprobada |
 | HU-08 | Registrar y publicar perritos | Formulario, fotografías simuladas y vista previa | Pendiente |
 | HU-09 | Registrar estado de salud | Selectores de vacunación, desparasitación y esterilización | Pendiente |
 | HU-10 | Revisar y editar mis perritos | Lista, edición y vista previa | Pendiente |
@@ -38,7 +38,7 @@ HU-01 ya usa Firebase Authentication para registrar cuentas e iniciar y cerrar s
 | HU-17 | Conservar catálogo y borradores con Room | Avisos y vistas sin conexión; no existe guardado local | Pendiente |
 | HU-18 | Consultar ubicación con Google Maps | Mapa ilustrativo y vista de error; no usa Google Maps | Pendiente |
 
-**Avance: 1 de 18 historias implementada.**
+**Avance: 2 de 18 historias implementadas.**
 
 ### HU-01 comprobada
 
@@ -55,12 +55,32 @@ HU-01 ya usa Firebase Authentication para registrar cuentas e iniciar y cerrar s
 
 Configuración y pruebas reproducibles en [docs/firebase-auth.md](docs/firebase-auth.md).
 
+### HU-07 comprobada
+
+- [x] Rama `codex/hu-07-shelter-access` creada.
+- [x] Inicio de sesión de refugios conectado a Firebase Authentication.
+- [x] Rol y refugios permitidos mediante perfiles y membresías activas de Firestore.
+- [x] Protección de los 15 destinos administrativos, incluido el muestrario.
+- [x] Selector limitado a los refugios autorizados y perfil con datos reales de la cuenta.
+- [x] Retirada de acceso al cambiar de cuenta, cerrar sesión o revocar membresías.
+- [x] Permisos verificados con el servidor; bloqueo al esperar, fallar o estar sin conexión.
+- [x] Reglas de Firestore probadas con visitante, adoptante y dos refugios; autoautorización bloqueada.
+- [x] 23 pruebas de reglas y 7 pruebas unitarias nuevas, sin fallos.
+- [x] Pruebas del SDK y de la interfaz en la tableta, incluidos los 15 destinos privados.
+- [x] Compilación y Android Lint sin errores.
+- [x] Firestore creado en modo de producción, plan Spark, ubicación `nam5`.
+- [x] Publicar las reglas probadas en el proyecto real y habilitar el índice de membresías.
+- [x] Confirmar y activar la cuenta responsable mediante su membresía.
+- [x] Acceso al refugio autorizado y rechazo de consultas a un refugio ajeno, comprobados con una sesión del proyecto real en la tableta.
+
+Configuración, alcance y pruebas: [docs/shelter-access.md](docs/shelter-access.md). Las funciones de perritos, solicitudes y seguimientos mantienen sus datos de ejemplo y sus escrituras permanecen bloqueadas hasta implementar sus historias.
+
 ## Orden para implementarlas una por una
 
-Firebase Authentication ya está configurado. Continúa HU-07 para autorizar los refugios; después se integrarán Cloud Firestore, Firebase Storage y los repositorios de datos. El diseño previo de la base de datos sigue como referencia.
+Firebase Authentication y la base Firestore están configurados. HU-07 está desplegada y comprobada con la cuenta autorizada en la tableta. Continúa HU-08 para registrar perritos. El diseño original se conserva como referencia.
 
 1. [x] **HU-01 — Crear cuenta e iniciar sesión.** Crear usuarios y autenticar con Firebase Authentication. Validar campos, mostrar errores junto al campo y conservar los datos al fallar. Comprobar registro, acceso correcto, acceso incorrecto y cierre de sesión.
-2. [ ] **HU-07 — Autorizar al refugio.** Identificar el rol y el refugio de la cuenta. Restringir también el acceso a los datos: cada refugio administra únicamente sus perritos, solicitudes y seguimientos. Comprobar cuentas de adoptante, visitante y dos refugios distintos.
+2. [x] **HU-07 — Autorizar al refugio.** Identificar el rol y el refugio de la cuenta. Restringir también el acceso a los datos: cada refugio administra únicamente sus perritos, solicitudes y seguimientos. Comprobar cuentas de adoptante, visitante y dos refugios distintos.
 3. [ ] **HU-08 — Registrar y publicar perritos.** Validar nombre, edad aproximada, tamaño, sexo, descripción y al menos una fotografía. Subir fotografías a Storage y guardar datos en Firestore. Comprobar reintentos de carga y que no se publique un registro incompleto.
 4. [ ] **HU-09 — Guardar el estado de salud.** Persistir vacunación, desparasitación y esterilización como Sí, No o Sin información, con Sin información como valor inicial. Comprobar que los valores guardados aparezcan en el detalle público.
 5. [ ] **HU-10 — Editar mis perritos.** Cargar los datos guardados, permitir corregirlos y mostrar vista previa. Guardar cambios y reflejarlos en el catálogo. Comprobar que otra cuenta de refugio no pueda editar ese registro.
@@ -85,4 +105,4 @@ Firebase Authentication ya está configurado. Continúa HU-07 para autorizar los
 - Se comprueban el caso correcto, los errores relevantes y la conservación o actualización de la información.
 - Las pantallas de éxito aparecen después de que la operación haya terminado correctamente.
 
-Fuera de HU-01, la navegación, las selecciones y los campos continúan como estado de presentación; sus confirmaciones y mensajes de guardado son ejemplos visuales.
+Fuera de la autenticación y autorización de HU-01/HU-07, las selecciones, formularios y confirmaciones continúan como estado de presentación, sin guardar operaciones de adopción.

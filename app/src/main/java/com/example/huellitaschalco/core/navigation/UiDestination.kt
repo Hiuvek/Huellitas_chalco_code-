@@ -125,3 +125,25 @@ fun rememberUiNavigator(): UiNavigator =
     ) {
         UiNavigator()
     }
+
+/** Todos los destinos administrativos pasan por el mismo control de acceso. */
+val UiScreen.requiresShelterAccess: Boolean
+    get() =
+        this in
+            setOf(
+                UiScreen.ShelterDogs,
+                UiScreen.ShelterDogDetail,
+                UiScreen.DogForm,
+                UiScreen.DogPreview,
+                UiScreen.DogPublished,
+                UiScreen.ShelterRequests,
+                UiScreen.EvaluateRequest,
+                UiScreen.AdoptionForm,
+                UiScreen.AdoptionComplete,
+                UiScreen.AdoptionBlocked,
+                UiScreen.FollowUps,
+                UiScreen.FollowUpForm,
+                UiScreen.FollowUpSaved,
+                UiScreen.FollowUpDetail,
+                UiScreen.ShelterProfile,
+            )

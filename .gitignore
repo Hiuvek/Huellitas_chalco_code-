@@ -19,3 +19,5 @@ ui-debug.log*
 node_modules/
 
 /.kotlin/
+
+firestore-debug.log*

@@ -2,7 +2,14 @@
   "name": "huellitas-firebase-tools",
   "private": true,
   "scripts": {
-    "auth:start": "firebase emulators:start --config ../../firebase.json --only auth --project demo-huellitas-chalco"
+    "auth:start": "firebase emulators:start --config ../../firebase.json --only auth --project demo-huellitas-chalco",
+    "start": "firebase emulators:start --config ../../firebase.json --only auth,firestore --project demo-huellitas-chalco",
+    "test:rules": "firebase emulators:exec --config ../../firebase.json --only firestore --project demo-huellitas-chalco \"node --test test/firestore.rules.test.mjs\"",
+    "seed:local": "node seed-local.mjs"
   },
-  "devDependencies": { "firebase-tools": "15.37.0" }
+  "devDependencies": {
+    "firebase-tools": "15.37.0",
+    "@firebase/rules-unit-testing": "5.0.0",
+    "firebase": "12.6.0"
+  }
 }

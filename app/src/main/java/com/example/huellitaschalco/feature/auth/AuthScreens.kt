@@ -84,7 +84,11 @@ fun AuthScreen(nav: UiNavigator, destination: UiDestination) {
 }
 
 @Composable
-fun AccessRestrictedScreen(nav: UiNavigator) {
+fun AccessRestrictedScreen(
+    nav: UiNavigator,
+    email: String? = null,
+    useOtherAccount: () -> Unit = { nav.root(UiScreen.ShelterLogin) },
+) {
     HScaffold(
         nav,
         "Acceso restringido",
@@ -94,15 +98,20 @@ fun AccessRestrictedScreen(nav: UiNavigator) {
                 { nav.root(UiScreen.Catalog) },
                 icon = HSymbol.Compass,
             )
-            HTextAction("Usar otra cuenta", { nav.open(UiScreen.ShelterLogin) })
+            HTextAction(
+                if (email == null) "Iniciar sesión como refugio" else "Usar otra cuenta",
+                useOtherAccount,
+            )
         },
     ) {
         HEmpty(
             "Esta sección es solo para refugios autorizados",
-            "La cuenta usuario1@demo.mx no tiene permiso para administrar perritos, solicitudes ni seguimientos.",
+            if (email == null) "Inicia sesión con una cuenta de refugio autorizada para continuar."
+            else
+                "La cuenta $email no tiene una membresía activa para administrar perritos, solicitudes ni seguimientos.",
             HSymbol.Shield,
             "Regresar",
-            nav::back,
+            { nav.root(UiScreen.Catalog) },
         )
         HBanner(
             "Como visitante o adoptante puedes consultar perritos y los datos públicos de cada refugio. Las solicitudes privadas y los seguimientos solo los ve el refugio correspondiente."

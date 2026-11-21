@@ -62,7 +62,7 @@ Si una instalación existente tiene otra firma, usa un dispositivo de prueba o u
 
 ## Alcance
 
-Esta historia no crea colecciones de Firestore, fotografías en Storage ni roles de refugio. HU-07 implementará la autorización y sus reglas de acceso. El catálogo, solicitudes, mapas y demás pantallas mantienen sus datos de demostración.
+Esta historia no crea colecciones de Firestore, fotografías en Storage ni roles de refugio. HU-07 incorpora autorización mediante membresías; consulta [shelter-access.md](shelter-access.md) para su configuración y estado de activación. El catálogo, solicitudes, mapas y demás pantallas mantienen sus datos de demostración.
 
 Referencia: [Firebase Authentication para Android](https://firebase.google.com/docs/auth/android/password-auth) y [conexión al emulador](https://firebase.google.com/docs/emulator-suite/connect_auth).
 

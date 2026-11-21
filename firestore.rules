@@ -1,0 +1,44 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function activeUser() {
+      return signedIn() && get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data.activo == true;
+    }
+    function manages(refugioId) {
+      let membership = get(/databases/$(database)/documents/membresias/$(request.auth.uid + '__' + refugioId));
+      return activeUser() && refugioId is string &&
+        membership.data.usuarioUid == request.auth.uid && membership.data.refugioId == refugioId &&
+        membership.data.activo == true && get(/databases/$(database)/documents/refugios/$(refugioId)).data.activo == true;
+    }
+    function ownsRecord() { return activeUser() && resource.data.usuarioUid == request.auth.uid; }
+
+    match /usuarios/{uid} {
+      allow get: if signedIn() && request.auth.uid == uid;
+      allow list, write: if false;
+    }
+    match /membresias/{id} {
+      allow read: if signedIn() && resource.data.usuarioUid == request.auth.uid;
+      // Solo un administrador, fuera de la app, concede o revoca membresías.
+      allow write: if false;
+    }
+    match /refugios/{id} {
+      allow read: if resource.data.activo == true;
+      allow write: if false;
+    }
+    match /perritos/{id} {
+      allow read: if (resource.data.publicado == true && resource.data.estado in ['Disponible', 'En proceso']) || manages(resource.data.refugioId);
+      // HU-08 incorporará la validación completa de altas y cambios de perritos.
+      allow write: if false;
+    }
+    match /solicitudes/{id} { allow read: if ownsRecord() || manages(resource.data.refugioId); }
+    match /historial_solicitudes/{id} { allow read: if ownsRecord() || manages(resource.data.refugioId); }
+    match /adopciones/{id} { allow read: if ownsRecord() || manages(resource.data.refugioId); }
+    match /revisiones/{id} { allow read: if manages(resource.data.refugioId); }
+    match /seguimientos/{id} { allow read: if manages(resource.data.refugioId); }
+    match /perritos_control/{id} { allow read: if manages(resource.data.refugioId); }
+    match /solicitudes_claves/{id} { allow read: if ownsRecord(); }
+    // Las escrituras de negocio se habilitan al implementar y validar su historia.
+    match /{document=**} { allow read, write: if false; }
+  }
+}

@@ -98,6 +98,11 @@ fun RegisteredDogsRoute(
 
 @Composable
 internal fun StoredDogPhoto(path: String?, repository: DogRepository) {
+    key(path) { StoredDogPhotoContent(path, repository) }
+}
+
+@Composable
+private fun StoredDogPhotoContent(path: String?, repository: DogRepository) {
     var retry by remember(path) { mutableIntStateOf(0) }
     var failed by remember(path, retry) { mutableStateOf(false) }
     val image by
@@ -109,6 +114,7 @@ internal fun StoredDogPhoto(path: String?, repository: DogRepository) {
                         withContext(Dispatchers.IO) {
                             val bytes = repository.photo(path)
                             BitmapFactory.decodeByteArray(bytes, 0, bytes.size)?.asImageBitmap()
+                                ?: error("La fotografía no es una imagen válida")
                         }
                     } catch (cancelled: kotlinx.coroutines.CancellationException) {
                         throw cancelled

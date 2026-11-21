@@ -93,7 +93,12 @@ fun HuellitasApp(
                             )
                     UiScreen.DogDetail ->
                         if (destination.recordId != null)
-                            PublicDogDetailRoute(nav, destination.recordId, container.dogRepository)
+                            PublicDogDetailRoute(
+                                nav,
+                                destination.recordId,
+                                container.dogRepository,
+                                container.publicShelterRepository,
+                            )
                         else DogDetailScreen(nav, destination)
                     UiScreen.DogPreview ->
                         if (destination.variant != UiVariant.Normal)
@@ -109,7 +114,16 @@ fun HuellitasApp(
                                 )
                             }
                     UiScreen.Requirements -> RequirementsScreen(nav)
-                    UiScreen.RefugeInformation -> RefugeInformationScreen(nav)
+                    UiScreen.RefugeInformation ->
+                        if (destination.recordId != null)
+                            PublicDogDetailRoute(
+                                nav,
+                                destination.recordId,
+                                container.dogRepository,
+                                container.publicShelterRepository,
+                                refugeOnly = true,
+                            )
+                        else RefugeInformationScreen(nav)
                     UiScreen.ApplicationContact,
                     UiScreen.ApplicationHome,
                     UiScreen.ApplicationPets,

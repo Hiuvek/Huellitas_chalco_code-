@@ -2,7 +2,7 @@
 
 Revisión del 21 de noviembre de 2026. Referencia: las 18 historias del Excel corregido, conservando sus identificadores.
 
-HU-01 usa Firebase Authentication para registrar cuentas e iniciar y cerrar sesión. HU-07 usa membresías activas de Cloud Firestore para autorizar al responsable y limitarlo a sus refugios; su acceso y el rechazo de consultas a un refugio ajeno están comprobados con una sesión del proyecto real. HU-08 tiene registro, fotografías, publicación y consulta comprobados con emuladores en la tableta. HU-09 incorpora captura y actualización de salud con lectura en la ficha pública por identificador, también comprobadas en emuladores. HU-10 permite editar datos generales y fotografías con revisión, guardado y consulta del registro actualizado, comprobados en emuladores. Se mantiene Spark por elección del propietario. HU-02 conecta el catálogo público de Chalco, búsqueda, filtros y navegación por identificador, comprobados en emuladores. Las otras 12 historias siguen pendientes; HU-03 ya tiene una ficha real parcial por identificador.
+HU-01 usa Firebase Authentication para registrar cuentas e iniciar y cerrar sesión. HU-07 usa membresías activas de Cloud Firestore para autorizar al responsable y limitarlo a sus refugios; su acceso y el rechazo de consultas a un refugio ajeno están comprobados con una sesión del proyecto real. HU-08 tiene registro, fotografías, publicación y consulta comprobados con emuladores en la tableta. HU-09 incorpora captura y actualización de salud con lectura en la ficha pública por identificador, también comprobadas en emuladores. HU-10 permite editar datos generales y fotografías con revisión, guardado y consulta del registro actualizado, comprobados en emuladores. Se mantiene Spark por elección del propietario. HU-02 conecta el catálogo público de Chalco, búsqueda, filtros y navegación por identificador, comprobados en emuladores. HU-03 completa la ficha pública con galería, características, salud e información del refugio. Las otras 11 historias siguen pendientes.
 
 ## Lo que ya está implementado
 
@@ -21,7 +21,7 @@ HU-01 usa Firebase Authentication para registrar cuentas e iniciar y cerrar sesi
 | --- | --- | --- | --- |
 | HU-01 | Crear cuenta e iniciar sesión | Formularios conectados a Firebase | Implementada y comprobada |
 | HU-02 | Consultar catálogo de perritos en Chalco | Consulta pública de Firebase, fotografías, refugio, búsqueda y filtros reales | Implementada y comprobada en emuladores; nube pospuesta |
-| HU-03 | Consultar detalle del perrito | Ficha real por ID conectada al catálogo; datos completos del refugio y galería pendientes | Parcial; historia pendiente |
+| HU-03 | Consultar detalle del perrito | Galería, características, salud y refugio del registro seleccionado desde Firebase | Implementada y comprobada en emuladores; nube pospuesta |
 | HU-04 | Consultar requisitos y pasos | Requisitos de ejemplo y acceso al formulario | Pendiente |
 | HU-05 | Enviar solicitud de adopción | Cinco pasos, revisión y confirmación de ejemplo | Pendiente |
 | HU-06 | Consultar mis solicitudes | Lista, detalle y estados de ejemplo | Pendiente |
@@ -38,7 +38,7 @@ HU-01 usa Firebase Authentication para registrar cuentas e iniciar y cerrar sesi
 | HU-17 | Conservar catálogo y borradores con Room | Avisos y vistas sin conexión; no existe guardado local | Pendiente |
 | HU-18 | Consultar ubicación con Google Maps | Mapa ilustrativo y vista de error; no usa Google Maps | Pendiente |
 
-**Avance: 6 de 18 historias implementadas: 2 comprobadas en el proyecto real y 4 solo en emuladores.**
+**Avance: 7 de 18 historias implementadas: 2 comprobadas en el proyecto real y 5 solo en emuladores.**
 
 ### HU-01 comprobada
 
@@ -111,7 +111,7 @@ Instrucciones y alcance: [docs/dog-publication.md](docs/dog-publication.md). HU-
 - [x] Compilación normal/local y Android Lint sin errores.
 - [ ] Publicación y comprobación de HU-09 en Firebase real, pospuestas para conservar Spark.
 
-Uso, datos y pruebas: [docs/dog-health.md](docs/dog-health.md). La app local requiere los emuladores de la computadora; HU-02 conecta el catálogo real; la ficha pública completa sigue pendiente en HU-03.
+Uso, datos y pruebas: [docs/dog-health.md](docs/dog-health.md). La app local requiere los emuladores de la computadora; HU-02 conecta el catálogo real; HU-03 completa también la ficha pública.
 
 ### HU-10 comprobada en emuladores
 
@@ -149,9 +149,24 @@ Uso, datos, límites y pruebas: [docs/dog-editing.md](docs/dog-editing.md). HU-0
 
 Uso, consultas, límites y pruebas: [docs/public-catalog.md](docs/public-catalog.md). Room y el catálogo persistente sin conexión siguen pendientes en HU-17.
 
+### HU-03 comprobada en emuladores
+
+- [x] Rama `codex/hu-03-public-dog-detail`, con commits separados de datos, interfaz, corrección, pruebas y documentación.
+- [x] Ficha del ID seleccionado con edad, tamaño, sexo, descripción, estado y salud guardados.
+- [x] Galería de todas las fotografías, contador y navegación con extremos deshabilitados.
+- [x] Nombre, zona pública y horario del refugio asociado; información adicional y regreso al mismo perrito.
+- [x] Consulta sin sesión; rechazo de refugios inactivos, inexistentes o de otro municipio.
+- [x] Carga, error, tiempo de espera y reintento; retirada de información si el registro deja de estar disponible.
+- [x] Imagen inválida con reintento y retirada de la imagen anterior al cambiar de fotografía.
+- [x] 60 pruebas unitarias totales y 15 pruebas Android de ficha, catálogo y regresión, sin fallos.
+- [x] Compilación normal/local y Android Lint sin errores; reglas vigentes conservadas.
+- [ ] Comprobación de HU-03 con fotografías en Firebase real, pospuesta para conservar Spark.
+
+Datos, uso y pruebas: [docs/public-dog-detail.md](docs/public-dog-detail.md). Los requisitos se conectan en HU-04 y Google Maps en HU-18.
+
 ## Orden para implementarlas una por una
 
-Firebase Authentication y la base Firestore están configurados. HU-07 está desplegada y comprobada con la cuenta autorizada en la tableta. HU-08 está comprobada con servicios locales; su activación en la nube está pospuesta para conservar Spark. HU-09 y HU-10 también están comprobadas en emuladores. HU-02 ya está comprobada en emuladores. Continúa HU-03 para completar la ficha pública. El diseño original se conserva como referencia.
+Firebase Authentication y la base Firestore están configurados. HU-07 está desplegada y comprobada con la cuenta autorizada en la tableta. HU-08 está comprobada con servicios locales; su activación en la nube está pospuesta para conservar Spark. HU-09 y HU-10 también están comprobadas en emuladores. HU-02 ya está comprobada en emuladores. HU-03 ya está comprobada en emuladores. Continúa HU-04 para conectar los requisitos del refugio. El diseño original se conserva como referencia.
 
 1. [x] **HU-01 — Crear cuenta e iniciar sesión.** Crear usuarios y autenticar con Firebase Authentication. Validar campos, mostrar errores junto al campo y conservar los datos al fallar. Comprobar registro, acceso correcto, acceso incorrecto y cierre de sesión.
 2. [x] **HU-07 — Autorizar al refugio.** Identificar el rol y el refugio de la cuenta. Restringir también el acceso a los datos: cada refugio administra únicamente sus perritos, solicitudes y seguimientos. Comprobar cuentas de adoptante, visitante y dos refugios distintos.
@@ -159,7 +174,7 @@ Firebase Authentication y la base Firestore están configurados. HU-07 está des
 4. [x] **HU-09 — Guardar el estado de salud (comprobada en emuladores).** Persistir vacunación, desparasitación y esterilización como Sí, No o Sin información, con Sin información como valor inicial. Comprobar que los valores guardados aparezcan en el detalle público.
 5. [x] **HU-10 — Editar mis perritos (comprobada en emuladores).** Cargar y corregir los datos guardados y fotografías, mostrar vista previa y guardar cambios. Reflejarlos en Mis perritos y la ficha pública por ID; HU-02 también los refleja en el catálogo general. Comprobar que otra cuenta de refugio no pueda editar ese registro.
 6. [x] **HU-02 — Consultar el catálogo real (comprobada en emuladores).** Leer perritos de Chalco desde Firestore. Mostrar fotografía, nombre, edad, tamaño y refugio de los disponibles o en proceso. Comprobar que los adoptados queden fuera del catálogo.
-7. [ ] **HU-03 — Consultar el detalle real.** Abrir el registro seleccionado y cargar sus fotografías, edad, tamaño, sexo, descripción, refugio, estado de adopción y salud. Comprobar que los datos correspondan al perrito elegido.
+7. [x] **HU-03 — Consultar el detalle real (comprobada en emuladores).** Abrir el registro seleccionado y cargar sus fotografías, edad, tamaño, sexo, descripción, refugio, estado de adopción y salud. Comprobar que los datos correspondan al perrito elegido.
 8. [ ] **HU-04 — Mostrar los requisitos del refugio.** Obtener los requisitos correspondientes al refugio del perrito y los pasos de adopción. Permitir consultarlos sin cuenta e iniciar la solicitud desde esa pantalla. Mantener identificados los datos de demostración.
 9. [ ] **HU-05 — Enviar una solicitud real.** Validar contacto, hogar, otras mascotas y motivos; conservar las respuestas entre pasos y permitir revisarlas. Exigir sesión para enviar. Confirmar el folio solo después de guardar y comprobar que reintentar no duplique la solicitud ni borre las respuestas si falla.
 10. [ ] **HU-06 — Consultar mis solicitudes reales.** Obtener únicamente las solicitudes de la cuenta actual, sus respuestas y cambios de estado con fecha. Mostrar Enviada, En revisión, Aprobada o No aprobada y el siguiente paso correspondiente. Comprobar que otra cuenta no pueda leerlas.
@@ -179,4 +194,4 @@ Firebase Authentication y la base Firestore están configurados. HU-07 está des
 - Se comprueban el caso correcto, los errores relevantes y la conservación o actualización de la información.
 - Las pantallas de éxito aparecen después de que la operación haya terminado correctamente.
 
-HU-01/HU-07 usan el proyecto real. HU-02/HU-08/HU-09/HU-10 usan servicios locales en la instalación de pruebas. HU-03 tiene una ficha real parcial por ID; las demás historias siguen pendientes; todavía no se guardan solicitudes, evaluaciones, adopciones ni seguimientos reales.
+HU-01/HU-07 usan el proyecto real. HU-02/HU-03/HU-08/HU-09/HU-10 usan servicios locales en la instalación de pruebas. Las demás historias siguen pendientes; todavía no se guardan solicitudes, evaluaciones, adopciones ni seguimientos reales.

@@ -154,6 +154,32 @@ class FirebaseCatalogSdkTest {
         assertTrue(state.dogs.isEmpty())
     }
 
+    @Test
+    fun selectedRefugeInfoIsPublicAndInactiveRefugeIsUnavailable(): Unit = runBlocking {
+        val shelters =
+            com.example.huellitaschalco.feature.refuge.data.FirebasePublicShelterRepository(db)
+        val state = withTimeout(10_000) { shelters.observe("hu02-chalco").first { !it.loading } }
+        assertNull(state.error)
+        assertEquals("hu02-chalco", state.shelter!!.id)
+        assertEquals("Zona de demostración", state.shelter!!.zone)
+        assertEquals("10 a 17 h", state.shelter!!.hours)
+        val inactive =
+            withTimeout(10_000) { shelters.observe("hu02-inactivo").first { !it.loading } }
+        assertNull(inactive.shelter)
+        assertNotNull(inactive.error)
+    }
+
+    @Test
+    fun foreignMunicipalityAndMissingRefugeDoNotSupplyFakeInformation(): Unit = runBlocking {
+        val shelters =
+            com.example.huellitaschalco.feature.refuge.data.FirebasePublicShelterRepository(db)
+        for (id in listOf("hu02-otro", "missing-refuge")) {
+            val state = withTimeout(10_000) { shelters.observe(id).first { !it.loading } }
+            assertNull(state.shelter)
+            assertNotNull(state.error)
+        }
+    }
+
     private suspend fun patch(document: String, field: String, value: Any) =
         withContext(Dispatchers.IO) {
             check(BuildConfig.FIREBASE_AUTH_EMULATOR)

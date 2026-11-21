@@ -64,7 +64,9 @@ class CatalogFlowTest {
         compose.waitUntil(15_000) {
             compose.onAllNodesWithText("Óscar HU02").fetchSemanticsNodes().isNotEmpty()
         }
-        compose.onNodeWithText("24 meses · Grande · Macho").assertExists()
+        compose.onNodeWithText("24 meses").assertExists()
+        compose.onNodeWithText("Grande").assertExists()
+        compose.onNodeWithText("Macho").assertExists()
         compose.onNodeWithText("En proceso").assertExists()
         compose.onNodeWithContentDescription("Regresar").performClick()
         waitTag("catalog-search")
@@ -114,6 +116,136 @@ class CatalogFlowTest {
         compose.runOnIdle { repo.value.value = PublicCatalog(false) }
         waitTag("catalog-empty")
         compose.onNodeWithTag("catalog-dog-test-dog").assertDoesNotExist()
+    }
+
+    @Test
+    fun selectedDogShowsEveryPhotoAndItsOwnRefugeInformation() {
+        compose.setContent {
+            HuellitasChalcoTheme {
+                HuellitasApp(
+                    container.authRepository,
+                    container.shelterAccessRepository,
+                    UiDestination(UiScreen.Catalog),
+                )
+            }
+        }
+        waitTag("catalog-search")
+        compose.onNodeWithTag("catalog-search").performTextInput("Lunita HU02")
+        Espresso.closeSoftKeyboard()
+        waitTag("catalog-dog-hu02-catalog-available")
+        clickTag("catalog-dog-hu02-catalog-available")
+        waitTag("detail-photo-foto")
+        compose.onNodeWithText("Fotografía 1 de 2").assertExists()
+        compose.onNodeWithText("8 meses").assertExists()
+        compose.onNodeWithText("Chico").assertExists()
+        compose.onNodeWithText("Hembra").assertExists()
+        clickTag("detail-next-photo")
+        waitTag("detail-photo-foto2")
+        compose.onNodeWithText("Fotografía 2 de 2").assertExists()
+        compose.onNodeWithTag("detail-next-photo").assertIsNotEnabled()
+        clickTag("detail-previous-photo")
+        waitTag("detail-photo-foto")
+        compose.onNodeWithTag("detail-previous-photo").assertIsNotEnabled()
+        compose.onNodeWithText("Vacunación: Sin información").assertExists()
+        clickTag("detail-refuge")
+        compose.waitUntil(15_000) {
+            compose.onAllNodesWithText("Información del refugio").fetchSemanticsNodes().isNotEmpty()
+        }
+        compose.onNodeWithText("Refugio catálogo hu02-chalco").assertExists()
+        compose.onNodeWithText("Chalco, Estado de México").assertExists()
+        compose.onNodeWithText("Zona de demostración").assertExists()
+        compose.onNodeWithText("10 a 17 h").assertExists()
+        compose.onNodeWithContentDescription("Regresar").performClick()
+        waitTag("detail-refuge")
+        compose.onNodeWithText("Sobre Lunita HU02").assertExists()
+    }
+
+    @Test
+    fun invalidPhotoShowsRetryInsteadOfAnEndlessLoader() {
+        var calls = 0
+        val bitmap =
+            android.graphics.Bitmap.createBitmap(20, 20, android.graphics.Bitmap.Config.ARGB_8888)
+        val valid =
+            java.io
+                .ByteArrayOutputStream()
+                .also { bitmap.compress(android.graphics.Bitmap.CompressFormat.JPEG, 80, it) }
+                .toByteArray()
+        bitmap.recycle()
+        val photos =
+            object :
+                com.example.huellitaschalco.feature.shelter.dogs.domain.DogRepository by container
+                    .dogRepository {
+                override suspend fun photo(path: String): ByteArray {
+                    calls++
+                    return if (calls == 1) byteArrayOf(1, 2, 3) else valid
+                }
+            }
+        compose.setContent {
+            HuellitasChalcoTheme {
+                com.example.huellitaschalco.feature.shelter.dogs.presentation.StoredDogPhoto(
+                    "fixture",
+                    photos,
+                )
+            }
+        }
+        compose.waitUntil(10_000) {
+            compose.onAllNodesWithText("Reintentar fotografía").fetchSemanticsNodes().isNotEmpty()
+        }
+        compose.onNodeWithText("Reintentar fotografía").performClick()
+        compose.waitUntil(10_000) {
+            compose
+                .onAllNodesWithContentDescription("Fotografía del perrito")
+                .fetchSemanticsNodes()
+                .isNotEmpty()
+        }
+        compose.onNodeWithText("Reintentar fotografía").assertDoesNotExist()
+        org.junit.Assert.assertEquals(2, calls)
+    }
+
+    @Test
+    fun changingPhotoClearsThePreviousImageWhileTheNextLoads() {
+        val path = androidx.compose.runtime.mutableStateOf("first")
+        val gate = kotlinx.coroutines.CompletableDeferred<Unit>()
+        val bitmap =
+            android.graphics.Bitmap.createBitmap(20, 20, android.graphics.Bitmap.Config.ARGB_8888)
+        val valid =
+            java.io
+                .ByteArrayOutputStream()
+                .also { bitmap.compress(android.graphics.Bitmap.CompressFormat.JPEG, 80, it) }
+                .toByteArray()
+        bitmap.recycle()
+        val photos =
+            object :
+                com.example.huellitaschalco.feature.shelter.dogs.domain.DogRepository by container
+                    .dogRepository {
+                override suspend fun photo(path: String): ByteArray {
+                    if (path == "second") gate.await()
+                    return valid
+                }
+            }
+        compose.setContent {
+            HuellitasChalcoTheme {
+                com.example.huellitaschalco.feature.shelter.dogs.presentation.StoredDogPhoto(
+                    path.value,
+                    photos,
+                )
+            }
+        }
+        compose.waitUntil(10_000) {
+            compose
+                .onAllNodesWithContentDescription("Fotografía del perrito")
+                .fetchSemanticsNodes()
+                .isNotEmpty()
+        }
+        compose.runOnIdle { path.value = "second" }
+        compose.onNodeWithContentDescription("Fotografía del perrito").assertDoesNotExist()
+        compose.runOnIdle { gate.complete(Unit) }
+        compose.waitUntil(10_000) {
+            compose
+                .onAllNodesWithContentDescription("Fotografía del perrito")
+                .fetchSemanticsNodes()
+                .isNotEmpty()
+        }
     }
 
     private fun clickTag(tag: String) {

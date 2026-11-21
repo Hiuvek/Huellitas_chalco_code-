@@ -39,7 +39,7 @@ No se duplican nombres de refugio en la ficha ni se modifican las reglas de escr
 
 La unión entre fichas y refugios y los filtros de búsqueda se ejecutan en el cliente. La consulta recibe los perritos públicos disponibles o en proceso y después conserva solo los de los refugios territoriales admitidos. Está pensada para el volumen del proyecto escolar; no implementa paginación ni búsqueda de texto en un servidor dedicado.
 
-Se requiere confirmación del servidor para presentar el catálogo como actual. Si no llega en 12 segundos, se muestra un error y se permite reintentar. El listener puede recuperarse al regresar la conexión. **Todavía no existe catálogo persistente con Room**: la consulta sin conexión y la indicación de datos desactualizados corresponden a HU-17. La ficha pública completa y los requisitos siguen en HU-03/HU-04.
+Se requiere confirmación del servidor para presentar el catálogo como actual. Si no llega en 12 segundos, se muestra un error y se permite reintentar. El listener puede recuperarse al regresar la conexión. **Todavía no existe catálogo persistente con Room**: la consulta sin conexión y la indicación de datos desactualizados corresponden a HU-17. HU-03 completa la [ficha pública](public-dog-detail.md); los requisitos se conectan en HU-04.
 
 ## Pruebas
 

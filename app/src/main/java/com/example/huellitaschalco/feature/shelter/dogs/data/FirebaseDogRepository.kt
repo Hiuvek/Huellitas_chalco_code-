@@ -218,6 +218,10 @@ class FirebaseDogRepository(
         require(auth.user.value?.uid == uid)
         val database = requireNotNull(db)
         val reference = database.collection("perritos").document(dogId)
+        // Confirma conectividad con el servidor incluso si el SDK conserva un canal de
+        // transacciones.
+        // La transacción vuelve a leer para validar permisos y detectar cambios concurrentes.
+        reference.get(Source.SERVER).await()
         val conflict =
             database
                 .runTransaction<DogHealth?> { transaction ->

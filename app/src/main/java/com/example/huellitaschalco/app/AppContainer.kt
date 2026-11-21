@@ -34,6 +34,11 @@ class AppContainer(context: Context) {
             authRepository,
             firebase.firestore,
         )
+    val evaluationRepository =
+        com.example.huellitaschalco.feature.shelter.requests.data.FirebaseEvaluationRepository(
+            authRepository,
+            firebase.firestore,
+        )
     val dogPhotoImporter = AndroidDogPhotoImporter(context.applicationContext)
     val dogRepository =
         FirebaseDogRepository(

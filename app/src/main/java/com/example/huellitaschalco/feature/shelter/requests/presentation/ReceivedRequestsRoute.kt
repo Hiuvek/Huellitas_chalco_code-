@@ -22,6 +22,8 @@ fun ReceivedRequestsRoute(
     shelterName: String,
     id: String?,
     repository: ReceivedRequestsRepository,
+    evaluationRepository:
+        com.example.huellitaschalco.feature.shelter.requests.domain.EvaluationRepository,
 ) {
     val model: ReceivedRequestsViewModel =
         viewModel(
@@ -93,6 +95,7 @@ fun ReceivedRequestsRoute(
                     state.request?.let { item ->
                         HHeading(item.dogName ?: item.dogId)
                         HTag(item.status)
+                        EvaluationActions(item, uid, shelterId, evaluationRepository)
                         HKeyValue("Enviada", requestDate(item.createdAt))
                         item.rejectionReason?.let { HKeyValue("Motivo de la decisión", it) }
                         RequestAnswers(item)

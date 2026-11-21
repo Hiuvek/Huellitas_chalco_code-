@@ -160,7 +160,7 @@ test('HU08 datos incompletos, estados adelantados y campos ajenos se rechazan',a
   for(const patch of [
     {nombre:''},{nombre:'   '},{nombre:'x'.repeat(61)},{edadMeses:-1},{edadMeses:361},{edadMeses:1.5},
     {tamano:'Gigante'},{sexo:'Otro'},{descripcion:'Corta'},{descripcion:' '.repeat(40)},{descripcion:'x'.repeat(2001)},
-    {publicado:false},{estado:'Adoptado'},{vacunacion:'Sí'},{rol:'admin'},
+    {publicado:false},{estado:'Adoptado'},{vacunacion:'Tal vez'},{rol:'admin'},
     {creadoEn:new Date(0)},{fotos:[]},
   ]) await assertFails(publish('a','a','nuevo',patch));
   const {sexo,...missing}=newDog();
@@ -188,4 +188,49 @@ test('HU08 la lectura de un ID nuevo requiere perfil activo y no revela registro
   await assertSucceeds(getDoc(doc(as('a'),'perritos','inexistente')));
   await assertFails(getDoc(doc(as(),'perritos','inexistente')));
   await assertFails(getDoc(doc(as('a'),'perritos','private-b')));
+});
+
+// HU-09: salud con tres estados y actualización limitada al refugio propietario.
+const healthPatch = (extra={}) => ({vacunacion:'Sí',desparasitacion:'No',esterilizacion:'Sin información',actualizadoEn:serverTimestamp(),...extra});
+test('HU09 admite las 27 combinaciones de salud al registrar',async()=>{
+  let id=0;
+  for(const vacunacion of ['Sí','No','Sin información'])
+    for(const desparasitacion of ['Sí','No','Sin información'])
+      for(const esterilizacion of ['Sí','No','Sin información'])
+        await assertSucceeds(publish('a','a',`salud-${id++}`,{vacunacion,desparasitacion,esterilizacion}));
+});
+test('HU09 responsable guarda salud y visitante consulta el resultado',async()=>{
+  await publish();
+  await assertSucceeds(updateDoc(doc(as('a'),'perritos','nuevo'),healthPatch()));
+  const result=await assertSucceeds(getDoc(doc(as(),'perritos','nuevo')));
+  if(result.data().vacunacion!=='Sí'||result.data().desparasitacion!=='No'||result.data().esterilizacion!=='Sin información') throw Error('Salud inesperada');
+});
+test('HU09 visitante, adoptante y otro refugio no cambian salud',async()=>{
+  await publish();
+  for(const uid of [null,'adopter','b']) await assertFails(updateDoc(doc(as(uid),'perritos','nuevo'),healthPatch()));
+});
+test('HU09 rechaza estados inválidos y campos de salud ausentes',async()=>{
+  await publish();
+  for(const value of ['Tal vez',true,null,'']) {
+    await assertFails(updateDoc(doc(as('a'),'perritos','nuevo'),healthPatch({vacunacion:value})));
+    await assertFails(publish('a','a','invalido',{desparasitacion:value}));
+  }
+  const {vacunacion,...missing}=newDog('a','a','incompleto');
+  const db=as('a'); const batch=writeBatch(db);
+  batch.set(doc(db,'perritos','incompleto'),missing);
+  batch.set(doc(db,'perritos_control','incompleto'),{refugioId:'a',solicitudAprobadaId:null,adopcionId:null});
+  await assertFails(batch.commit());
+});
+test('HU09 salud no permite editar otros datos ni falsificar fecha',async()=>{
+  await publish();
+  for(const patch of [{nombre:'Otro'}, {refugioId:'b'}, {estado:'Adoptado'}, {publicado:false}, {fotos:[]}, {creadoEn:serverTimestamp()}, {actualizadoEn:new Date(0)}])
+    await assertFails(updateDoc(doc(as('a'),'perritos','nuevo'),healthPatch(patch)));
+});
+test('HU09 revocar membresía, perfil o refugio impide guardar salud',async()=>{
+  await publish();
+  for(const path of ['membresias/a__a','usuarios/a','refugios/a']) {
+    await adminUpdate(path,{activo:false});
+    await assertFails(updateDoc(doc(as('a'),'perritos','nuevo'),healthPatch()));
+    await adminUpdate(path,{activo:true});
+  }
 });

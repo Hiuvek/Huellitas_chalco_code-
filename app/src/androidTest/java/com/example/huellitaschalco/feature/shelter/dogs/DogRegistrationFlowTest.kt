@@ -118,8 +118,13 @@ class DogRegistrationFlowTest {
                 "Perrita ficticia que disfruta caminar y jugar, preparada para comprobar el registro local."
             )
         Espresso.closeSoftKeyboard()
+        choose("register-health-Vaccination-Yes")
+        choose("register-health-Deworming-No")
+        compose.onNodeWithTag("register-health-Sterilization-Unknown").assertIsSelected()
         compose.onNodeWithTag("dog-review").performClick()
         waitForTag("dog-publish")
+        compose.onNodeWithText("Vacunación: Sí").assertExists()
+        compose.onNodeWithText("Desparasitación: No").assertExists()
         compose.onNodeWithText(name).assertExists()
         compose.onNodeWithText("Volver a editar").performClick()
         compose.onNodeWithTag("dog-name").assertTextContains(name)
@@ -144,7 +149,40 @@ class DogRegistrationFlowTest {
                 .isNotEmpty()
         }
         compose.onNodeWithText("12 meses · Mediano · Hembra").assertExists()
+        choose("health-Vaccination-No")
+        choose("health-Deworming-Yes")
+        choose("health-Sterilization-Yes")
+        compose.onNodeWithTag("health-save").performScrollTo().performSemanticsAction(
+            SemanticsActions.OnClick
+        ) {
+            it()
+        }
+        compose.waitUntil(15_000) {
+            compose
+                .onAllNodesWithText("Salud guardada correctamente.")
+                .fetchSemanticsNodes()
+                .isNotEmpty()
+        }
+        compose.onNodeWithText("Ver ficha pública").performScrollTo().performSemanticsAction(
+            SemanticsActions.OnClick
+        ) {
+            it()
+        }
+        compose.waitUntil(15_000) {
+            compose.onAllNodesWithText("Vacunación: No").fetchSemanticsNodes().isNotEmpty()
+        }
+        compose.onNodeWithText("Desparasitación: Sí").assertExists()
+        compose.onNodeWithText("Esterilización: Sí").assertExists()
         assertTrue(source.exists())
+    }
+
+    private fun choose(tag: String) {
+        compose.onNodeWithTag(tag).performScrollTo().performSemanticsAction(
+            SemanticsActions.OnClick
+        ) {
+            it()
+        }
+        compose.onNodeWithTag(tag).assertIsSelected()
     }
 
     private fun waitForTag(tag: String) {

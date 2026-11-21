@@ -203,4 +203,127 @@ class DogPublicationSdkTest {
             fail("No debe aceptar texto como fotografía")
         } catch (_: IllegalArgumentException) {}
     }
+
+    @Test
+    fun healthPersistsPubliclyAndRetryIsIdempotent(): Unit = runBlocking {
+        val input =
+            publication().let {
+                it.copy(
+                    draft =
+                        it.draft.copy(
+                            health =
+                                DogHealth(HealthStatus.Yes, HealthStatus.No, HealthStatus.Unknown)
+                        )
+                )
+            }
+        val published = repository.publish(input) {}
+        assertEquals(input.draft.health, published.health)
+        val ref = db.collection("perritos").document(input.id)
+        val before = ref.get(Source.SERVER).await()
+        val desired = DogHealth(HealthStatus.No, HealthStatus.Yes, HealthStatus.Yes)
+        repository.updateHealth(input.userUid, input.shelterId, input.id, input.draft.health, desired)
+        val after = ref.get(Source.SERVER).await()
+        assertEquals("No", after.getString("vacunacion"))
+        assertEquals("Sí", after.getString("desparasitacion"))
+        assertEquals("Sí", after.getString("esterilizacion"))
+        assertEquals(
+            before.data!!.filterKeys {
+                it !in setOf("vacunacion", "desparasitacion", "esterilizacion", "actualizadoEn")
+            },
+            after.data!!.filterKeys {
+                it !in setOf("vacunacion", "desparasitacion", "esterilizacion", "actualizadoEn")
+            },
+        )
+        repository.updateHealth(input.userUid, input.shelterId, input.id, input.draft.health, desired)
+        assertEquals(
+            after.getTimestamp("actualizadoEn"),
+            ref.get(Source.SERVER).await().getTimestamp("actualizadoEn"),
+        )
+        auth.signOut()
+        val public =
+            kotlinx.coroutines.withTimeout(10_000) {
+                repository.observePublic(input.id).first { !it.loading }
+            }
+        assertNull(public.error)
+        assertEquals(desired, public.dog!!.health)
+    }
+
+    @Test
+    fun staleHealthDoesNotOverwriteAnotherResponsible(): Unit = runBlocking {
+        val input = publication()
+        repository.publish(input) {}
+        val actual = DogHealth(vaccination = HealthStatus.Yes)
+        repository.updateHealth(input.userUid, input.shelterId, input.id, DogHealth(), actual)
+        try {
+            repository.updateHealth(
+                input.userUid,
+                input.shelterId,
+                input.id,
+                DogHealth(),
+                DogHealth(deworming = HealthStatus.No),
+            )
+            fail("Debe rechazar el estado obsoleto")
+        } catch (conflict: HealthConflict) {
+            assertEquals(actual, conflict.actual)
+        }
+        assertEquals(
+            "Sí",
+            db.collection("perritos")
+                .document(input.id)
+                .get(Source.SERVER)
+                .await()
+                .getString("vacunacion"),
+        )
+    }
+
+    @Test
+    fun offlineHealthIsNotQueuedAndCanRetry(): Unit = runBlocking {
+        val input = publication()
+        repository.publish(input) {}
+        val desired = DogHealth(sterilization = HealthStatus.No)
+        db.disableNetwork().await()
+        try {
+            repository.updateHealth(input.userUid, input.shelterId, input.id, DogHealth(), desired)
+            fail("No debe confirmar sin servidor")
+        } catch (_: FirebaseFirestoreException) {} finally {
+            db.enableNetwork().await()
+        }
+        assertEquals(
+            "Sin información",
+            db.collection("perritos")
+                .document(input.id)
+                .get(Source.SERVER)
+                .await()
+                .getString("esterilizacion"),
+        )
+        repository.updateHealth(input.userUid, input.shelterId, input.id, DogHealth(), desired)
+        assertEquals(
+            "No",
+            db.collection("perritos")
+                .document(input.id)
+                .get(Source.SERVER)
+                .await()
+                .getString("esterilizacion"),
+        )
+    }
+
+    @Test
+    fun anotherShelterCannotEditPublishedHealth(): Unit = runBlocking {
+        val input = publication()
+        repository.publish(input) {}
+        auth.signOut()
+        auth.signIn("hu07-b@example.test", "PruebaHU07!")
+        try {
+            repository.updateHealth(
+                auth.user.value!!.uid,
+                input.shelterId,
+                input.id,
+                DogHealth(),
+                DogHealth(vaccination = HealthStatus.Yes),
+            )
+            fail("Otro refugio no debe editar salud")
+        } catch (error: FirebaseFirestoreException) {
+            assertEquals(FirebaseFirestoreException.Code.PERMISSION_DENIED, error.code)
+        }
+    }
 }

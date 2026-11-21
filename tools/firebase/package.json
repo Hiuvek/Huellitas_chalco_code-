@@ -3,8 +3,8 @@
   "private": true,
   "scripts": {
     "auth:start": "firebase emulators:start --config ../../firebase.json --only auth --project demo-huellitas-chalco",
-    "start": "firebase emulators:start --config ../../firebase.json --only auth,firestore --project demo-huellitas-chalco",
-    "test:rules": "firebase emulators:exec --config ../../firebase.json --only firestore --project demo-huellitas-chalco \"node --test test/firestore.rules.test.mjs\"",
+    "start": "firebase emulators:start --config ../../firebase.json --only auth,firestore,storage --project demo-huellitas-chalco",
+    "test:rules": "firebase emulators:exec --config ../../firebase.json --only firestore,storage --project demo-huellitas-chalco \"node --test test/*.test.mjs\"",
     "seed:local": "node seed-local.mjs"
   },
   "devDependencies": {

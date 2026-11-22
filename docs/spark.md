@@ -51,3 +51,9 @@ Solo se publican reglas e índices de Firestore. Resultado: `build/cloud/Huellit
 Para pruebas aisladas, `npm --prefix tools/firebase run start` inicia únicamente Auth y Firestore del proyecto demo; el APK `.local` sigue disponible y requiere USB/emuladores. Véase [guía local](demo-un-dispositivo.md).
 
 Resultados de verificación: [pruebas de ambos roles](pruebas-spark.md). El refugio de demostración real tiene ahora los requisitos y pasos escolares de ejemplo; no son políticas verificadas de un refugio real.
+
+## Catálogo escolar de prueba
+
+El 22 de noviembre se agregaron ocho fichas de demostración al proyecto real: Luna, Max, Nala, Rocky, Kira, Toby, Maya y Bruno. Todas están disponibles, pertenecen al refugio de demostración y tienen edades, tamaños y sexos variados. Su salud figura como «Sin información». Cada descripción aclara que los datos son ficticios; las fotografías son las imágenes de ejemplo existentes en la app, comprimidas entre 10 y 20 KiB.
+
+`node tools/cloud/seed-demo.mjs` muestra la preparación y `--write` crea las fichas, imágenes y controles de adopción. El script exige el refugio escolar activo y utiliza precondiciones de creación; no reemplaza documentos existentes ni restablece adopciones que el usuario ya haya probado. Se verificó sin sesión que las ocho fichas y sus imágenes son legibles desde Firebase real. No requiere actualizar el APK.

@@ -43,3 +43,5 @@ No se ha comprobado el uso simultáneo de dos dispositivos físicos. El modo nor
 Detalles técnicos y limitaciones: [modo Spark](docs/spark.md). Resultados anteriores a esta adaptación: [checklist histórico](docs/checklist-anterior-a-spark.md).
 
 Verificación: **114 pruebas unitarias, 85 de reglas y 63 comprobaciones en tableta correctas**, incluida una generación real con Gemini. [Reporte de pruebas y limitaciones](docs/pruebas-spark.md).
+
+- [x] Catálogo real preparado con ocho perritos ficticios, fotografías y controles para probar solicitudes y adopciones.

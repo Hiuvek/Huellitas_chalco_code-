@@ -92,7 +92,7 @@ class DogRegistrationFlowTest {
         compose.onNodeWithTag("dog-add-photos").performScrollTo().performClick()
         compose.waitUntil(10_000) {
             compose
-                .onAllNodesWithText("1 de 6 fotografías.", substring = true)
+                .onAllNodesWithText("1 de 1 fotografía.", substring = true)
                 .fetchSemanticsNodes()
                 .isNotEmpty()
         }
@@ -197,12 +197,12 @@ class DogRegistrationFlowTest {
         clickTag("edit-remove-0")
         clickTag("edit-review")
         compose.onNodeWithText("Escribe un nombre de 1 a 60 caracteres.").assertExists()
-        compose.onNodeWithText("Agrega entre 1 y 6 fotografías distintas.").assertExists()
+        compose.onNodeWithText("Agrega una fotografía.").assertExists()
         compose.onNodeWithTag("edit-save").assertDoesNotExist()
         clickTag("edit-add-photos")
         compose.waitUntil(10_000) {
             compose
-                .onAllNodesWithText("1 de 6 fotografías.", substring = true)
+                .onAllNodesWithText("1 de 1 fotografía.", substring = true)
                 .fetchSemanticsNodes()
                 .isNotEmpty()
         }

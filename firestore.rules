@@ -47,16 +47,7 @@ service cloud.firestore {
           (resource != null && retainedPhoto(photo)));
     }
     function validPhotos(photos, dogId, shelterId) {
-      let n = photos.size();
-      return photos is list && n >= 1 && n <= 6 &&
-        validPhoto(photos[0], 0, dogId, shelterId) &&
-        (n < 2 || validPhoto(photos[1], 1, dogId, shelterId)) &&
-        (n < 3 || validPhoto(photos[2], 2, dogId, shelterId)) &&
-        (n < 4 || validPhoto(photos[3], 3, dogId, shelterId)) &&
-        (n < 5 || validPhoto(photos[4], 4, dogId, shelterId)) &&
-        (n < 6 || validPhoto(photos[5], 5, dogId, shelterId)) &&
-        [photos[0].archivoId, n > 1 ? photos[1].archivoId : '_unused1', n > 2 ? photos[2].archivoId : '_unused2',
-          n > 3 ? photos[3].archivoId : '_unused3', n > 4 ? photos[4].archivoId : '_unused4', n > 5 ? photos[5].archivoId : '_unused5'].toSet().size() == 6;
+      return photos is list && photos.size() == 1 && validPhoto(photos[0],0,dogId,shelterId);
     }
     function validHealth(d) {
       return d.vacunacion in ['Sí', 'No', 'Sin información'] &&
@@ -91,13 +82,13 @@ service cloud.firestore {
       allow get: if resource == null && activeUser();
       allow create: if validNewDog(request.resource.data, id);
       // Salud y datos generales se guardan por separado; propietario y ciclo de adopción son inmutables aquí.
-      allow update: if manages(resource.data.refugioId) && request.resource.data.actualizadoEn == request.time && (
+      allow update: if request.resource.data.estado == resource.data.estado && manages(resource.data.refugioId) && request.resource.data.actualizadoEn == request.time && (
         (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['vacunacion','desparasitacion','esterilizacion','actualizadoEn']) &&
           validHealth(request.resource.data)) ||
         (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['nombre','edadMeses','tamano','sexo','descripcion','fotos','actualizadoEn']) &&
           validEditedDog(request.resource.data,id))
       );
-      allow update: if validApprovalDog(request.resource.data,id);
+      allow update: if resource.data.estado == 'Disponible' && request.resource.data.estado == 'En proceso' && validApprovalDog(request.resource.data,id);
       allow delete: if false;
     }
     function validContact(c) {
@@ -227,7 +218,7 @@ service cloud.firestore {
         request.resource.data.solicitudAprobadaId == null && request.resource.data.adopcionId == null &&
         !exists(/databases/$(database)/documents/perritos/$(id)) &&
         getAfter(/databases/$(database)/documents/perritos/$(id)).data.refugioId == request.resource.data.refugioId;
-      allow update: if validApprovalControl(request.resource.data,id);
+      allow update: if request.resource.data.adopcionId == resource.data.adopcionId && validApprovalControl(request.resource.data,id);
       allow delete: if false;
     }
     match /solicitudes_claves/{id} {
@@ -240,6 +231,151 @@ service cloud.firestore {
         getAfter(/databases/$(database)/documents/solicitudes/$(request.resource.data.solicitudId)).data.perritoId == request.resource.data.perritoId &&
         getAfter(/databases/$(database)/documents/solicitudes/$(request.resource.data.solicitudId)).data.creadoEn == request.time;
       allow update,delete: if false;
+    }
+    // Spark: las transacciones del cliente se verifican íntegramente aquí.
+    function validDelivery(d,id) {
+      let application = get(/databases/$(database)/documents/solicitudes/$(d.solicitudId)).data;
+      let dog = get(/databases/$(database)/documents/perritos/$(id)).data;
+      let control = get(/databases/$(database)/documents/perritos_control/$(id)).data;
+      return manages(d.refugioId) &&
+        d.keys().hasAll(['solicitudId','perritoId','usuarioUid','refugioId','fechaEntrega','cartaFirmada','registradoPorUid','creadoEn']) &&
+        d.keys().hasOnly(['solicitudId','perritoId','usuarioUid','refugioId','fechaEntrega','cartaFirmada','registradoPorUid','creadoEn']) &&
+        d.perritoId == id && d.usuarioUid == application.usuarioUid && d.refugioId == application.refugioId &&
+        application.perritoId == id && application.estado == 'Aprobada' && dog.refugioId == d.refugioId &&
+        dog.publicado == true && dog.estado == 'En proceso' && control.refugioId == d.refugioId &&
+        control.solicitudAprobadaId == d.solicitudId && control.adopcionId == null &&
+        d.fechaEntrega is timestamp && d.fechaEntrega > timestamp.date(1970,1,1) && d.fechaEntrega <= request.time &&
+        d.cartaFirmada == true && d.registradoPorUid == request.auth.uid && d.creadoEn == request.time &&
+        getAfter(/databases/$(database)/documents/perritos/$(id)).data.estado == 'Adoptado' &&
+        getAfter(/databases/$(database)/documents/perritos/$(id)).data.actualizadoEn == request.time &&
+        getAfter(/databases/$(database)/documents/perritos_control/$(id)).data.adopcionId == id;
+    }
+    function deliveryDog(d,id) {
+      let adoption = getAfter(/databases/$(database)/documents/adopciones/$(id)).data;
+      return manages(resource.data.refugioId) && resource.data.estado == 'En proceso' &&
+        d.diff(resource.data).affectedKeys().hasOnly(['estado','actualizadoEn']) && d.estado == 'Adoptado' &&
+        d.actualizadoEn == request.time && !exists(/databases/$(database)/documents/adopciones/$(id)) &&
+        adoption.perritoId == id && adoption.refugioId == resource.data.refugioId && adoption.creadoEn == request.time;
+    }
+    function deliveryControl(d,id) {
+      let adoption = getAfter(/databases/$(database)/documents/adopciones/$(id)).data;
+      return manages(resource.data.refugioId) && resource.data.adopcionId == null &&
+        d.diff(resource.data).affectedKeys().hasOnly(['adopcionId']) && d.adopcionId == id &&
+        !exists(/databases/$(database)/documents/adopciones/$(id)) && adoption.creadoEn == request.time &&
+        adoption.refugioId == resource.data.refugioId && adoption.solicitudId == resource.data.solicitudAprobadaId;
+    }
+    function closedElsewhere(d,id) {
+      let old = resource.data;
+      let adoption = get(/databases/$(database)/documents/adopciones/$(old.perritoId)).data;
+      let history = getAfter(/databases/$(database)/documents/historial_solicitudes/$(id + '-no-aprobada')).data;
+      return manages(old.refugioId) && old.estado in ['Enviada','En revisión'] && d.estado == 'No aprobada' &&
+        d.diff(old).affectedKeys().hasOnly(['estado','motivoNoAprobacion','actualizadoEn']) &&
+        d.motivoNoAprobacion == 'El perrito fue adoptado por otra persona.' && d.actualizadoEn == request.time &&
+        adoption.refugioId == old.refugioId && adoption.perritoId == old.perritoId && adoption.solicitudId != id &&
+        history.solicitudId == id && history.usuarioUid == old.usuarioUid && history.refugioId == old.refugioId &&
+        history.estadoAnterior == old.estado && history.estadoNuevo == d.estado && history.motivo == d.motivoNoAprobacion &&
+        history.actorUid == request.auth.uid && history.creadoEn == request.time;
+    }
+    function closedHistory(d,id) {
+      let old = get(/databases/$(database)/documents/solicitudes/$(d.solicitudId)).data;
+      let after = getAfter(/databases/$(database)/documents/solicitudes/$(d.solicitudId)).data;
+      let adoption = get(/databases/$(database)/documents/adopciones/$(old.perritoId)).data;
+      return manages(old.refugioId) &&
+        d.keys().hasAll(['solicitudId','usuarioUid','refugioId','estadoAnterior','estadoNuevo','motivo','actorUid','creadoEn']) &&
+        d.keys().hasOnly(['solicitudId','usuarioUid','refugioId','estadoAnterior','estadoNuevo','motivo','actorUid','creadoEn']) &&
+        id == d.solicitudId + '-no-aprobada' && old.estado in ['Enviada','En revisión'] &&
+        d.usuarioUid == old.usuarioUid && d.refugioId == old.refugioId && d.estadoAnterior == old.estado &&
+        d.estadoNuevo == 'No aprobada' && d.motivo == 'El perrito fue adoptado por otra persona.' &&
+        d.actorUid == request.auth.uid && d.creadoEn == request.time && after.actualizadoEn == request.time &&
+        after.estado == d.estadoNuevo && after.motivoNoAprobacion == d.motivo &&
+        adoption.refugioId == old.refugioId && adoption.solicitudId != d.solicitudId;
+    }
+    function nextKey(id) { return hashing.sha256(id + '\u0000next').toHexString().lower(); }
+    function validReview(d,id) {
+      let adoption = get(/databases/$(database)/documents/adopciones/$(d.adopcionId)).data;
+      return manages(d.refugioId) &&
+        d.keys().hasAll(['adopcionId','perritoId','refugioId','fechaProgramada','tipo','estado','seguimientoId','creadoEn']) &&
+        d.keys().hasOnly(['adopcionId','perritoId','refugioId','fechaProgramada','tipo','estado','seguimientoId','creadoEn','revisionOrigenId']) &&
+        d.adopcionId == d.perritoId && adoption.perritoId == d.perritoId && adoption.refugioId == d.refugioId &&
+        d.fechaProgramada is timestamp && d.fechaProgramada >= adoption.fechaEntrega &&
+        d.tipo in ['VISITA','LLAMADA','VIDEOLLAMADA'] && d.estado == 'PROGRAMADA' && d.seguimientoId == null && d.creadoEn == request.time &&
+        ((!('revisionOrigenId' in d) && id.matches('[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}')) ||
+         ('revisionOrigenId' in d && id == nextKey(d.revisionOrigenId) &&
+          getAfter(/databases/$(database)/documents/seguimientos/$(d.revisionOrigenId)).data.siguienteRevisionId == id &&
+          getAfter(/databases/$(database)/documents/seguimientos/$(d.revisionOrigenId)).data.adopcionId == d.adopcionId &&
+          getAfter(/databases/$(database)/documents/seguimientos/$(d.revisionOrigenId)).data.creadoEn == request.time &&
+          d.fechaProgramada > getAfter(/databases/$(database)/documents/seguimientos/$(d.revisionOrigenId)).data.fechaRealizacion));
+    }
+    function completeReview(d,id) {
+      let result = getAfter(/databases/$(database)/documents/seguimientos/$(id)).data;
+      return manages(resource.data.refugioId) && resource.data.estado == 'PROGRAMADA' && resource.data.seguimientoId == null &&
+        d.diff(resource.data).affectedKeys().hasOnly(['estado','seguimientoId']) && d.estado == 'REALIZADA' && d.seguimientoId == id &&
+        !exists(/databases/$(database)/documents/seguimientos/$(id)) && result.creadoEn == request.time &&
+        result.revisionId == id && result.adopcionId == resource.data.adopcionId && result.refugioId == resource.data.refugioId;
+    }
+    function validFollowup(d,id) {
+      let review = get(/databases/$(database)/documents/revisiones/$(id)).data;
+      let adoption = get(/databases/$(database)/documents/adopciones/$(d.adopcionId)).data;
+      return manages(d.refugioId) &&
+        d.keys().hasAll(['adopcionId','revisionId','perritoId','refugioId','fechaRealizacion','adaptacion','observaciones','fotos','registradoPorUid','siguienteRevisionId','creadoEn']) &&
+        d.keys().hasOnly(['adopcionId','revisionId','perritoId','refugioId','fechaRealizacion','adaptacion','observaciones','fotos','registradoPorUid','siguienteRevisionId','creadoEn']) &&
+        d.revisionId == id && review.estado == 'PROGRAMADA' && review.seguimientoId == null &&
+        d.adopcionId == review.adopcionId && d.perritoId == review.perritoId && d.refugioId == review.refugioId &&
+        adoption.refugioId == d.refugioId && adoption.perritoId == d.perritoId &&
+        d.fechaRealizacion is timestamp && d.fechaRealizacion >= adoption.fechaEntrega && d.fechaRealizacion <= request.time &&
+        d.adaptacion in ['MUY_BUENA','BUENA','REGULAR','CON_DIFICULTADES'] &&
+        d.observaciones is string && d.observaciones.size() >= 15 && d.observaciones.size() <= 2000 && d.observaciones.matches('\\S([\\s\\S]*\\S)?') &&
+        d.registradoPorUid == request.auth.uid && d.creadoEn == request.time &&
+        getAfter(/databases/$(database)/documents/revisiones/$(id)).data.estado == 'REALIZADA' &&
+        getAfter(/databases/$(database)/documents/revisiones/$(id)).data.seguimientoId == id &&
+        d.fotos is list && (d.fotos.size() == 0 || (d.fotos.size() == 1 &&
+          d.fotos[0].keys().hasOnly(['archivoId','ruta','orden']) && d.fotos[0].orden == 0 &&
+          d.fotos[0].ruta == 'refugios/' + d.refugioId + '/seguimientos/' + id + '/' + d.fotos[0].archivoId + '.jpg' &&
+          get(/databases/$(database)/documents/imagenes/$(hashing.sha256(d.fotos[0].ruta).toHexString().lower())).data.ruta == d.fotos[0].ruta)) &&
+        (d.siguienteRevisionId == null || (d.siguienteRevisionId == nextKey(id) &&
+          !exists(/databases/$(database)/documents/revisiones/$(d.siguienteRevisionId)) &&
+          getAfter(/databases/$(database)/documents/revisiones/$(d.siguienteRevisionId)).data.revisionOrigenId == id &&
+          getAfter(/databases/$(database)/documents/revisiones/$(d.siguienteRevisionId)).data.creadoEn == request.time));
+    }
+    match /adopciones/{id} {
+      allow get: if resource == null && manages(get(/databases/$(database)/documents/perritos/$(id)).data.refugioId);
+      allow create: if validDelivery(request.resource.data,id);
+    }
+    match /perritos/{id} { allow update: if resource.data.estado == 'En proceso' && request.resource.data.estado == 'Adoptado' && deliveryDog(request.resource.data,id); }
+    match /perritos_control/{id} { allow update: if deliveryControl(request.resource.data,id); }
+    match /solicitudes/{id} { allow update: if closedElsewhere(request.resource.data,id); }
+    match /historial_solicitudes/{id} { allow create: if closedHistory(request.resource.data,id); }
+    match /revisiones/{id} {
+      allow get: if resource == null && activeUser();
+      allow create: if validReview(request.resource.data,id);
+      allow update: if completeReview(request.resource.data,id);
+    }
+    match /seguimientos/{id} {
+      allow get: if resource == null && manages(get(/databases/$(database)/documents/revisiones/$(id)).data.refugioId);
+      allow create: if validFollowup(request.resource.data,id);
+    }
+    function imageValid(d,id) {
+      return d.keys().hasAll(['ruta','refugioId','perritoId','revisionId','datos']) &&
+        d.keys().hasOnly(['ruta','refugioId','perritoId','revisionId','datos']) && manages(d.refugioId) &&
+        id == hashing.sha256(d.ruta).toHexString().lower() && d.datos is string &&
+        d.datos.size() >= 8 && d.datos.size() <= 136536 && d.datos.matches('/9j/[A-Za-z0-9+/]*={0,2}') &&
+        ((d.revisionId == null && d.perritoId is string &&
+          d.ruta.matches('perritos/' + d.refugioId + '/' + request.auth.uid + '/' + d.perritoId + '/[A-Za-z0-9-]{1,100}\\.jpg') &&
+          (!exists(/databases/$(database)/documents/perritos/$(d.perritoId)) || get(/databases/$(database)/documents/perritos/$(d.perritoId)).data.refugioId == d.refugioId)) ||
+         (d.perritoId == null && d.revisionId is string &&
+          d.ruta.matches('refugios/' + d.refugioId + '/seguimientos/' + d.revisionId + '/[A-Za-z0-9-]{1,100}\\.jpg') &&
+          get(/databases/$(database)/documents/revisiones/$(d.revisionId)).data.refugioId == d.refugioId &&
+          get(/databases/$(database)/documents/revisiones/$(d.revisionId)).data.estado == 'PROGRAMADA'));
+    }
+    match /imagenes/{id} {
+      allow get: if (resource == null && activeUser()) || manages(resource.data.refugioId) ||
+        (resource.data.revisionId == null &&
+          get(/databases/$(database)/documents/perritos/$(resource.data.perritoId)).data.fotos[0].ruta == resource.data.ruta &&
+          ((get(/databases/$(database)/documents/perritos/$(resource.data.perritoId)).data.publicado == true &&
+            get(/databases/$(database)/documents/perritos/$(resource.data.perritoId)).data.estado in ['Disponible','En proceso']) ||
+           (adopterEnabled() && get(/databases/$(database)/documents/adopciones/$(resource.data.perritoId)).data.usuarioUid == request.auth.uid)));
+      allow create: if imageValid(request.resource.data,id);
+      allow update,delete,list: if false;
     }
     // Las escrituras de negocio se habilitan al implementar y validar su historia.
     match /{document=**} { allow read, write: if false; }

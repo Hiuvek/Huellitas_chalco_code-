@@ -35,9 +35,8 @@ fun DogEditRoute(
     val state by model.state.collectAsStateWithLifecycle()
     var confirmDiscard by rememberSaveable { mutableStateOf(false) }
     val picker =
-        rememberLauncherForActivityResult(ActivityResultContracts.PickMultipleVisualMedia(6)) { uris
-            ->
-            model.addPhotos(uris.map { it.toString() })
+        rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+            model.addPhotos(listOfNotNull(uri?.toString()))
         }
     val close = {
         model.releasePhotos()
@@ -115,11 +114,9 @@ fun DogEditRoute(
                 },
                 Modifier.testTag("edit-add-photos"),
                 outlined = true,
-                enabled = editable && state.draft.photos.size < 6,
+                enabled = editable && state.draft.photos.size < 1,
             )
-            HCaption(
-                "${state.draft.photos.size} de 6 fotografías. JPEG, PNG o WebP de hasta 20 MB."
-            )
+            HCaption("${state.draft.photos.size} de 1 fotografía. JPEG, PNG o WebP de hasta 20 MB.")
             state.errors[DogField.Photos]?.let { HBody(it) }
             HInput(
                 "Nombre",

@@ -1,9 +1,9 @@
 // Solo emuladores. Fichas ficticias para revisar HU-02 sin alterar registros personales.
 import {initializeTestEnvironment} from '@firebase/rules-unit-testing';
 import {doc,setDoc,Timestamp} from 'firebase/firestore';
-import {ref,uploadBytes} from 'firebase/storage';
+import {createHash} from 'node:crypto';
 import {readFile} from 'node:fs/promises';
-const env=await initializeTestEnvironment({projectId:'demo-huellitas-chalco',firestore:{host:'127.0.0.1',port:8180},storage:{host:'127.0.0.1',port:9199}});
+const env=await initializeTestEnvironment({projectId:'demo-huellitas-chalco',firestore:{host:'127.0.0.1',port:8180}});
 try {
   const image=await readFile(new URL('./fixtures/catalog-demo.jpg',import.meta.url));
   await env.withSecurityRulesDisabled(async ctx=>{
@@ -20,10 +20,9 @@ try {
     ];
     for(const [key,nombre,refugioId,estado,publicado,edadMeses,tamano,sexo] of fixtures) {
       const id=`hu02-catalog-${key}`,ruta=`perritos/${refugioId}/fixture/${id}/foto.jpg`;
-      await uploadBytes(ref(ctx.storage('gs://demo-huellitas-chalco.appspot.com'),ruta),image,{contentType:'image/jpeg'});
-      if(key==='available') await uploadBytes(ref(ctx.storage('gs://demo-huellitas-chalco.appspot.com'),`perritos/${refugioId}/fixture/${id}/foto2.jpg`),image,{contentType:'image/jpeg'});
+      await setDoc(doc(db,'imagenes',createHash('sha256').update(ruta).digest('hex')),{ruta,refugioId,perritoId:id,revisionId:null,datos:image.toString('base64')});
       await setDoc(doc(db,'perritos_control',id),{refugioId,solicitudAprobadaId:estado==='Disponible' ? null : 'fixture-approved',adopcionId:estado==='Adoptado' ? id : null});
-      await setDoc(doc(db,'perritos',id),{refugioId,nombre,edadMeses,tamano,sexo,descripcion:'Perrito ficticio para comprobar el catálogo escolar; esta ficha no representa un animal real.',vacunacion:'Sin información',desparasitacion:'Sin información',esterilizacion:'Sin información',estado,publicado,esDemostracion:true,fotos:key==='available' ? [{archivoId:'foto',ruta,orden:0},{archivoId:'foto2',ruta:`perritos/${refugioId}/fixture/${id}/foto2.jpg`,orden:1}] : [{archivoId:'foto',ruta,orden:0}],creadoEn:Timestamp.now(),actualizadoEn:Timestamp.now()});
+      await setDoc(doc(db,'perritos',id),{refugioId,nombre,edadMeses,tamano,sexo,descripcion:'Perrito ficticio para comprobar el catálogo escolar; esta ficha no representa un animal real.',vacunacion:'Sin información',desparasitacion:'Sin información',esterilizacion:'Sin información',estado,publicado,esDemostracion:true,fotos:[{archivoId:'foto',ruta,orden:0}],creadoEn:Timestamp.now(),actualizadoEn:Timestamp.now()});
     }
   });
   console.log('HU-02: seis fichas ficticias preparadas; de estas seis solo Lunita y Óscar deben aparecer.');

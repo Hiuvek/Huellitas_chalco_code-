@@ -166,8 +166,8 @@ test('HU08 datos incompletos, estados adelantados y campos ajenos se rechazan',a
   const {sexo,...missing}=newDog();
   await assertFails(setDoc(doc(as('a'),'perritos','nuevo'),missing));
 });
-test('HU08 permite seis fotos, rechaza siete, orden y rutas de otras cuentas',async()=>{
-  await assertSucceeds(publish('a','a','seis',{fotos:newDog('a','a','seis',6).fotos}));
+test('Spark admite una foto y rechaza múltiples fotos, orden o rutas ajenas',async()=>{
+  await assertFails(publish('a','a','seis',{fotos:newDog('a','a','seis',6).fotos}));
   for(const photos of [
     newDog('a','a','nuevo',7).fotos,
     newDog('b','a','nuevo').fotos,
@@ -261,13 +261,13 @@ test('HU10 no cambia propietario, creación, publicación, estado ni salud en la
 test('HU10 admite nuevas fotos propias, portada y eliminación de referencias antiguas',async()=>{
   await publish();
   const fresh={archivoId:'nueva',ruta:'perritos/a/a/nuevo/nueva.jpg',orden:0};
-  await assertSucceeds(updateDoc(doc(as('a'),'perritos','nuevo'),editPatch({fotos:[fresh,{...newDog().fotos[0],orden:1}]})));
+  await assertFails(updateDoc(doc(as('a'),'perritos','nuevo'),editPatch({fotos:[fresh,{...newDog().fotos[0],orden:1}]})));
   await assertSucceeds(updateDoc(doc(as('a'),'perritos','nuevo'),editPatch({fotos:[fresh]})));
 });
 test('HU10 otro miembro del mismo refugio conserva las fotos originales y agrega propias',async()=>{
   await publish();
   await env.withSecurityRulesDisabled(ctx=>setDoc(doc(ctx.firestore(),'membresias','b__a'),{usuarioUid:'b',refugioId:'a',activo:true}));
-  await assertSucceeds(updateDoc(doc(as('b'),'perritos','nuevo'),editPatch({fotos:[newDog().fotos[0],{archivoId:'nueva',ruta:'perritos/a/b/nuevo/nueva.jpg',orden:1}]})));
+  await assertSucceeds(updateDoc(doc(as('b'),'perritos','nuevo'),editPatch({fotos:[newDog().fotos[0]]})));
 });
 test('HU10 no permite inyectar nuevas rutas ajenas ni identidades alteradas o repetidas',async()=>{
   await publish();

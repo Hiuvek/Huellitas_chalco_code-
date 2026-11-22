@@ -4,9 +4,18 @@ import android.graphics.Bitmap
 import android.net.Uri
 import androidx.test.core.app.ApplicationProvider
 import com.example.huellitaschalco.BuildConfig
+import com.example.huellitaschalco.core.firebase.SparkOperations
+import com.example.huellitaschalco.feature.application.data.FirebaseAdoptionApplicationRepository
+import com.example.huellitaschalco.feature.application.domain.*
 import com.example.huellitaschalco.feature.auth.data.FirebaseAuthRepository
+import com.example.huellitaschalco.feature.shelter.adoption.data.FirebaseAdoptionRepository
+import com.example.huellitaschalco.feature.shelter.adoption.domain.*
 import com.example.huellitaschalco.feature.shelter.dogs.data.*
 import com.example.huellitaschalco.feature.shelter.dogs.domain.*
+import com.example.huellitaschalco.feature.shelter.followup.data.FirebaseFollowUpRepository
+import com.example.huellitaschalco.feature.shelter.followup.domain.*
+import com.example.huellitaschalco.feature.shelter.requests.data.FirebaseEvaluationRepository
+import com.example.huellitaschalco.feature.shelter.requests.domain.*
 import com.google.firebase.*
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.*
@@ -138,7 +147,7 @@ class DogPublicationSdkTest {
     }
 
     @Test
-    fun failedSecondPhotoDoesNotPublishAndCanBeRetried(): Unit = runBlocking {
+    fun failedSinglePhotoDoesNotPublishAndCanBeRetried(): Unit = runBlocking {
         val original = publication()
         val bad = image()
         bad.writeBytes(ByteArray(2 * 1024 * 1024 + 1))
@@ -146,9 +155,7 @@ class DogPublicationSdkTest {
             original.copy(
                 draft =
                     original.draft.copy(
-                        photos =
-                            original.draft.photos +
-                                LocalDogPhoto(UUID.randomUUID().toString(), bad.path)
+                        photos = listOf(LocalDogPhoto(UUID.randomUUID().toString(), bad.path))
                     )
             )
         try {
@@ -159,7 +166,7 @@ class DogPublicationSdkTest {
             db.collection("perritos").document(input.id).get(Source.SERVER).await().exists()
         )
         bad.writeBytes(File(original.draft.photos.first().filePath).readBytes())
-        assertEquals(2, repository.publish(input) {}.photos.size)
+        assertEquals(1, repository.publish(input) {}.photos.size)
     }
 
     @Test
@@ -168,7 +175,7 @@ class DogPublicationSdkTest {
         try {
             repository.publish(input) {}
             fail("No debe publicar en otro refugio")
-        } catch (_: com.google.firebase.storage.StorageException) {}
+        } catch (_: com.google.firebase.firestore.FirebaseFirestoreException) {}
         assertFalse(
             db.collection("perritos").document(input.id).get(Source.SERVER).await().exists()
         )
@@ -360,16 +367,14 @@ class DogPublicationSdkTest {
                             description =
                                 "Perrita ficticia con sus características actualizadas para la prueba de edición.",
                         ),
-                    photos = listOf(EditableDogPhoto(local = local)) + it.photos,
+                    photos = listOf(EditableDogPhoto(local = local)),
                 )
             }
         val attempt = DogEditAttempt(input.userUid, original, draft)
         val edited = repository.updateDog(attempt) {}
         assertEquals("Luna actualizada", edited.name)
         assertEquals(36, edited.ageMonths)
-        assertEquals(2, edited.photos.size)
-        assertEquals(original.photos[0].path, edited.photos[1].path)
-        assertEquals(1, edited.photos[1].order)
+        assertEquals(1, edited.photos.size)
         assertTrue(repository.photo(edited.photos[0].path).isNotEmpty())
         val after = db.collection("perritos").document(input.id).get(Source.SERVER).await()
         assertEquals(before.getTimestamp("creadoEn"), after.getTimestamp("creadoEn"))
@@ -416,7 +421,7 @@ class DogPublicationSdkTest {
         try {
             repository.photo(original.photos[0].path)
             fail("No debe leer públicamente una foto retirada")
-        } catch (_: com.google.firebase.storage.StorageException) {}
+        } catch (_: com.google.firebase.firestore.FirebaseFirestoreException) {}
     }
 
     @Test
@@ -480,13 +485,11 @@ class DogPublicationSdkTest {
                 it.copy(
                     form = it.form.copy(name = "Cambio con fotos"),
                     photos =
-                        it.photos +
-                            listOf(
-                                EditableDogPhoto(local = first),
-                                EditableDogPhoto(
-                                    local = LocalDogPhoto(UUID.randomUUID().toString(), broken.path)
-                                ),
-                            ),
+                        listOf(
+                            EditableDogPhoto(
+                                local = LocalDogPhoto(UUID.randomUUID().toString(), broken.path)
+                            )
+                        ),
                 )
             }
         val attempt = DogEditAttempt(input.userUid, original, draft)
@@ -503,7 +506,7 @@ class DogPublicationSdkTest {
                 .getString("nombre"),
         )
         broken.writeBytes(File(first.filePath).readBytes())
-        assertEquals(3, repository.updateDog(attempt) {}.photos.size)
+        assertEquals(1, repository.updateDog(attempt) {}.photos.size)
     }
 
     @Test
@@ -568,6 +571,113 @@ class DogPublicationSdkTest {
             (db.collection("perritos").document(input.id).get(Source.SERVER).await().get("fotos")
                     as List<*>)
                 .size,
+        )
+    }
+
+    @Test
+    fun sparkFullFlowWithSmallPhotosAndNoFunctionsOrStorage(): Unit = runBlocking {
+        val input = publication()
+        val dog = repository.publish(input) {}
+        assertEquals(dog, repository.publish(input) {})
+        assertTrue(repository.photo(dog.photos.single().path).size <= 102400)
+        // Reemplazo de la fotografía y lectura desde otra sesión.
+        val replacement = importer.import(Uri.fromFile(image()).toString()).also { photos += it }
+        val edited =
+            repository.updateDog(
+                DogEditAttempt(
+                    input.userUid,
+                    dog,
+                    DogEditDraft.from(dog)
+                        .copy(photos = listOf(EditableDogPhoto(local = replacement))),
+                )
+            ) {}
+        val applicationRepository = FirebaseAdoptionApplicationRepository(auth, db)
+        val email = "spark-${UUID.randomUUID()}@example.test"
+        auth.signUp("Adoptante Spark", email, "PruebaHU05!")
+        val adopter = auth.user.value!!.uid
+        assertTrue(repository.photo(edited.photos.single().path).isNotEmpty())
+        val application =
+            ApplicationAttempt(
+                UUID.randomUUID().toString(),
+                adopter,
+                dog.id,
+                "hu07-a",
+                ApplicationDraft(
+                    "Adoptante Spark",
+                    email,
+                    "5500000000",
+                    "CASA",
+                    "PROPIA",
+                    true,
+                    "2",
+                    "MENOS_DE_4",
+                    false,
+                    "",
+                    "Quiero ofrecer un hogar seguro y cuidar al perrito durante toda su vida.",
+                ),
+            )
+        applicationRepository.submit(application)
+        auth.signIn("hu07-a@example.test", "PruebaHU07!")
+        val uid = auth.user.value!!.uid
+        val evaluation = FirebaseEvaluationRepository(auth, db)
+        evaluation.decide(
+            EvaluationAttempt(uid, "hu07-a", application.id, "Enviada", EvaluationDecision.Review)
+        )
+        evaluation.decide(
+            EvaluationAttempt(
+                uid,
+                "hu07-a",
+                application.id,
+                "En revisión",
+                EvaluationDecision.Approve,
+            )
+        )
+        val operations = SparkOperations(db, FirebaseAuth.getInstance(app))
+        val adoption = FirebaseAdoptionRepository(auth, db, operations)
+        val delivery = AdoptionAttempt(uid, application.id, "hu07-a", dog.id, "2026-11-20", true)
+        assertFalse(adoption.record(delivery).alreadyExisting)
+        assertTrue(adoption.record(delivery).alreadyExisting)
+        val followups = FirebaseFollowUpRepository(auth, db, operations)
+        val review =
+            ScheduleAttempt(
+                UUID.randomUUID().toString(),
+                uid,
+                "hu07-a",
+                dog.id,
+                "2026-11-21",
+                "VISITA",
+            )
+        assertFalse(followups.program(review).alreadyExisting)
+        assertTrue(followups.program(review).alreadyExisting)
+        val evidence = importer.import(Uri.fromFile(image()).toString()).also { photos += it }
+        val result =
+            FollowUpAttempt(
+                uid,
+                "hu07-a",
+                review.id,
+                "2026-11-21",
+                "BUENA",
+                "Se adapta bien y convive en un hogar seguro.",
+                evidence,
+                "PROGRAMAR",
+                "2026-12-01",
+                "LLAMADA",
+            )
+        assertFalse(followups.record(result).alreadyExisting)
+        assertTrue(followups.record(result).alreadyExisting)
+        assertTrue(followups.photo(requireNotNull(result.photoPath())).isNotEmpty())
+        assertEquals(
+            "PROGRAMADA",
+            db.collection("revisiones")
+                .document(nextReviewId(review.id))
+                .get(Source.SERVER)
+                .await()
+                .getString("estado"),
+        )
+        auth.signIn("hu07-b@example.test", "PruebaHU07!")
+        assertTrue(runCatching { followups.photo(requireNotNull(result.photoPath())) }.isFailure)
+        assertTrue(
+            runCatching { adoption.record(delivery.copy(uid = auth.user.value!!.uid)) }.isFailure
         )
     }
 }

@@ -21,70 +21,90 @@ class FirebaseAdoptionRepository(
                 flowOf(AdoptionState(false, error = "Inicia sesión para consultar la entrega."))
             else
                 callbackFlow {
-                    trySend(AdoptionState())
-                    val listener =
-                        db.collection("adopciones")
-                            .whereEqualTo("refugioId", shelterId)
-                            .whereEqualTo("perritoId", dogId)
-                            .addSnapshotListener(MetadataChanges.INCLUDE) { snapshot, error ->
-                                val result =
-                                    when {
-                                        error != null || snapshot == null ->
-                                            AdoptionState(
-                                                false,
-                                                error =
-                                                    "No pudimos consultar la entrega. Revisa tus permisos y conexión.",
-                                            )
-                                        snapshot.metadata.isFromCache ||
-                                            snapshot.metadata.hasPendingWrites() -> AdoptionState()
-                                        else -> runCatching {
+                        trySend(AdoptionState())
+                        val listener =
+                            db.collection("adopciones")
+                                .whereEqualTo("refugioId", shelterId)
+                                .whereEqualTo("perritoId", dogId)
+                                .addSnapshotListener(MetadataChanges.INCLUDE) { snapshot, error ->
+                                    val result =
+                                        when {
+                                            error != null || snapshot == null ->
                                                 AdoptionState(
                                                     false,
-                                                    snapshot.documents.singleOrNull()?.let { doc ->
-                                                        Adoption(
-                                                            doc.id,
-                                                            requireNotNull(
-                                                                doc.getString("solicitudId")
-                                                            ),
-                                                            requireNotNull(
-                                                                doc.getString("perritoId")
-                                                            ),
-                                                            requireNotNull(
-                                                                doc.getString("usuarioUid")
-                                                            ),
-                                                            requireNotNull(
-                                                                doc.getString("refugioId")
-                                                            ),
-                                                            requireNotNull(
-                                                                    doc.getTimestamp("fechaEntrega")
-                                                                )
-                                                                .toDate()
-                                                                .time,
-                                                            doc.getBoolean("cartaFirmada") == true,
-                                                            requireNotNull(
-                                                                doc.getString("registradoPorUid")
-                                                            ),
-                                                            requireNotNull(
-                                                                    doc.getTimestamp("creadoEn")
-                                                                )
-                                                                .toDate()
-                                                                .time,
-                                                        )
-                                                    },
+                                                    error =
+                                                        "No pudimos consultar la entrega. Revisa tus permisos y conexión.",
                                                 )
-                                            }
-                                                .getOrElse {
-                                                    AdoptionState(
-                                                        false,
-                                                        error =
-                                                            "La entrega está incompleta. Consulta al responsable.",
-                                                    )
-                                                }
-                                    }
-                                trySend(result)
-                            }
-                    awaitClose { listener.remove() }
-                }
+                                            snapshot.metadata.isFromCache ||
+                                                snapshot.metadata.hasPendingWrites() ->
+                                                AdoptionState()
+                                            else ->
+                                                runCatching {
+                                                        AdoptionState(
+                                                            false,
+                                                            snapshot.documents
+                                                                .singleOrNull()
+                                                                ?.let { doc ->
+                                                                    Adoption(
+                                                                        doc.id,
+                                                                        requireNotNull(
+                                                                            doc.getString(
+                                                                                "solicitudId"
+                                                                            )
+                                                                        ),
+                                                                        requireNotNull(
+                                                                            doc.getString(
+                                                                                "perritoId"
+                                                                            )
+                                                                        ),
+                                                                        requireNotNull(
+                                                                            doc.getString(
+                                                                                "usuarioUid"
+                                                                            )
+                                                                        ),
+                                                                        requireNotNull(
+                                                                            doc.getString(
+                                                                                "refugioId"
+                                                                            )
+                                                                        ),
+                                                                        requireNotNull(
+                                                                                doc.getTimestamp(
+                                                                                    "fechaEntrega"
+                                                                                )
+                                                                            )
+                                                                            .toDate()
+                                                                            .time,
+                                                                        doc.getBoolean(
+                                                                            "cartaFirmada"
+                                                                        ) == true,
+                                                                        requireNotNull(
+                                                                            doc.getString(
+                                                                                "registradoPorUid"
+                                                                            )
+                                                                        ),
+                                                                        requireNotNull(
+                                                                                doc.getTimestamp(
+                                                                                    "creadoEn"
+                                                                                )
+                                                                            )
+                                                                            .toDate()
+                                                                            .time,
+                                                                    )
+                                                                },
+                                                        )
+                                                    }
+                                                    .getOrElse {
+                                                        AdoptionState(
+                                                            false,
+                                                            error =
+                                                                "La entrega está incompleta. Consulta al responsable.",
+                                                        )
+                                                    }
+                                        }
+                                    trySend(result)
+                                }
+                        awaitClose { listener.remove() }
+                    }
                     .transformLatest { value ->
                         emit(value)
                         if (value.loading) {
@@ -99,6 +119,12 @@ class FirebaseAdoptionRepository(
                         }
                     }
         }
+
+    override suspend fun completePending(uid: String, shelterId: String, dogId: String) {
+        require(auth.user.value?.uid == uid)
+        requireNotNull(functions)
+            .call("completeAdoptionRequests", mapOf("shelterId" to shelterId, "dogId" to dogId))
+    }
 
     override suspend fun record(attempt: AdoptionAttempt): AdoptionReceipt {
         require(auth.user.value?.uid == attempt.uid)

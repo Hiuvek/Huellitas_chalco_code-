@@ -39,8 +39,8 @@ data class DogDraft(
         if (sex !in listOf("Hembra", "Macho")) put(DogField.Sex, "Selecciona el sexo.")
         if (description.trim().length !in 40..2000)
             put(DogField.Description, "Escribe una descripción de 40 a 2000 caracteres.")
-        if (photos.size !in 1..6 || photos.map { it.id }.distinct().size != photos.size)
-            put(DogField.Photos, "Agrega entre 1 y 6 fotografías distintas.")
+        if (photos.size != 1 || photos.map { it.id }.distinct().size != photos.size)
+            put(DogField.Photos, "Agrega una fotografía.")
     }
 }
 

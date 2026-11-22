@@ -66,7 +66,7 @@ class DogEditViewModel(
         current.update { it.copy(importing = true, error = null, review = false) }
         viewModelScope.launch {
             try {
-                val available = 6 - current.value.draft.photos.size
+                val available = 1 - current.value.draft.photos.size
                 for (uri in uris.distinct().take(available)) {
                     val photo = importer.import(uri)
                     temporary += photo
@@ -81,7 +81,7 @@ class DogEditViewModel(
                     }
                 }
                 if (uris.distinct().size > available)
-                    current.update { it.copy(error = "Solo puedes conservar 6 fotografías.") }
+                    current.update { it.copy(error = "Solo puedes conservar una fotografía.") }
             } catch (cancelled: CancellationException) {
                 throw cancelled
             } catch (_: Exception) {

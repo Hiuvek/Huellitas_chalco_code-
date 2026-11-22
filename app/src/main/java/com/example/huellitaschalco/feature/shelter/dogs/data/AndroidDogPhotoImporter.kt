@@ -44,14 +44,16 @@ class AndroidDogPhotoImporter(context: Context) : DogPhotoImporter {
                 options.inJustDecodeBounds = false
                 options.inSampleSize = 1
                 while (
-                    options.outWidth / options.inSampleSize > 1600 ||
-                        options.outHeight / options.inSampleSize > 1600
+                    options.outWidth / options.inSampleSize > 640 ||
+                        options.outHeight / options.inSampleSize > 640
                 ) options.inSampleSize *= 2
                 val bitmap = requireNotNull(BitmapFactory.decodeFile(source.path, options))
-                val orientation = runCatching {
-                    ExifInterface(source.path).getAttributeInt(ExifInterface.TAG_ORIENTATION, 1)
-                }
-                    .getOrDefault(1)
+                val orientation =
+                    runCatching {
+                            ExifInterface(source.path)
+                                .getAttributeInt(ExifInterface.TAG_ORIENTATION, 1)
+                        }
+                        .getOrDefault(1)
                 val matrix =
                     Matrix().apply {
                         when (orientation) {
@@ -75,13 +77,13 @@ class AndroidDogPhotoImporter(context: Context) : DogPhotoImporter {
                     else
                         Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
                 try {
-                    for (quality in listOf(85, 65, 40)) {
+                    for (quality in listOf(80, 65, 50, 35, 20)) {
                         target.outputStream().use {
                             require(rotated.compress(Bitmap.CompressFormat.JPEG, quality, it))
                         }
-                        if (target.length() <= 2 * 1024 * 1024) break
+                        if (target.length() <= 100 * 1024) break
                     }
-                    require(target.length() in 1..(2 * 1024 * 1024).toLong())
+                    require(target.length() in 1..(100 * 1024).toLong())
                 } finally {
                     if (rotated !== bitmap) rotated.recycle()
                     bitmap.recycle()

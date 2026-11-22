@@ -11,6 +11,7 @@ import com.google.firebase.firestore.*
 import java.util.UUID
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.tasks.await
 import org.junit.*
 import org.junit.Assert.*
 import org.junit.Assume.assumeTrue
@@ -61,9 +62,9 @@ class FollowUpSdkTest {
         auth.signIn("hu07-a@example.test", "PruebaHU07!")
         val uid = auth.user.value!!.uid
         val functions =
-            com.example.huellitaschalco.core.firebase.EmulatorCallableFunctions(
+            com.example.huellitaschalco.core.firebase.SparkOperations(
+                db,
                 FirebaseAuth.getInstance(app),
-                BuildConfig.FIREBASE_AUTH_EMULATOR_HOST,
             )
         val repository =
             com.example.huellitaschalco.feature.shelter.followup.data.FirebaseFollowUpRepository(
@@ -87,7 +88,17 @@ class FollowUpSdkTest {
                 uid,
                 "hu07-a",
                 id,
-                "2026-11-21",
+                java.text
+                    .SimpleDateFormat("yyyy-MM-dd", java.util.Locale.ROOT)
+                    .apply { timeZone = java.util.TimeZone.getTimeZone("America/Mexico_City") }
+                    .format(
+                        db.collection("adopciones")
+                            .document("hu12-dog-a")
+                            .get(Source.SERVER)
+                            .await()
+                            .getTimestamp("fechaEntrega")!!
+                            .toDate()
+                    ),
                 "REGULAR",
                 "Se recomienda acompañar la adaptación con paseos cortos.",
                 null,

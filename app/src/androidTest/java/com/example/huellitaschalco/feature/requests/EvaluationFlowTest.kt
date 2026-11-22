@@ -77,6 +77,9 @@ class EvaluationFlowTest {
                 .fetchSemanticsNodes()
                 .isNotEmpty()
         }
+        compose.waitUntil(10_000) {
+            compose.onAllNodesWithTag("evaluation-reject").fetchSemanticsNodes().isEmpty()
+        }
         compose.onNodeWithTag("evaluation-reject").assertDoesNotExist()
         val db =
             com.google.firebase.firestore.FirebaseFirestore.getInstance(

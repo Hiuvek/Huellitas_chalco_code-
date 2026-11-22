@@ -58,16 +58,15 @@ class DogEditViewModelTest {
     }
 
     @Test
-    fun newCoverAndRemovalKeepOrderWithoutAlteringOriginalReferences() = runTest {
+    fun replacingTheSinglePhotoKeepsItsOwnPath() = runTest {
         val vm = model()
+        vm.removePhoto("old")
         vm.addPhotos(listOf("new"))
         advanceUntilIdle()
         vm.cover("new")
         assertEquals("new", vm.state.value.draft.photos.first().id)
         val content = vm.state.value.draft.content("u", original)
         assertEquals("perritos/s/u/dog/new.jpg", content.photos[0].path)
-        assertEquals(1, content.photos[1].order)
-        assertEquals(original.photos[0].path, content.photos[1].path)
         vm.removePhoto("old")
         assertEquals(1, vm.state.value.draft.photos.size)
     }
@@ -77,21 +76,21 @@ class DogEditViewModelTest {
         val vm = model()
         vm.addPhotos(listOf("new", "bad"))
         advanceUntilIdle()
-        assertEquals(listOf("old", "new"), vm.state.value.draft.photos.map { it.id })
+        assertEquals(listOf("old"), vm.state.value.draft.photos.map { it.id })
         assertNotNull(vm.state.value.error)
         assertFalse(vm.state.value.importing)
     }
 
     @Test
-    fun rejectsSeventhPhotoAndReleasesOnlyLocalFiles() = runTest {
+    fun rejectsExtraPhotoAndKeepsRemoteFile() = runTest {
         val importer = Importer()
         val vm = model(importer = importer)
         vm.addPhotos((1..7).map { "new$it" })
         advanceUntilIdle()
-        assertEquals(6, vm.state.value.draft.photos.size)
+        assertEquals(1, vm.state.value.draft.photos.size)
         assertNotNull(vm.state.value.error)
         vm.releasePhotos()
-        assertEquals(5, importer.removed.size)
+        assertEquals(0, importer.removed.size)
         assertFalse("old" in importer.removed)
     }
 
@@ -124,6 +123,7 @@ class DogEditViewModelTest {
         val repo = Fake().apply { failure = IllegalStateException("offline") }
         val vm = model(repo)
         vm.edit(DogField.Name, "Luna nueva")
+        vm.removePhoto("old")
         vm.addPhotos(listOf("new"))
         advanceUntilIdle()
         vm.review()
@@ -148,6 +148,7 @@ class DogEditViewModelTest {
         val importer = Importer()
         val vm = model(repo, importer)
         vm.edit(DogField.Name, "Mi cambio")
+        vm.removePhoto("old")
         vm.addPhotos(listOf("new"))
         advanceUntilIdle()
         vm.review()

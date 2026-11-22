@@ -27,6 +27,10 @@ class AdoptionViewModelTest {
         override fun observeDog(uid: String, shelterId: String, dogId: String) =
             flowOf(AdoptionState(false))
 
+        override suspend fun completePending(uid: String, shelterId: String, dogId: String) {
+            action()
+        }
+
         override suspend fun record(attempt: AdoptionAttempt): AdoptionReceipt {
             calls.add(attempt)
             action()
@@ -133,5 +137,22 @@ class AdoptionViewModelTest {
         vm.cancel()
         vm.date("2026-02-01")
         assertEquals("2026-02-01", vm.form.value.date)
+    }
+
+    @Test
+    fun pendingClosuresCanRetryWithoutCreatingAnotherDelivery() = runTest {
+        val repo = Repository().apply { action = { throw Exception("sin red") } }
+        val vm = AdoptionViewModel("u", "s", "r", "dog", repo)
+        vm.completePending()
+        runCurrent()
+        assertFalse(vm.form.value.pendingClosed)
+        assertFalse(vm.form.value.sending)
+        assertNotNull(vm.form.value.error)
+        repo.action = {}
+        vm.completePending()
+        runCurrent()
+        assertTrue(vm.form.value.pendingClosed)
+        assertNull(vm.form.value.error)
+        assertTrue(repo.calls.isEmpty())
     }
 }

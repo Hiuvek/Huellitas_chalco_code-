@@ -141,33 +141,34 @@ class DogRegistrationViewModel(
         )
             return
         current.update { it.copy(importing = true, error = null) }
-        job = viewModelScope.launch {
-            try {
-                val available = 6 - current.value.draft.photos.size
-                for (uri in uris.distinct().take(available)) {
-                    val photo = importer.import(uri)
+        job =
+            viewModelScope.launch {
+                try {
+                    val available = 1 - current.value.draft.photos.size
+                    for (uri in uris.distinct().take(available)) {
+                        val photo = importer.import(uri)
+                        current.update {
+                            it.copy(
+                                draft = it.draft.copy(photos = it.draft.photos + photo),
+                                errors = it.errors - DogField.Photos,
+                            )
+                        }
+                    }
+                    if (uris.distinct().size > available)
+                        current.update { it.copy(error = "Solo puedes agregar una fotografía.") }
+                } catch (cancelled: CancellationException) {
+                    throw cancelled
+                } catch (_: Exception) {
                     current.update {
                         it.copy(
-                            draft = it.draft.copy(photos = it.draft.photos + photo),
-                            errors = it.errors - DogField.Photos,
+                            error =
+                                "No se pudo leer una fotografía. Elige una imagen JPEG, PNG o WebP de hasta 20 MB e intenta de nuevo."
                         )
                     }
+                } finally {
+                    current.update { it.copy(importing = false) }
                 }
-                if (uris.distinct().size > available)
-                    current.update { it.copy(error = "Solo puedes agregar 6 fotografías.") }
-            } catch (cancelled: CancellationException) {
-                throw cancelled
-            } catch (_: Exception) {
-                current.update {
-                    it.copy(
-                        error =
-                            "No se pudo leer una fotografía. Elige una imagen JPEG, PNG o WebP de hasta 20 MB e intenta de nuevo."
-                    )
-                }
-            } finally {
-                current.update { it.copy(importing = false) }
             }
-        }
     }
 
     fun removePhoto(id: String) {
@@ -225,39 +226,40 @@ class DogRegistrationViewModel(
                 progress = "Preparando publicación…",
             )
         }
-        job = viewModelScope.launch {
-            try {
-                if (drafts != null)
-                    draftMutex.withLock {
-                        drafts.put(uid, "PERRITO", shelterId, DraftCodecs.dog(saved()))
-                    }
-                val result =
-                    withTimeout(90_000) {
-                        repository.publish(attempt) { progress ->
-                            current.update { it.copy(progress = progress) }
+        job =
+            viewModelScope.launch {
+                try {
+                    if (drafts != null)
+                        draftMutex.withLock {
+                            drafts.put(uid, "PERRITO", shelterId, DraftCodecs.dog(saved()))
                         }
+                    val result =
+                        withTimeout(90_000) {
+                            repository.publish(attempt) { progress ->
+                                current.update { it.copy(progress = progress) }
+                            }
+                        }
+                    current.update { it.copy(published = result, publishing = false, error = null) }
+                } catch (_: TimeoutCancellationException) {
+                    current.update {
+                        it.copy(
+                            publishing = false,
+                            error =
+                                "La publicación tardó demasiado. Reintenta con los mismos datos para comprobar el resultado sin duplicar el registro.",
+                        )
                     }
-                current.update { it.copy(published = result, publishing = false, error = null) }
-            } catch (_: TimeoutCancellationException) {
-                current.update {
-                    it.copy(
-                        publishing = false,
-                        error =
-                            "La publicación tardó demasiado. Reintenta con los mismos datos para comprobar el resultado sin duplicar el registro.",
-                    )
-                }
-            } catch (cancelled: CancellationException) {
-                throw cancelled
-            } catch (_: Exception) {
-                current.update {
-                    it.copy(
-                        publishing = false,
-                        error =
-                            "No pudimos confirmar la publicación. Revisa tu conexión y permisos, y reintenta. Conservamos tus datos y fotografías.",
-                    )
+                } catch (cancelled: CancellationException) {
+                    throw cancelled
+                } catch (_: Exception) {
+                    current.update {
+                        it.copy(
+                            publishing = false,
+                            error =
+                                "No pudimos confirmar la publicación. Revisa tu conexión y permisos, y reintenta. Conservamos tus datos y fotografías.",
+                        )
+                    }
                 }
             }
-        }
     }
 
     fun reset() {

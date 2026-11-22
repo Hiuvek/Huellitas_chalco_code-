@@ -45,9 +45,8 @@ class FirebaseFollowUpRepository(
                             values.any { it !is ServerDocuments.Ready } -> FollowUpBoard()
                             else ->
                                 try {
-                                    val docs = values.map {
-                                        (it as ServerDocuments.Ready).documents
-                                    }
+                                    val docs =
+                                        values.map { (it as ServerDocuments.Ready).documents }
                                     val dogs =
                                         docs[2].associate {
                                             it.id to (it.getString("nombre") ?: it.id)
@@ -118,62 +117,63 @@ class FirebaseFollowUpRepository(
                                         docs[4]
                                             .mapNotNull { d ->
                                                 runCatching {
-                                                    val r =
-                                                        FollowUpResult(
-                                                            d.id,
-                                                            requireNotNull(
-                                                                d.getString("adopcionId")
-                                                            ),
-                                                            requireNotNull(
-                                                                d.getString("revisionId")
-                                                            ),
-                                                            requireNotNull(
-                                                                d.getString("perritoId")
-                                                            ),
-                                                            requireNotNull(
-                                                                d.getString("refugioId")
-                                                            ),
-                                                            requireNotNull(
-                                                                    d.getTimestamp(
-                                                                        "fechaRealizacion"
+                                                        val r =
+                                                            FollowUpResult(
+                                                                d.id,
+                                                                requireNotNull(
+                                                                    d.getString("adopcionId")
+                                                                ),
+                                                                requireNotNull(
+                                                                    d.getString("revisionId")
+                                                                ),
+                                                                requireNotNull(
+                                                                    d.getString("perritoId")
+                                                                ),
+                                                                requireNotNull(
+                                                                    d.getString("refugioId")
+                                                                ),
+                                                                requireNotNull(
+                                                                        d.getTimestamp(
+                                                                            "fechaRealizacion"
+                                                                        )
                                                                     )
-                                                                )
-                                                                .toDate()
-                                                                .time,
-                                                            requireNotNull(
-                                                                d.getString("adaptacion")
-                                                            ),
-                                                            requireNotNull(
-                                                                d.getString("observaciones")
-                                                            ),
-                                                            ((d.get("fotos") as? List<*>)
-                                                                    ?.firstOrNull() as? Map<*, *>)
-                                                                ?.get("ruta") as? String,
-                                                            requireNotNull(
-                                                                d.getString("registradoPorUid")
-                                                            ),
-                                                            requireNotNull(
-                                                                    d.getTimestamp("creadoEn")
-                                                                )
-                                                                .toDate()
-                                                                .time,
+                                                                    .toDate()
+                                                                    .time,
+                                                                requireNotNull(
+                                                                    d.getString("adaptacion")
+                                                                ),
+                                                                requireNotNull(
+                                                                    d.getString("observaciones")
+                                                                ),
+                                                                ((d.get("fotos") as? List<*>)
+                                                                        ?.firstOrNull()
+                                                                        as? Map<*, *>)
+                                                                    ?.get("ruta") as? String,
+                                                                requireNotNull(
+                                                                    d.getString("registradoPorUid")
+                                                                ),
+                                                                requireNotNull(
+                                                                        d.getTimestamp("creadoEn")
+                                                                    )
+                                                                    .toDate()
+                                                                    .time,
+                                                            )
+                                                        check(
+                                                            r.shelterId == shelterId &&
+                                                                r.id == r.reviewId &&
+                                                                r.adaptation in Adaptations.labels
                                                         )
-                                                    check(
-                                                        r.shelterId == shelterId &&
-                                                            r.id == r.reviewId &&
-                                                            r.adaptation in Adaptations.labels
-                                                    )
-                                                    check(
-                                                        reviews.any {
-                                                            it.id == r.reviewId &&
-                                                                it.followUpId == r.id &&
-                                                                it.status == "REALIZADA" &&
-                                                                it.adoptionId == r.adoptionId &&
-                                                                it.dogId == r.dogId
-                                                        }
-                                                    )
-                                                    r
-                                                }
+                                                        check(
+                                                            reviews.any {
+                                                                it.id == r.reviewId &&
+                                                                    it.followUpId == r.id &&
+                                                                    it.status == "REALIZADA" &&
+                                                                    it.adoptionId == r.adoptionId &&
+                                                                    it.dogId == r.dogId
+                                                            }
+                                                        )
+                                                        r
+                                                    }
                                                     .getOrNull()
                                             }
                                             .sortedByDescending { it.doneAt }
@@ -255,7 +255,7 @@ class FirebaseFollowUpRepository(
     }
 
     override suspend fun photo(path: String): ByteArray =
-        requireNotNull(storage).reference.child(path).getBytes(2L * 1024 * 1024).await()
+        FirestorePhotos(requireNotNull(db)).read(path)
 
     override suspend fun record(attempt: FollowUpAttempt): FollowUpReceipt {
         require(auth.user.value?.uid == attempt.uid)
@@ -267,28 +267,11 @@ class FirebaseFollowUpRepository(
             database
                 .collection("seguimientos")
                 .whereEqualTo("refugioId", attempt.shelterId)
-                    .get(Source.SERVER)
+                .get(Source.SERVER)
                 .await()
         if (path != null && existing.documents.none { it.id == attempt.reviewId }) {
-            val reference = requireNotNull(storage).reference.child(path)
-            val file = java.io.File(requireNotNull(attempt.photo).filePath)
-            require(file.length() in 1..2L * 1024 * 1024)
-            try {
-                reference
-                    .putFile(
-                        android.net.Uri.fromFile(file),
-                        com.google.firebase.storage.StorageMetadata.Builder()
-                            .setContentType("image/jpeg")
-                            .build(),
-                    )
-                    .await()
-            } catch (e: Exception) {
-                // Upload acknowledgements can be lost; confirm this immutable object before
-                // retrying the callable.
-                val metadata = runCatching { reference.metadata.await() }.getOrNull()
-                if (metadata?.sizeBytes != file.length() || metadata.contentType != "image/jpeg")
-                    throw e
-            }
+            FirestorePhotos(database)
+                .upload(path, java.io.File(requireNotNull(attempt.photo).filePath))
         }
         val result =
             try {

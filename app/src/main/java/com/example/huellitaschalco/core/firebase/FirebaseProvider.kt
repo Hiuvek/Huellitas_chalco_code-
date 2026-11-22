@@ -45,28 +45,11 @@ class FirebaseProvider(context: Context) {
             }
         }
 
-    val storage: FirebaseStorage? =
-        auth
-            ?.app
-            ?.takeIf { !it.options.storageBucket.isNullOrBlank() }
-            ?.let { app ->
-                FirebaseStorage.getInstance(app).apply {
-                    if (usesEmulator) useEmulator(BuildConfig.FIREBASE_AUTH_EMULATOR_HOST, 9199)
-                    maxUploadRetryTimeMillis = 20_000
-                    maxOperationRetryTimeMillis = 15_000
-                }
-            }
+    // Spark no utiliza Cloud Storage; se conserva el tipo por compatibilidad de constructores.
+    val storage: FirebaseStorage? = null
 
-    val functions: CallableFunctions? = auth?.let { client ->
-        if (usesEmulator) EmulatorCallableFunctions(client, BuildConfig.FIREBASE_AUTH_EMULATOR_HOST)
-        else
-            SdkCallableFunctions(
-                com.google.firebase.functions.FirebaseFunctions.getInstance(
-                    client.app,
-                    "us-central1",
-                )
-            )
-    }
+    val functions: CallableFunctions? =
+        auth?.let { client -> firestore?.let { SparkOperations(it, client) } }
 
     private companion object {
         const val EMULATOR_APP = "huellitas-auth-emulator"

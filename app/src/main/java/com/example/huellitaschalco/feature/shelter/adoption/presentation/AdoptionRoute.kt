@@ -100,8 +100,18 @@ fun AdoptionRoute(
                     "Fecha de entrega",
                     saved?.let { requestDate(it.deliveryAt) } ?: form.receipt!!.date,
                 )
-                HBody(
-                    "Las otras solicitudes pendientes del perrito se cerraron con su motivo e historial. Las decisiones anteriores y las solicitudes de otros perritos se conservan."
+                if (form.pendingClosed)
+                    HBody("Las solicitudes pendientes se cerraron con su motivo e historial.")
+                else
+                    HBody(
+                        "La entrega está confirmada. Puedes completar el cierre de las solicitudes pendientes si hubo una interrupción."
+                    )
+                form.error?.let { HBanner(it, HSymbol.Alert, error = true) }
+                HButton(
+                    if (form.sending) "Completando cierre…" else "Completar cierre de solicitudes",
+                    model::completePending,
+                    enabled = !form.sending,
+                    outlined = true,
                 )
                 HButton(
                     "Programar revisión",

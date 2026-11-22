@@ -36,13 +36,13 @@ data class AdoptionAttempt(
         val parsed =
             if (date.matches(Regex("[0-9]{4}-[0-9]{2}-[0-9]{2}")))
                 runCatching {
-                    SimpleDateFormat("yyyy-MM-dd", Locale.ROOT)
-                        .apply {
-                            isLenient = false
-                            timeZone = TimeZone.getTimeZone("America/Mexico_City")
-                        }
-                        .parse(date)
-                }
+                        SimpleDateFormat("yyyy-MM-dd", Locale.ROOT)
+                            .apply {
+                                isLenient = false
+                                timeZone = TimeZone.getTimeZone("America/Mexico_City")
+                            }
+                            .parse(date)
+                    }
                     .getOrNull()
             else null
         return if (parsed == null || parsed.time <= 0 || parsed.time > now)
@@ -62,6 +62,8 @@ data class AdoptionReceipt(
 
 interface AdoptionRepository {
     fun observeDog(uid: String, shelterId: String, dogId: String): Flow<AdoptionState>
+
+    suspend fun completePending(uid: String, shelterId: String, dogId: String) {}
 
     suspend fun record(attempt: AdoptionAttempt): AdoptionReceipt
 }

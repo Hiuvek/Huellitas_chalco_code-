@@ -62,9 +62,9 @@ class ScheduleReviewSdkTest {
         auth.signIn("hu07-a@example.test", "PruebaHU07!")
         val uid = auth.user.value!!.uid
         val functions =
-            com.example.huellitaschalco.core.firebase.EmulatorCallableFunctions(
+            com.example.huellitaschalco.core.firebase.SparkOperations(
+                db,
                 FirebaseAuth.getInstance(app),
-                BuildConfig.FIREBASE_AUTH_EMULATOR_HOST,
             )
         val repository =
             com.example.huellitaschalco.feature.shelter.followup.data.FirebaseFollowUpRepository(

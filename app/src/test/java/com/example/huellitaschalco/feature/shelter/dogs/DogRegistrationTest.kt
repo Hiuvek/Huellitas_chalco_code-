@@ -69,7 +69,7 @@ class DogRegistrationTest {
         )
         assertTrue(
             valid()
-                .copy(photos = List(6) { LocalDogPhoto("photo-$it", "/test") })
+                .copy(photos = List(1) { LocalDogPhoto("photo-$it", "/test") })
                 .errors()
                 .isEmpty()
         )

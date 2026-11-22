@@ -13,6 +13,7 @@ data class AdoptionFormState(
     val locked: Boolean = false,
     val error: String? = null,
     val receipt: AdoptionReceipt? = null,
+    val pendingClosed: Boolean = false,
 )
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -61,6 +62,34 @@ class AdoptionViewModel(
         if (!form.value.sending) mutable.update { it.copy(confirming = false) }
     }
 
+    fun completePending() {
+        if (form.value.sending) return
+        mutable.update { it.copy(sending = true, error = null) }
+        viewModelScope.launch {
+            try {
+                withTimeout(30_000) { repository.completePending(uid, shelterId, dogId) }
+                mutable.update { it.copy(sending = false, pendingClosed = true) }
+            } catch (e: CancellationException) {
+                mutable.update { it.copy(sending = false) }
+                if (e !is TimeoutCancellationException) throw e
+                mutable.update {
+                    it.copy(
+                        error =
+                            "No se confirmó el cierre. Puedes reintentar sin duplicar la entrega."
+                    )
+                }
+            } catch (_: Exception) {
+                mutable.update {
+                    it.copy(
+                        sending = false,
+                        error =
+                            "No se confirmó el cierre. Revisa la conexión y tus permisos y reintenta.",
+                    )
+                }
+            }
+        }
+    }
+
     fun submit() {
         if (!form.value.confirming || form.value.sending || form.value.receipt != null) return
         val input = attempt()
@@ -72,7 +101,14 @@ class AdoptionViewModel(
         viewModelScope.launch {
             try {
                 val receipt = withTimeout(30_000) { repository.record(input) }
-                mutable.update { it.copy(sending = false, confirming = false, receipt = receipt) }
+                mutable.update {
+                    it.copy(
+                        sending = false,
+                        confirming = false,
+                        receipt = receipt,
+                        pendingClosed = true,
+                    )
+                }
             } catch (_: TimeoutCancellationException) {
                 mutable.update {
                     it.copy(

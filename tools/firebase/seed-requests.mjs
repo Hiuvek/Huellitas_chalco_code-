@@ -3,13 +3,12 @@ import {initializeTestEnvironment} from '@firebase/rules-unit-testing';
 import {initializeApp,deleteApp} from 'firebase/app';
 import {getAuth,connectAuthEmulator,createUserWithEmailAndPassword,signInWithEmailAndPassword} from 'firebase/auth';
 import {doc,setDoc,Timestamp,collection,query,where,getDocs,deleteDoc} from 'firebase/firestore';
-import {ref,uploadBytes} from 'firebase/storage';
 import {readFile} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 const projectId='demo-huellitas-chalco';
 const app=initializeApp({apiKey:'demo-firebase-auth-emulator-key',projectId},'hu12-seed');
 const auth=getAuth(app);connectAuthEmulator(auth,'http://127.0.0.1:9099',{disableWarnings:true});
-const env=await initializeTestEnvironment({projectId,firestore:{host:'127.0.0.1',port:8180},storage:{host:'127.0.0.1',port:9199}});
+const env=await initializeTestEnvironment({projectId,firestore:{host:'127.0.0.1',port:8180}});
 try {
   const owners=[];
   for(const email of ['hu07-adopter@example.test','hu12-second@example.test']) {
@@ -28,7 +27,7 @@ try {
         for(const item of old.docs) await deleteDoc(item.ref);
       }
       await deleteDoc(doc(db,'adopciones',dogId));
-      await uploadBytes(ref(ctx.storage('gs://demo-huellitas-chalco.appspot.com'),ruta),image,{contentType:'image/jpeg'});
+      await setDoc(doc(db,'imagenes',createHash('sha256').update(ruta).digest('hex')),{ruta,refugioId,perritoId:dogId,revisionId:null,datos:image.toString('base64')});
       await setDoc(doc(db,'perritos',dogId),{refugioId,nombre:`Perrito solicitudes ${code.toUpperCase()}`,edadMeses:12,tamano:'Mediano',sexo:'Macho',descripcion:'Perrito ficticio del escenario de solicitudes escolares. No representa un animal real.',vacunacion:'Sin información',desparasitacion:'Sin información',esterilizacion:'Sin información',estado:'Disponible',publicado:true,esDemostracion:true,fotos:[{archivoId:'foto',ruta,orden:0}],creadoEn:stamp,actualizadoEn:stamp});
       await setDoc(doc(db,'perritos_control',dogId),{refugioId,solicitudAprobadaId:null,adopcionId:null});
       for(const [index,owner] of owners.entries()) {

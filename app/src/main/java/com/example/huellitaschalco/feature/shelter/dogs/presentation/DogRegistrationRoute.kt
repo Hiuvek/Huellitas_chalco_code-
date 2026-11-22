@@ -40,8 +40,7 @@ fun DogRegistrationRoute(
     val model: DogRegistrationViewModel =
         viewModel(
             key = "dog-registration-$uid-$shelterId",
-            factory =
-                DogRegistrationViewModel.factory(repository, importer, uid, shelterId, drafts),
+            factory = DogRegistrationViewModel.factory(repository, importer, uid, shelterId, drafts),
         )
     val state by model.state.collectAsStateWithLifecycle()
     if (state.restoring) {
@@ -65,9 +64,8 @@ fun DogRegistrationRoute(
             { assistantOpen = false },
         )
     val picker =
-        rememberLauncherForActivityResult(ActivityResultContracts.PickMultipleVisualMedia(6)) { uris
-            ->
-            model.addPhotos(uris.map { it.toString() })
+        rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+            model.addPhotos(listOfNotNull(uri?.toString()))
         }
     LaunchedEffect(state.published?.id) {
         if (state.published != null && nav.current.screen != UiScreen.DogPublished)
@@ -203,7 +201,7 @@ fun DogRegistrationRoute(
                 )
                 if (!repository.isConfigured)
                     HBanner(
-                        "La carga de fotografías aún no está habilitada en esta instalación. Puedes preparar el formulario; la publicación está pendiente de configurar Storage.",
+                        "La carga de fotografías aún no está habilitada en esta instalación. Puedes preparar el formulario; la publicación está pendiente de configurar Firebase.",
                         HSymbol.Info,
                     )
                 HHeading("Fotografías")
@@ -220,10 +218,10 @@ fun DogRegistrationRoute(
                     Modifier.testTag("dog-add-photos"),
                     outlined = true,
                     icon = HSymbol.Camera,
-                    enabled = !state.importing && !state.locked && state.draft.photos.size < 6,
+                    enabled = !state.importing && !state.locked && state.draft.photos.size < 1,
                 )
                 HCaption(
-                    "${state.draft.photos.size} de 6 fotografías. Al menos una obligatoria; la primera es la portada. JPEG, PNG o WebP, hasta 20 MB por imagen."
+                    "${state.draft.photos.size} de 1 fotografía. Obligatoria. Se comprime a un máximo de 100 KB. JPEG, PNG o WebP, hasta 20 MB por imagen."
                 )
                 state.errors[DogField.Photos]?.let { HBody(it) }
                 val editable = !state.locked && !state.importing

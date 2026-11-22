@@ -88,9 +88,9 @@ class AdoptionDeliverySdkTest {
             )
         )
         val client =
-            com.example.huellitaschalco.core.firebase.EmulatorCallableFunctions(
+            com.example.huellitaschalco.core.firebase.SparkOperations(
+                db,
                 FirebaseAuth.getInstance(app),
-                BuildConfig.FIREBASE_AUTH_EMULATOR_HOST,
             )
         val repository =
             com.example.huellitaschalco.feature.shelter.adoption.data.FirebaseAdoptionRepository(

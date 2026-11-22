@@ -103,5 +103,11 @@
       ]
     }
   ],
-  "fieldOverrides": []
+  "fieldOverrides": [
+    {
+      "collectionGroup": "imagenes",
+      "fieldPath": "datos",
+      "indexes": []
+    }
+  ]
 }

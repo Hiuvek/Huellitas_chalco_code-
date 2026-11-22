@@ -1,17 +1,13 @@
 package com.example.huellitaschalco.feature.shelter.dogs.data
 
-import android.net.Uri
 import com.example.huellitaschalco.feature.auth.domain.AuthRepository
 import com.example.huellitaschalco.feature.shelter.dogs.domain.*
 import com.google.firebase.firestore.*
 import com.google.firebase.storage.*
 import java.io.File
-import kotlin.coroutines.resume
-import kotlin.coroutines.resumeWithException
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.tasks.await
 
 class FirebaseDogRepository(
@@ -21,7 +17,7 @@ class FirebaseDogRepository(
     override val usesEmulator: Boolean,
 ) : DogRepository {
     override val isConfigured
-        get() = db != null && storage != null
+        get() = db != null
 
     override suspend fun publish(
         publication: DogPublication,
@@ -32,7 +28,6 @@ class FirebaseDogRepository(
         require(publication.shelterId.matches(Regex("^[A-Za-z0-9_-]{1,100}$")))
         require(auth.user.value?.uid == publication.userUid)
         val database = requireNotNull(db)
-        val bucket = requireNotNull(storage)
         val draft = publication.draft
         val photos =
             draft.photos.mapIndexed { index, photo ->
@@ -63,10 +58,11 @@ class FirebaseDogRepository(
                     },
             )
         val reference = database.collection("perritos").document(publication.id)
-        fun matches(snapshot: DocumentSnapshot): Boolean = fields.all { (key, value) ->
-            if (key == "edadMeses") snapshot.getLong(key) == (value as Int).toLong()
-            else snapshot.get(key) == value
-        }
+        fun matches(snapshot: DocumentSnapshot): Boolean =
+            fields.all { (key, value) ->
+                if (key == "edadMeses") snapshot.getLong(key) == (value as Int).toLong()
+                else snapshot.get(key) == value
+            }
         fun result() =
             RegisteredDog(
                 publication.id,
@@ -91,20 +87,9 @@ class FirebaseDogRepository(
             val file = File(photo.filePath)
             require(file.length() in 1..(2 * 1024 * 1024).toLong())
             progress("Subiendo fotografía ${index+1} de ${photos.size}…")
-            val task =
-                bucket.reference
-                    .child(photos[index].path)
-                    .putFile(
-                        Uri.fromFile(file),
-                        StorageMetadata.Builder().setContentType("image/jpeg").build(),
-                    )
-            suspendCancellableCoroutine<Unit> { continuation ->
-                task.addOnSuccessListener { if (continuation.isActive) continuation.resume(Unit) }
-                task.addOnFailureListener {
-                    if (continuation.isActive) continuation.resumeWithException(it)
-                }
-                continuation.invokeOnCancellation { task.cancel() }
-            }
+            com.example.huellitaschalco.core.firebase
+                .FirestorePhotos(database)
+                .upload(photos[index].path, file)
         }
         require(auth.user.value?.uid == publication.userUid)
         progress("Guardando el registro…")
@@ -146,7 +131,6 @@ class FirebaseDogRepository(
         require(draft.errors().isEmpty())
         require(draft.photos.all { it.remote == null || it.remote in base.photos })
         val database = requireNotNull(db)
-        val bucket = requireNotNull(storage)
         val ref = database.collection("perritos").document(base.id)
         val desired = draft.content(uid, base)
         val expected = DogContent.from(base)
@@ -162,22 +146,9 @@ class FirebaseDogRepository(
                 val file = File(local.filePath)
                 require(file.length() in 1..(2 * 1024 * 1024).toLong())
                 progress("Subiendo fotografía ${index + 1} de ${draft.photos.size}…")
-                val task =
-                    bucket.reference
-                        .child(desired.photos[index].path)
-                        .putFile(
-                            Uri.fromFile(file),
-                            StorageMetadata.Builder().setContentType("image/jpeg").build(),
-                        )
-                suspendCancellableCoroutine<Unit> { continuation ->
-                    task.addOnSuccessListener {
-                        if (continuation.isActive) continuation.resume(Unit)
-                    }
-                    task.addOnFailureListener {
-                        if (continuation.isActive) continuation.resumeWithException(it)
-                    }
-                    continuation.invokeOnCancellation { task.cancel() }
-                }
+                com.example.huellitaschalco.core.firebase
+                    .FirestorePhotos(database)
+                    .upload(desired.photos[index].path, file)
             }
         }
         progress("Guardando cambios…")
@@ -331,5 +302,5 @@ class FirebaseDogRepository(
     }
 
     override suspend fun photo(path: String): ByteArray =
-        requireNotNull(storage).reference.child(path).getBytes(2L * 1024 * 1024).await()
+        com.example.huellitaschalco.core.firebase.FirestorePhotos(requireNotNull(db)).read(path)
 }

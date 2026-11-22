@@ -20,6 +20,7 @@ fun FollowUpRoutes(
     uid: String,
     shelterId: String,
     repository: FollowUpRepository,
+    importer: com.example.huellitaschalco.feature.shelter.dogs.domain.DogPhotoImporter,
 ) {
     val board: FollowUpBoardViewModel =
         viewModel(
@@ -54,7 +55,8 @@ fun FollowUpRoutes(
                     HBody("Selecciona una adopción registrada para programar su revisión.")
                 else ScheduleReviewForm(nav, uid, shelterId, adopted, repository)
             }
-            screen == UiScreen.FollowUpForm -> {
+            screen in
+                listOf(UiScreen.FollowUpForm, UiScreen.FollowUpDetail, UiScreen.FollowUpSaved) -> {
                 val revision = state.reviews.firstOrNull { it.id == selectedId }
                 val adopted = state.adoptions.firstOrNull { it.adoption.id == revision?.adoptionId }
                 if (revision == null) HBody("Esta revisión no está disponible para este refugio.")
@@ -63,13 +65,34 @@ fun FollowUpRoutes(
                     HKeyValue("Fecha programada", civilDateLabel(revision.plannedAt))
                     HKeyValue("Tipo", ReviewTypes.labels[revision.type] ?: revision.type)
                     HTag(if (revision.status == "PROGRAMADA") "Programada" else "Realizada")
-                    HBody("Todavía no hay un resultado registrado para esta revisión.")
+                    val result = state.results.firstOrNull { it.reviewId == revision.id }
+                    if (result != null) {
+                        FollowUpResultDetail(result, state, repository)
+                        HButton(
+                            "Volver a seguimientos",
+                            { nav.root(UiScreen.FollowUps) },
+                            Modifier.testTag("followup-done"),
+                        )
+                    } else if (revision.status == "PROGRAMADA" && adopted != null) {
+                        RecordFollowUpForm(
+                            nav,
+                            uid,
+                            shelterId,
+                            revision,
+                            adopted,
+                            repository,
+                            importer,
+                        )
+                    } else
+                        HBody(
+                            "El resultado de esta revisión no está disponible. Reintenta la consulta."
+                        )
                 }
             }
             else -> {
                 var tab by rememberSaveable(uid, shelterId) { mutableStateOf("Programados") }
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    listOf("Programados", "Adopciones").forEach { name ->
+                    listOf("Programados", "Adopciones", "Historial").forEach { name ->
                         FilterChip(
                             selected = tab == name,
                             onClick = { tab = name },
@@ -95,6 +118,31 @@ fun FollowUpRoutes(
                                     )
                                 },
                                 Modifier.testTag("schedule-${adopted.adoption.id}"),
+                                outlined = true,
+                            )
+                        }
+                    }
+                } else if (tab == "Historial") {
+                    if (state.incompleteResults > 0)
+                        HBanner(
+                            "${state.incompleteResults} registros incompletos no se pueden presentar. Solicita su revisión al responsable.",
+                            HSymbol.Alert,
+                            error = true,
+                        )
+                    if (state.results.isEmpty()) HBody("No hay seguimientos registrados.")
+                    state.results.forEach { result ->
+                        HCard(Modifier.testTag("result-${result.id}")) {
+                            HHeading(
+                                state.adoptions
+                                    .firstOrNull { it.adoption.id == result.adoptionId }
+                                    ?.dogName ?: result.dogId
+                            )
+                            HCaption(civilDateLabel(result.doneAt))
+                            HTag(Adaptations.labels[result.adaptation] ?: result.adaptation)
+                            HBody(result.notes)
+                            HButton(
+                                "Ver seguimiento",
+                                { nav.open(UiScreen.FollowUpDetail, recordId = result.reviewId) },
                                 outlined = true,
                             )
                         }

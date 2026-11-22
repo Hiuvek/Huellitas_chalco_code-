@@ -1,0 +1,219 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 1,
+    "identityHash": "a068a711645b1dc36b6b8450a9d17692",
+    "entities": [
+      {
+        "tableName": "cache_refugios",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `nombre` TEXT NOT NULL, `zonaPublica` TEXT NOT NULL, `horarioPublico` TEXT NOT NULL, `requisitosJson` TEXT NOT NULL, `actualizadoEn` INTEGER NOT NULL, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "nombre",
+            "columnName": "nombre",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "zonaPublica",
+            "columnName": "zonaPublica",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "horarioPublico",
+            "columnName": "horarioPublico",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "requisitosJson",
+            "columnName": "requisitosJson",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "actualizadoEn",
+            "columnName": "actualizadoEn",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        }
+      },
+      {
+        "tableName": "cache_perritos",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `refugioId` TEXT NOT NULL, `nombre` TEXT NOT NULL, `edadMeses` INTEGER NOT NULL, `tamano` TEXT NOT NULL, `sexo` TEXT NOT NULL, `descripcion` TEXT NOT NULL, `vacunacion` TEXT NOT NULL, `desparasitacion` TEXT NOT NULL, `esterilizacion` TEXT NOT NULL, `estado` TEXT NOT NULL, `fotosJson` TEXT NOT NULL, `actualizadoEn` INTEGER NOT NULL, PRIMARY KEY(`id`), FOREIGN KEY(`refugioId`) REFERENCES `cache_refugios`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "refugioId",
+            "columnName": "refugioId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "nombre",
+            "columnName": "nombre",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "edadMeses",
+            "columnName": "edadMeses",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "tamano",
+            "columnName": "tamano",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sexo",
+            "columnName": "sexo",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "descripcion",
+            "columnName": "descripcion",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "vacunacion",
+            "columnName": "vacunacion",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "desparasitacion",
+            "columnName": "desparasitacion",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "esterilizacion",
+            "columnName": "esterilizacion",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "estado",
+            "columnName": "estado",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "fotosJson",
+            "columnName": "fotosJson",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "actualizadoEn",
+            "columnName": "actualizadoEn",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_cache_perritos_refugioId",
+            "unique": false,
+            "columnNames": [
+              "refugioId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_cache_perritos_refugioId` ON `${TABLE_NAME}` (`refugioId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "cache_refugios",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "refugioId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "borradores",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`propietarioLocal` TEXT NOT NULL, `tipo` TEXT NOT NULL, `referenciaId` TEXT NOT NULL, `contenidoJson` TEXT NOT NULL, `actualizadoEn` INTEGER NOT NULL, PRIMARY KEY(`propietarioLocal`, `tipo`, `referenciaId`))",
+        "fields": [
+          {
+            "fieldPath": "propietarioLocal",
+            "columnName": "propietarioLocal",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "tipo",
+            "columnName": "tipo",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "referenciaId",
+            "columnName": "referenciaId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "contenidoJson",
+            "columnName": "contenidoJson",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "actualizadoEn",
+            "columnName": "actualizadoEn",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "propietarioLocal",
+            "tipo",
+            "referenciaId"
+          ]
+        }
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'a068a711645b1dc36b6b8450a9d17692')"
+    ]
+  }
+}

@@ -29,6 +29,9 @@ class AuthFlowTest {
                 .value != null
         ) {
             compose.onNodeWithText("Perfil", useUnmergedTree = true).performClick()
+            compose.onNodeWithContentDescription("Ver todas las pantallas").assertDoesNotExist()
+            compose.onNodeWithText("Datos de ejemplo").assertDoesNotExist()
+            compose.onNodeWithText("Actualizado hoy a las 9:30").assertDoesNotExist()
             compose.onNodeWithText("Cerrar sesión").performScrollTo().performClick()
             compose.onAllNodesWithText("Cerrar sesión").onLast().performClick()
             waitForText("Crear cuenta")
@@ -61,6 +64,9 @@ class AuthFlowTest {
         compose.activityRule.scenario.recreate()
         waitForText("Hola, Prueba")
         compose.onNodeWithText("Perfil", useUnmergedTree = true).performClick()
+        compose.onNodeWithContentDescription("Ver todas las pantallas").assertDoesNotExist()
+        compose.onNodeWithText("Datos de ejemplo").assertDoesNotExist()
+        compose.onNodeWithText("Actualizado hoy a las 9:30").assertDoesNotExist()
         compose.onAllNodesWithText(email).onFirst().assertExists()
         compose.onNodeWithText("Cerrar sesión").performScrollTo().performClick()
         compose.onAllNodesWithText("Cerrar sesión").onLast().performClick()
@@ -79,6 +85,9 @@ class AuthFlowTest {
         compose.onNodeWithTag("auth-submit").performClick()
         waitForText("Hola, Prueba")
         compose.onNodeWithText("Perfil", useUnmergedTree = true).performClick()
+        compose.onNodeWithContentDescription("Ver todas las pantallas").assertDoesNotExist()
+        compose.onNodeWithText("Datos de ejemplo").assertDoesNotExist()
+        compose.onNodeWithText("Actualizado hoy a las 9:30").assertDoesNotExist()
         compose.onAllNodesWithText(email).onFirst().assertExists()
         compose.runOnIdle {
             (compose.activity.application as HuellitasApplication)

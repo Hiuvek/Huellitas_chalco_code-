@@ -9,7 +9,11 @@ import com.example.huellitaschalco.BuildConfig
 import com.example.huellitaschalco.app.*
 import com.example.huellitaschalco.core.navigation.*
 import com.example.huellitaschalco.ui.theme.HuellitasChalcoTheme
+import com.google.firebase.FirebaseApp
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Source
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.tasks.await
 import org.junit.*
 import org.junit.Assume.assumeTrue
 
@@ -32,6 +36,13 @@ class ReceivedRequestsFlowTest {
     @Test
     fun responsibleOpensStoredAnswersAndFiltersHaveRealCounts(): Unit = runBlocking {
         container.authRepository.signIn("hu07-a@example.test", "PruebaHU07!")
+        val expectedCount =
+            FirebaseFirestore.getInstance(FirebaseApp.getInstance("huellitas-auth-emulator"))
+                .collection("solicitudes")
+                .whereEqualTo("refugioId", "hu07-a")
+                .get(Source.SERVER)
+                .await()
+                .size()
         compose.activity.runOnUiThread {
             compose.activity.window.addFlags(
                 android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
@@ -56,7 +67,7 @@ class ReceivedRequestsFlowTest {
             it()
         }
         compose.onNodeWithText("No hay solicitudes con este estado.").assertExists()
-        compose.onNodeWithText("Todas (2)").performScrollTo().performSemanticsAction(
+        compose.onNodeWithText("Todas ($expectedCount)").performScrollTo().performSemanticsAction(
             SemanticsActions.OnClick
         ) {
             it()

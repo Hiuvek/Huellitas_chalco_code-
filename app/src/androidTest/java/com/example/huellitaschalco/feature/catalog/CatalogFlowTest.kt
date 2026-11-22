@@ -260,7 +260,12 @@ class CatalogFlowTest {
         waitTag("detail-requirements")
         clickTag("detail-requirements")
         waitTag("requirements-ready")
-        compose.onNodeWithText("Lunita HU02 · Refugio catálogo hu02-chalco").assertExists()
+        compose.onNodeWithText("Antes de solicitar a Lunita HU02").assertExists()
+        compose
+            .onNodeWithText(
+                "Lee las condiciones y los pasos de Refugio catálogo hu02-chalco. Después pulsa Iniciar solicitud."
+            )
+            .assertExists()
         compose.onNodeWithText("Ser mayor de edad y presentar identificación.").assertExists()
         compose.onNodeWithText("Contar con un espacio seguro y agua limpia.").assertExists()
         compose.onNodeWithText("Aceptar entrevista y seguimiento.").assertExists()
@@ -272,11 +277,9 @@ class CatalogFlowTest {
     }
 
     private fun clickTag(tag: String) {
-        compose.onNodeWithTag(tag).performScrollTo().performSemanticsAction(
-            SemanticsActions.OnClick
-        ) {
-            it()
-        }
+        val node = compose.onNodeWithTag(tag)
+        if (runCatching { node.assertIsDisplayed() }.isFailure) node.performScrollTo()
+        node.performSemanticsAction(SemanticsActions.OnClick) { it() }
     }
 
     private fun waitTag(tag: String) {

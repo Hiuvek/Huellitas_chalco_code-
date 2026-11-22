@@ -172,11 +172,9 @@ class ApplicationFlowTest {
     }
 
     private fun clickTag(tag: String) {
-        compose.onNodeWithTag(tag).performScrollTo().performSemanticsAction(
-            SemanticsActions.OnClick
-        ) {
-            it()
-        }
+        val node = compose.onNodeWithTag(tag)
+        if (runCatching { node.assertIsDisplayed() }.isFailure) node.performScrollTo()
+        node.performSemanticsAction(SemanticsActions.OnClick) { it() }
     }
 
     private fun waitTag(tag: String) {

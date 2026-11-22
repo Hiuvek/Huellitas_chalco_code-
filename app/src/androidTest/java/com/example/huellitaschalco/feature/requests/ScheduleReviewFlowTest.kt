@@ -80,13 +80,12 @@ class ScheduleReviewFlowTest {
         waitTag("schedule-done")
         click("schedule-done")
         compose.waitUntil(20_000) {
-            compose.onAllNodesWithText("Abrir revisión").fetchSemanticsNodes().isNotEmpty()
+            compose.onAllNodesWithText("Registrar seguimiento").fetchSemanticsNodes().isNotEmpty()
         }
-        compose.onAllNodesWithText("Abrir revisión")[0].performScrollTo().performSemanticsAction(
-            SemanticsActions.OnClick
-        ) {
-            it()
-        }
+        compose
+            .onAllNodesWithText("Registrar seguimiento")[0]
+            .performScrollTo()
+            .performSemanticsAction(SemanticsActions.OnClick) { it() }
         compose.waitUntil(20_000) {
             compose.onAllNodesWithText("Fecha programada").fetchSemanticsNodes().isNotEmpty()
         }

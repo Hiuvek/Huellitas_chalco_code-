@@ -36,9 +36,9 @@ HU-01 y HU-07 están comprobadas en el proyecto Firebase real. El catálogo, sol
 | HU-15 | Programar seguimientos | Agenda real por refugio, fecha, tipo y apertura de captura del resultado | Implementada y comprobada en emuladores; nube pospuesta |
 | HU-16 | Registrar seguimientos | Resultado, foto privada, historial y siguiente revisión mediante Firebase local | Implementada y comprobada en emuladores; nube pospuesta |
 | HU-17 | Conservar catálogo y borradores con Room | Tres tablas locales, catálogo guardado y borradores por cuenta | Implementada y comprobada en la tableta |
-| HU-18 | Consultar ubicación con Google Maps | Mapa ilustrativo y vista de error; no usa Google Maps | Pendiente |
+| HU-18 | Consultar ubicación con Google Maps | Zona pública real abierta mediante Maps URLs, con reintento | Implementada en la variante externa sin facturación; mapa incrustado fuera de alcance |
 
-**Avance: 16 de 18 historias implementadas: 2 comprobadas en el proyecto real, 13 con servicios locales y HU-17 con Room en la tableta.**
+**Avance: 17 de 18 historias implementadas: 2 comprobadas en el proyecto real, 13 con servicios locales, HU-17 con Room y HU-18 con Maps URLs sin facturación.**
 
 ### HU-01 comprobada
 
@@ -302,9 +302,23 @@ Uso y alcance: [docs/follow-up-results.md](docs/follow-up-results.md).
 
 Alcance, tablas y pruebas: [docs/local-room.md](docs/local-room.md).
 
+### HU-18 comprobada en la variante externa sin facturación
+
+- [x] Rama `codex/hu-18-public-google-maps` y commits separados de funcionalidad, pruebas y documentación.
+- [x] Zona y coordenadas aproximadas opcionales del refugio seleccionado; sin GPS ni domicilio del adoptante.
+- [x] Maps URLs oficial con codificación de parámetros, aplicación de Google Maps o navegador.
+- [x] Coordenadas validadas y aproximadas; búsqueda por zona cuando no hay coordenadas; sin punto inventado.
+- [x] Nombre, zona y horario conservados; error y reintento si Android no puede abrir Maps.
+- [x] Datos de demostración identificados; metadatos de ubicación pública conservados en Room.
+- [x] 103 pruebas unitarias y 10 Android de Maps y regresión de Room, sin fallos.
+- [x] Compilación local y Android Lint sin errores.
+- [ ] Mapa incrustado con Maps SDK: no forma parte de la variante sin facturación implementada.
+
+Alcance y prueba: [docs/public-maps.md](docs/public-maps.md). La carga y los errores de red del mapa externo los controla Google Maps o el navegador.
+
 ## Orden para implementarlas una por una
 
-Firebase Authentication y la base Firestore están configurados. HU-07 está desplegada y comprobada con la cuenta autorizada en la tableta. HU-08 está comprobada con servicios locales; su activación en la nube está pospuesta para conservar Spark. HU-09 y HU-10 también están comprobadas en emuladores. HU-02 ya está comprobada en emuladores. HU-03 ya está comprobada en emuladores. HU-04 y HU-05 están comprobadas en emuladores; HU-06 permite consultar las solicitudes de la cuenta; HU-12 permite consultar las recibidas por el refugio; HU-13 guarda la revisión y decisiones; HU-14 registra la entrega y cierra pendientes; HU-15 programa revisiones y HU-16 guarda sus resultados; HU-17 conserva catálogo y borradores con Room; continúa HU-18 para Google Maps. El diseño original se conserva como referencia.
+Firebase Authentication y la base Firestore están configurados. HU-07 está desplegada y comprobada con la cuenta autorizada en la tableta. HU-08 está comprobada con servicios locales; su activación en la nube está pospuesta para conservar Spark. HU-09 y HU-10 también están comprobadas en emuladores. HU-02 ya está comprobada en emuladores. HU-03 ya está comprobada en emuladores. HU-04 y HU-05 están comprobadas en emuladores; HU-06 permite consultar las solicitudes de la cuenta; HU-12 permite consultar las recibidas por el refugio; HU-13 guarda la revisión y decisiones; HU-14 registra la entrega y cierra pendientes; HU-15 programa revisiones y HU-16 guarda sus resultados; HU-17 conserva catálogo y borradores con Room; HU-18 abre la zona pública con Google Maps sin facturación; continúa HU-11 para Gemini. El diseño original se conserva como referencia.
 
 1. [x] **HU-01 — Crear cuenta e iniciar sesión.** Crear usuarios y autenticar con Firebase Authentication. Validar campos, mostrar errores junto al campo y conservar los datos al fallar. Comprobar registro, acceso correcto, acceso incorrecto y cierre de sesión.
 2. [x] **HU-07 — Autorizar al refugio.** Identificar el rol y el refugio de la cuenta. Restringir también el acceso a los datos: cada refugio administra únicamente sus perritos, solicitudes y seguimientos. Comprobar cuentas de adoptante, visitante y dos refugios distintos.
@@ -322,7 +336,7 @@ Firebase Authentication y la base Firestore están configurados. HU-07 está des
 14. [x] **HU-15 — Programar revisiones.** Desde una adopción registrada, guardar fecha y tipo de revisión: visita, llamada o videollamada. Mostrar las pendientes y permitir abrir su registro de seguimiento.
 15. [x] **HU-16 — Guardar seguimientos.** Persistir fecha, adaptación, observaciones y fotografía opcional. Confirmar únicamente tras guardar, actualizar el historial, marcar la revisión como realizada y permitir programar la siguiente o cerrar el seguimiento.
 16. [x] **HU-17 — Conservar catálogo y borradores con Room.** Implementar entidades, DAO y base local. Guardar el último catálogo y borradores separados por cuenta; restaurarlos al volver a abrir la app. Comprobar uso sin conexión, aviso de información desactualizada, ausencia de caché y eliminación del borrador solo tras confirmar el envío correcto.
-17. [ ] **HU-18 — Mostrar la ubicación con Google Maps.** Cargar la zona pública aproximada del refugio sin mostrar domicilios privados. Conservar nombre y zona si el mapa falla y permitir reintentar. Identificar los datos ficticios como demostración.
+17. [x] **HU-18 — Mostrar la ubicación con Google Maps.** Cargar la zona pública aproximada del refugio sin mostrar domicilios privados. Conservar nombre y zona si el mapa falla y permitir reintentar. Identificar los datos ficticios como demostración.
 18. [ ] **HU-11 — Conectar Gemini.** Generar una propuesta basada exclusivamente en los datos capturados, sin inventar características ni información médica. Permitir aceptar, editar, descartar y escribir manualmente si falla. Comprobar que nunca se publique automáticamente.
 
 ## Cuándo marcar una historia como terminada

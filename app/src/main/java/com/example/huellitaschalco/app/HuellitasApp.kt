@@ -247,8 +247,23 @@ fun HuellitasApp(
                                     container.adoptionRepository,
                                 )
                         }
-                    UiScreen.FollowUps -> FollowUpsScreen(nav, destination)
-                    UiScreen.FollowUpForm -> FollowUpFormScreen(nav)
+                    UiScreen.FollowUps,
+                    UiScreen.ScheduleReview,
+                    UiScreen.FollowUpForm ->
+                        if (destination.variant != UiVariant.Normal) {
+                            if (destination.screen == UiScreen.FollowUps)
+                                FollowUpsScreen(nav, destination)
+                            else FollowUpFormScreen(nav)
+                        } else
+                            LocalShelterScope.current?.let { scope ->
+                                com.example.huellitaschalco.feature.shelter.followup.presentation
+                                    .FollowUpRoutes(
+                                        nav,
+                                        requireNotNull(user).uid,
+                                        scope.current.id,
+                                        container.followUpRepository,
+                                    )
+                            }
                     UiScreen.FollowUpSaved -> FollowUpSavedScreen(nav)
                     UiScreen.FollowUpDetail -> FollowUpDetailScreen(nav, destination)
                     UiScreen.PreviewGallery -> PreviewGalleryScreen(nav)

@@ -104,6 +104,11 @@ fun AdoptionRoute(
                     "Las otras solicitudes pendientes del perrito se cerraron con su motivo e historial. Las decisiones anteriores y las solicitudes de otros perritos se conservan."
                 )
                 HButton(
+                    "Programar revisión",
+                    { nav.open(UiScreen.ScheduleReview, recordId = item.dogId) },
+                    Modifier.testTag("adoption-schedule"),
+                )
+                HButton(
                     "Ver solicitudes actualizadas",
                     { nav.root(UiScreen.ShelterRequests) },
                     outlined = true,

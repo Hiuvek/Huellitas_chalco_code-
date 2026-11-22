@@ -158,7 +158,7 @@ fun FollowUpRoutes(
                             HCaption(civilDateLabel(revision.plannedAt))
                             HTag(ReviewTypes.labels[revision.type] ?: revision.type)
                             HButton(
-                                "Abrir revisión",
+                                "Registrar seguimiento",
                                 { nav.open(UiScreen.FollowUpForm, recordId = revision.id) },
                                 outlined = true,
                             )

@@ -65,6 +65,10 @@ fun AuthRoute(nav: UiNavigator, destination: UiDestination, repository: AuthRepo
                 }
         },
     ) {
+        HHeading(
+            if (signUp) "Empieza tu solicitud con una cuenta"
+            else if (shelter) "Administra tu refugio" else "Continúa con tu cuenta"
+        )
         HBody(
             if (signUp) "Crea tu cuenta para enviar solicitudes de adopción."
             else if (shelter)

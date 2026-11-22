@@ -42,14 +42,15 @@ android {
 
     defaultConfig {
         applicationId = "com.example.huellitaschalco"
+        buildConfigField("boolean", "SHOW_PREVIEW_GALLERY", "false")
         buildConfigField("String", "FIREBASE_AI_PROJECT", quotedConfig(aiProject))
         buildConfigField("String", "FIREBASE_AI_APP_ID", quotedConfig(aiAppId))
         buildConfigField("String", "FIREBASE_AI_API_KEY", quotedConfig(aiApiKey))
         buildConfigField("String", "GEMINI_MODEL", quotedConfig(aiModel))
         minSdk = 24
         targetSdk = 37
-        versionCode = 2
-        versionName = "1.1"
+        versionCode = 3
+        versionName = "1.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         manifestPlaceholders["appLabel"] = "@string/app_name"
@@ -59,6 +60,7 @@ android {
 
     buildTypes {
         debug {
+            buildConfigField("boolean", "SHOW_PREVIEW_GALLERY", (providers.gradleProperty("showPreviewGallery").orNull == "true").toString())
             if (authEmulatorEnabled) {
                 applicationIdSuffix = ".local"
                 manifestPlaceholders["appLabel"] = "Huellitas Chalco (local)"

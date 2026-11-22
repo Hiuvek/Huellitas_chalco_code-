@@ -102,12 +102,25 @@ fun ApplicationRoute(
                     "Seguir explorando",
                     { nav.root(UiScreen.Catalog) },
                     Modifier.testTag("application-done"),
+                    outlined = true,
                 )
             else {
+                HCaption(
+                    if (state.step == 4)
+                        "Revisa tus respuestas. Solo se enviarán al pulsar Enviar solicitud."
+                    else "Paso ${state.step + 1} de 5 · Tu solicitud todavía no se ha enviado."
+                )
                 HButton(
                     if (state.sending) "Enviando solicitud…"
                     else if (state.step == 4 && state.error != null) "Reintentar envío"
-                    else if (state.step == 4) "Enviar solicitud" else "Continuar",
+                    else if (state.step == 4) "Enviar solicitud"
+                    else
+                        when (state.step) {
+                            0 -> "Continuar: tu hogar"
+                            1 -> "Continuar: otras mascotas"
+                            2 -> "Continuar: motivos"
+                            else -> "Revisar mi solicitud"
+                        },
                     { if (state.step == 4) model.send() else model.next() },
                     Modifier.testTag("application-next"),
                     enabled =
@@ -124,7 +137,7 @@ fun ApplicationRoute(
                         outlined = true,
                     )
                 HButton(
-                    "Cancelar solicitud",
+                    "Salir y conservar borrador",
                     { confirmExit = true },
                     outlined = true,
                     enabled = !state.sending,
@@ -162,7 +175,7 @@ fun ApplicationRoute(
             HBody(shelter.name)
             HCaption("El borrador se guarda en este dispositivo para esta cuenta.")
             if (dog.demonstration || shelter.demonstration)
-                HCaption("Solicitud de demostración: se guarda solo en los emuladores locales.")
+                HCaption("Solicitud de demostración escolar. No corresponde a una adopción real.")
             if (!allowed)
                 HBanner(
                     "Este perrito no admite solicitudes nuevas o su refugio no tiene requisitos completos.",

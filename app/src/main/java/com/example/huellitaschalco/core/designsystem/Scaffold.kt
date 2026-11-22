@@ -7,6 +7,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.example.huellitaschalco.BuildConfig
 import com.example.huellitaschalco.core.navigation.*
 import com.example.huellitaschalco.ui.theme.*
 
@@ -52,9 +53,10 @@ fun HScaffold(
                                 color = Muted,
                             )
                     }
-                    IconButton(onClick = { nav.open(UiScreen.PreviewGallery) }) {
-                        HIcon(HSymbol.Eye, description = "Ver todas las pantallas")
-                    }
+                    if (BuildConfig.SHOW_PREVIEW_GALLERY)
+                        IconButton(onClick = { nav.open(UiScreen.PreviewGallery) }) {
+                            HIcon(HSymbol.Eye, description = "Ver todas las pantallas")
+                        }
                 }
                 LocalWorkspaceHeader.current?.let { header ->
                     Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 8.dp)) {

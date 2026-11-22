@@ -110,8 +110,5 @@ fun ShelterScopeHeader(scope: ShelterScope) {
                 }
             }
         } else HCaption(scope.current.name)
-        HCaption(
-            "Solicitudes, seguimientos y variantes del muestrario aún muestran datos de ejemplo."
-        )
     }
 }

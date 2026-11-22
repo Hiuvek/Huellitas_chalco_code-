@@ -41,7 +41,7 @@ fun PublicMapPanel(shelter: PublicShelter, launcher: PublicMapLauncher? = null) 
                         }
                 },
                 Modifier.testTag("public-map-open"),
-                outlined = true,
+                outlined = false,
             )
         }
     }

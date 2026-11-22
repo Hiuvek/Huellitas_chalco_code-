@@ -9,6 +9,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.huellitaschalco.BuildConfig
 import com.example.huellitaschalco.core.navigation.*
 import com.example.huellitaschalco.feature.access.domain.*
 import com.example.huellitaschalco.feature.access.presentation.*
@@ -174,9 +175,21 @@ fun HuellitasApp(
                                 )
                         else RequestDetailScreen(nav, destination)
                     UiScreen.AdopterProfile ->
-                        ProfileScreen(nav, false, user, authRepository::signOut)
+                        ProfileScreen(
+                            nav,
+                            false,
+                            user,
+                            authRepository::signOut,
+                            container.publicShelterRepository,
+                        )
                     UiScreen.ShelterProfile ->
-                        ProfileScreen(nav, true, user, authRepository::signOut)
+                        ProfileScreen(
+                            nav,
+                            true,
+                            user,
+                            authRepository::signOut,
+                            container.publicShelterRepository,
+                        )
                     UiScreen.ShelterDogs,
                     UiScreen.ShelterDogDetail ->
                         if (destination.variant != UiVariant.Normal) {
@@ -277,7 +290,9 @@ fun HuellitasApp(
                                         container.dogPhotoImporter,
                                     )
                             }
-                    UiScreen.PreviewGallery -> PreviewGalleryScreen(nav)
+                    UiScreen.PreviewGallery ->
+                        if (BuildConfig.SHOW_PREVIEW_GALLERY) PreviewGalleryScreen(nav)
+                        else LaunchedEffect(Unit) { nav.root(UiScreen.Catalog) }
                 }
             }
         }

@@ -29,7 +29,25 @@ fun PublicDogDetailRoute(
         )
     val state by model.state.collectAsStateWithLifecycle()
     var selectedPhoto by rememberSaveable(id) { mutableStateOf<String?>(null) }
-    HScaffold(nav, if (refugeOnly) "Información del refugio" else "Ficha pública") {
+    HScaffold(
+        nav,
+        if (refugeOnly) "Información del refugio" else "Conoce a tu compañero",
+        bottom =
+            if (!refugeOnly && !state.loading && state.error == null && state.dog != null)
+                ({
+                    HCaption(
+                        if (state.dog?.status == "Disponible")
+                            "El siguiente paso es revisar las condiciones del refugio."
+                        else "Consulta los requisitos y la disponibilidad del perrito."
+                    )
+                    HButton(
+                        "Ver requisitos para adoptar",
+                        { nav.open(UiScreen.Requirements, recordId = id) },
+                        Modifier.testTag("detail-requirements"),
+                    )
+                })
+            else null,
+    ) {
         if (state.stale) {
             HBanner(
                 "Última copia guardada. La información y la disponibilidad pueden haber cambiado.",
@@ -92,25 +110,22 @@ fun PublicDogDetailRoute(
                     HBody(dog.description)
                     DogHealthSummary(dog.health)
                     HCaption("Información de salud declarada por el refugio.")
-                    HHeading("Refugio")
+                    HHeading("Dónde se encuentra")
                     HCard(onClick = { nav.open(UiScreen.RefugeInformation, recordId = id) }) {
                         HHeading(shelter.name)
                         HBody(shelter.zone, muted = true)
                         HBody(shelter.hours, muted = true)
                     }
                     HButton(
-                        "Información del refugio",
+                        "Ver refugio y ubicación",
                         { nav.open(UiScreen.RefugeInformation, recordId = id) },
                         Modifier.testTag("detail-refuge"),
                         outlined = true,
                     )
-                    HButton(
-                        "Conocer requisitos",
-                        { nav.open(UiScreen.Requirements, recordId = id) },
-                        Modifier.testTag("detail-requirements"),
-                    )
                     if (dog.demonstration || shelter.demonstration)
-                        HCaption("Registro de demostración local.")
+                        HCaption(
+                            "Ejemplo escolar: este registro no corresponde a una adopción real."
+                        )
                 } else {
                     HHeading(shelter.name)
                     if (shelter.demonstration) HTag("Refugio de demostración")

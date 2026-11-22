@@ -16,6 +16,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import com.example.huellitaschalco.BuildConfig
 import com.example.huellitaschalco.R
 import com.example.huellitaschalco.core.designsystem.*
 import com.example.huellitaschalco.core.navigation.*
@@ -51,15 +52,16 @@ fun WelcomeScreen(nav: UiNavigator) {
                         Text("Huellitas Chalco", style = MaterialTheme.typography.titleSmall)
                     }
                 }
-                Surface(
-                    Modifier.align(Alignment.TopEnd).padding(16.dp),
-                    shape = CircleShape,
-                    color = Cream,
-                ) {
-                    IconButton(onClick = { nav.open(UiScreen.PreviewGallery) }) {
-                        HIcon(HSymbol.Eye, description = "Ver todas las pantallas")
+                if (BuildConfig.SHOW_PREVIEW_GALLERY)
+                    Surface(
+                        Modifier.align(Alignment.TopEnd).padding(16.dp),
+                        shape = CircleShape,
+                        color = Cream,
+                    ) {
+                        IconButton(onClick = { nav.open(UiScreen.PreviewGallery) }) {
+                            HIcon(HSymbol.Eye, description = "Ver todas las pantallas")
+                        }
                     }
-                }
             }
             Column(
                 Modifier.offset(y = (-24).dp)
@@ -79,14 +81,12 @@ fun WelcomeScreen(nav: UiNavigator) {
                     style = MaterialTheme.typography.bodyLarge,
                     color = Muted,
                 )
-                Spacer(Modifier.height(18.dp))
-                HButton("Iniciar sesión", { nav.open(UiScreen.Login) })
-                HButton("Crear cuenta", { nav.open(UiScreen.SignUp) }, outlined = true)
-                HTextAction(
-                    "Explorar sin ingresar",
-                    { nav.root(UiScreen.Catalog) },
-                    icon = HSymbol.Forward,
+                HButton("Explorar perritos", { nav.root(UiScreen.Catalog) }, icon = HSymbol.Paw)
+                HCaption(
+                    "Puedes ver el catálogo sin una cuenta. Para solicitar una adopción, inicia sesión."
                 )
+                HButton("Iniciar sesión", { nav.open(UiScreen.Login) }, outlined = true)
+                HTextAction("Crear cuenta", { nav.open(UiScreen.SignUp) })
                 HTextAction(
                     "Acceso para refugios",
                     { nav.open(UiScreen.ShelterLogin) },

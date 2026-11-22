@@ -24,21 +24,27 @@ class MainActivity : ComponentActivity() {
                 )
         )
         val preview =
-            if (applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE != 0) {
+            if (
+                BuildConfig.SHOW_PREVIEW_GALLERY &&
+                    applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE != 0
+            ) {
                 intent.getStringExtra("preview_screen")?.let { name ->
                     runCatching {
-                        UiDestination(
-                            screen = UiScreen.valueOf(name),
-                            dogId =
-                                intent.getIntExtra("preview_dog_id", 6).takeIf { it in 1..8 } ?: 6,
-                            requestId =
-                                intent.getIntExtra("preview_request_id", 1).takeIf { it in 1..8 }
-                                    ?: 1,
-                            variant =
-                                intent.getStringExtra("preview_variant")?.let(UiVariant::valueOf)
-                                    ?: UiVariant.Normal,
-                        )
-                    }
+                            UiDestination(
+                                screen = UiScreen.valueOf(name),
+                                dogId =
+                                    intent.getIntExtra("preview_dog_id", 6).takeIf { it in 1..8 }
+                                        ?: 6,
+                                requestId =
+                                    intent.getIntExtra("preview_request_id", 1).takeIf {
+                                        it in 1..8
+                                    } ?: 1,
+                                variant =
+                                    intent
+                                        .getStringExtra("preview_variant")
+                                        ?.let(UiVariant::valueOf) ?: UiVariant.Normal,
+                            )
+                        }
                         .getOrNull()
                 }
             } else null

@@ -43,6 +43,10 @@ fun MyRequestsRoute(
     if (id == null) {
         val state by model.list.collectAsStateWithLifecycle()
         HScaffold(nav, "Mis solicitudes", back = false, tab = "Solicitudes") {
+            HScreenIntro(
+                "Sigue tus solicitudes",
+                "Abre una tarjeta para consultar el estado, la respuesta del refugio y los datos que enviaste.",
+            )
             when {
                 state.loading ->
                     LinearProgressIndicator(Modifier.fillMaxWidth().testTag("requests-loading"))
@@ -67,6 +71,7 @@ fun MyRequestsRoute(
                             HCaption("Enviada: ${requestDate(item.createdAt)}")
                             HTag(item.status)
                             HBody(item.nextStep)
+                            HCardAction("Ver estado y respuestas")
                         }
                     }
             }

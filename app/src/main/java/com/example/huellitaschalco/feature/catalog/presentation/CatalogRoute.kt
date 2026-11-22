@@ -34,13 +34,17 @@ fun CatalogRoute(
     var showFilters by rememberSaveable { mutableStateOf(false) }
     HScaffold(
         nav,
-        "Perritos en\nadopción en Chalco",
+        "Adopta en Chalco",
         if (userName != null) "Hola, ${userName.substringBefore(' ')}"
         else "Explora sin iniciar sesión",
         back = false,
         tab = "Explorar",
     ) {
         if (photos.usesEmulator) HCaption("Entorno de prueba local: registros de demostración.")
+        HScreenIntro(
+            "Encuentra a tu compañero",
+            "Elige una tarjeta para ver su foto, conocerlo y revisar cómo adoptar.",
+        )
         HInput(
             "Buscar por nombre o refugio",
             state.filters.query,
@@ -127,6 +131,7 @@ fun CatalogRoute(
                                 )
                                 HCaption(item.shelterName)
                                 HTag(item.dog.status)
+                                HCardAction("Ver ficha de ${item.dog.name}")
                             }
                         }
                     }

@@ -6,7 +6,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.huellitaschalco.core.navigation.*
@@ -25,11 +24,7 @@ fun HButton(
     val color = if (danger) Terracotta else Forest
     val contents: @Composable RowScope.() -> Unit = {
         if (icon != null) {
-            HIcon(
-                icon,
-                tint = if (outlined) color else Color.White,
-                modifier = Modifier.size(18.dp),
-            )
+            HIcon(icon, tint = LocalContentColor.current, modifier = Modifier.size(18.dp))
             Spacer(Modifier.width(8.dp))
         }
         Text(text, textAlign = TextAlign.Center, style = MaterialTheme.typography.labelLarge)

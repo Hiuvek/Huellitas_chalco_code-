@@ -27,7 +27,27 @@ fun RequirementsRoute(
             factory = PublicDogDetailViewModel.factory(id, dogs, shelters),
         )
     val state by model.state.collectAsStateWithLifecycle()
-    HScaffold(nav, "Requisitos de adopción") {
+    HScaffold(
+        nav,
+        "Requisitos de adopción",
+        bottom =
+            if (!state.loading && state.error == null && state.shelter?.policy != null)
+                ({
+                    HCaption(
+                        if (state.dog?.status == "Disponible")
+                            "Completa tus datos y revisa tus respuestas antes de enviar."
+                        else
+                            "Este perrito está en proceso de adopción y no recibe nuevas solicitudes."
+                    )
+                    HButton(
+                        "Iniciar solicitud",
+                        { nav.open(UiScreen.ApplicationContact, recordId = id) },
+                        Modifier.testTag("requirements-start"),
+                        enabled = state.dog?.status == "Disponible",
+                    )
+                })
+            else null,
+    ) {
         if (state.stale) {
             HBanner(
                 "Última copia guardada. La información y la disponibilidad pueden haber cambiado.",
@@ -44,10 +64,13 @@ fun RequirementsRoute(
             else -> {
                 val dog = state.dog!!
                 val shelter = state.shelter!!
-                HHeading("${dog.name} · ${shelter.name}")
+                HScreenIntro(
+                    "Antes de solicitar a ${dog.name}",
+                    "Lee las condiciones y los pasos de ${shelter.name}. Después pulsa Iniciar solicitud.",
+                )
                 if (shelter.demonstration || dog.demonstration)
                     HBanner(
-                        "Requisitos de demostración local. No corresponden a una adopción real.",
+                        "Requisitos de demostración escolar. No corresponden a una adopción real.",
                         HSymbol.Info,
                     )
                 val policy = shelter.policy
@@ -73,12 +96,6 @@ fun RequirementsRoute(
                         policy.steps.forEachIndexed { index, step ->
                             HCard { HHeading("${index + 1}. $step") }
                         }
-                        HButton(
-                            "Iniciar solicitud",
-                            { nav.open(UiScreen.ApplicationContact, recordId = id) },
-                            Modifier.testTag("requirements-start"),
-                            enabled = dog.status == "Disponible",
-                        )
                         if (dog.status == "En proceso")
                             HBanner(
                                 "Este perrito está en proceso de adopción. No admite nuevas solicitudes.",

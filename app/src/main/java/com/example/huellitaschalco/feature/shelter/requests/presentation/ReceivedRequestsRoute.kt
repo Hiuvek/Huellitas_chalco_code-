@@ -41,6 +41,10 @@ fun ReceivedRequestsRoute(
             shelter = true,
             tab = "Solicitudes",
         ) {
+            HScreenIntro(
+                "Revisa a las personas interesadas",
+                "Selecciona una solicitud para leer sus respuestas y registrar tu decisión.",
+            )
             when {
                 state.loading -> LinearProgressIndicator(Modifier.fillMaxWidth())
                 state.error != null -> ReceivedError(state.error!!, model::retry)
@@ -80,6 +84,7 @@ fun ReceivedRequestsRoute(
                             HCaption(item.folio)
                             HTag(item.status)
                             HCaption(requestDate(item.createdAt))
+                            HCardAction("Revisar solicitud")
                         }
                     }
                 }

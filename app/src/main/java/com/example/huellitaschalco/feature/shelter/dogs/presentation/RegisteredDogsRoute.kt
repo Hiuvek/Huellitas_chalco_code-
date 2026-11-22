@@ -48,6 +48,11 @@ fun RegisteredDogsRoute(
         tab = if (recordId == null) "Perritos" else null,
     ) {
         if (recordId == null)
+            HScreenIntro(
+                "Administra tus perritos",
+                "Registra uno nuevo o abre una tarjeta para revisar sus datos, fotografías y salud.",
+            )
+        if (recordId == null)
             HButton("Registrar perrito", { nav.open(UiScreen.DogForm) }, icon = HSymbol.Plus)
         if (repository.usesEmulator)
             HCaption("Entorno de prueba local: registros ficticios en emuladores.")
@@ -90,6 +95,7 @@ fun RegisteredDogsRoute(
                         HHeading(dog.name)
                         HBody("${dog.ageMonths} meses · ${dog.size} · ${dog.sex}")
                         HTag(dog.status)
+                        HCardAction("Ver datos y salud")
                     }
                 }
         }

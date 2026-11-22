@@ -9,11 +9,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.huellitaschalco.BuildConfig
 import com.example.huellitaschalco.core.designsystem.*
 import com.example.huellitaschalco.core.navigation.*
 import com.example.huellitaschalco.feature.access.presentation.LocalShelterScope
 import com.example.huellitaschalco.feature.auth.domain.AuthUser
+import com.example.huellitaschalco.feature.refuge.domain.*
+import com.example.huellitaschalco.feature.refuge.maps.PublicMapPanel
 import com.example.huellitaschalco.ui.theme.*
+import kotlinx.coroutines.flow.flowOf
 
 @Composable
 fun ProfileScreen(
@@ -21,12 +26,19 @@ fun ProfileScreen(
     shelter: Boolean,
     user: AuthUser? = null,
     onSignOut: () -> Unit = {},
+    shelters: PublicShelterRepository? = null,
 ) {
     val refuge = LocalShelterScope.current?.current
+    var refresh by remember { mutableIntStateOf(0) }
+    val publicFlow =
+        remember(refuge?.id, shelters, refresh) {
+            refuge?.id?.let { shelters?.observe(it) } ?: flowOf(PublicShelterState(false))
+        }
+    val publicState by publicFlow.collectAsStateWithLifecycle(PublicShelterState())
     var logout by remember { mutableStateOf(false) }
     HScaffold(
         nav,
-        if (shelter) "Perfil del refugio" else "Perfil",
+        if (shelter) "Perfil del refugio" else "Mi cuenta",
         back = false,
         tab = "Perfil",
         shelter = shelter,
@@ -36,7 +48,7 @@ fun ProfileScreen(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Box(
-                Modifier.size(72.dp).background(Forest, CircleShape),
+                Modifier.size(64.dp).background(Forest, CircleShape),
                 contentAlignment = Alignment.Center,
             ) {
                 Text(
@@ -46,7 +58,7 @@ fun ProfileScreen(
                     color = Color.White,
                 )
             }
-            Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(5.dp)) {
                 Text(
                     if (shelter) refuge?.name ?: "Refugio" else user?.label ?: "Visitante",
                     style = MaterialTheme.typography.titleLarge,
@@ -56,52 +68,99 @@ fun ProfileScreen(
             }
         }
         if (shelter) {
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                HMetric("Publicados", "4", Modifier.weight(1f))
-                HMetric("Nuevas", "3", Modifier.weight(1f))
-                HMetric("Revisiones", "1", Modifier.weight(1f))
-            }
-            HHeading("Información pública")
+            HScreenIntro(
+                "Tu espacio de administración",
+                "Elige qué quieres revisar. Los registros se consultan desde tu refugio actual.",
+            )
+            HButton("Ver mis perritos", { nav.root(UiScreen.ShelterDogs) }, icon = HSymbol.Paw)
+            HButton(
+                "Revisar solicitudes",
+                { nav.root(UiScreen.ShelterRequests) },
+                outlined = true,
+                icon = HSymbol.Inbox,
+            )
+            HButton(
+                "Abrir seguimientos",
+                { nav.root(UiScreen.FollowUps) },
+                outlined = true,
+                icon = HSymbol.Calendar,
+            )
+            HHeading("Información pública del refugio")
             HCard {
-                HKeyValue("Zona", refuge?.publicZone.orEmpty())
-                HKeyValue("Horario", refuge?.publicHours.orEmpty(), true)
-                HKeyValue("Responsable", user?.label.orEmpty(), true)
+                HKeyValue("Zona", refuge?.publicZone?.takeIf { it.isNotBlank() } ?: "Sin registrar")
+                HKeyValue(
+                    "Horario",
+                    refuge?.publicHours?.takeIf { it.isNotBlank() } ?: "Sin registrar",
+                    true,
+                )
             }
-            HHeading("Administración")
-            HButton(
-                "Datos del refugio",
-                { nav.open(UiScreen.RefugeInformation) },
-                outlined = true,
-                icon = HSymbol.Edit,
-            )
-            HButton(
-                "Requisitos de adopción",
-                { nav.open(UiScreen.Requirements) },
-                outlined = true,
-                icon = HSymbol.Document,
-            )
-            HBanner(
-                "Solo las cuentas autorizadas pueden administrar un refugio, publicar perritos y evaluar solicitudes.",
-                HSymbol.Shield,
-            )
+            when {
+                publicState.loading -> LinearProgressIndicator(Modifier.fillMaxWidth())
+                publicState.shelter != null -> {
+                    val info = requireNotNull(publicState.shelter)
+                    info.policy?.let { policy ->
+                        HHeading("Requisitos publicados")
+                        HCard {
+                            policy.requirements.forEachIndexed { i, text ->
+                                HBody("${i + 1}. $text")
+                            }
+                        }
+                        HHeading("Pasos de adopción")
+                        HCard {
+                            policy.steps.forEachIndexed { i, text -> HBody("${i + 1}. $text") }
+                        }
+                    }
+                    PublicMapPanel(info)
+                }
+                publicState.error != null -> {
+                    HBanner(
+                        "No se pudo actualizar la información pública. Revisa tu conexión.",
+                        HSymbol.Alert,
+                    )
+                    HButton("Actualizar información", { refresh++ }, outlined = true)
+                }
+            }
+            HButton("Ver catálogo público", { nav.root(UiScreen.Catalog) }, outlined = true)
         } else {
-            HHeading("Mis datos")
-            HCard {
-                HKeyValue("Correo", user?.email ?: "Sin sesión iniciada")
-                HKeyValue("Teléfono", "Sin registrar", true)
-                HKeyValue("Solicitudes", "Datos de ejemplo", true)
-            }
-            HHeading("En este teléfono")
-            HCard {
-                HHeading("Catálogo disponible sin conexión")
-                HCaption("Actualizado hoy a las 9:30")
-                HorizontalDivider(color = Line)
-                HHeading("Borradores de solicitud")
-                HCaption("Ninguno")
-            }
+            HScreenIntro(
+                if (user == null) "Explora y conoce a los perritos"
+                else "Consulta el avance de tu adopción",
+                if (user == null)
+                    "Puedes explorar sin cuenta. Inicia sesión para enviar solicitudes y consultar su respuesta."
+                else
+                    "En Mis solicitudes encontrarás el estado, las respuestas y el historial de cada solicitud.",
+            )
+            if (user != null)
+                HButton(
+                    "Ver mis solicitudes",
+                    { nav.root(UiScreen.MyRequests) },
+                    icon = HSymbol.Document,
+                )
+            HButton(
+                "Explorar perritos",
+                { nav.root(UiScreen.Catalog) },
+                outlined = user != null,
+                icon = HSymbol.Paw,
+            )
+            HHeading("Tus datos y borradores")
+            HBody(
+                "Los borradores se conservan en este teléfono y se separan por cuenta. Vuelve a la solicitud del perrito para continuar donde te quedaste."
+            )
+            HBody(
+                "Sin conexión puedes consultar la última copia del catálogo. Conéctate para actualizar la disponibilidad y enviar solicitudes.",
+                muted = true,
+            )
+            HTextAction(
+                "Acceso para refugios",
+                { nav.root(UiScreen.ShelterDogs) },
+                icon = HSymbol.Shield,
+            )
         }
-        HBanner("Proyecto académico. Los refugios, perritos y personas son ficticios.")
-        if (user == null && !shelter) HButton("Iniciar sesión", { nav.open(UiScreen.Login) })
+        HCaption(
+            "Proyecto académico. Los registros identificados como demostración son ejemplos escolares."
+        )
+        if (user == null && !shelter)
+            HButton("Iniciar sesión", { nav.open(UiScreen.Login) }, outlined = true)
         else
             HButton(
                 "Cerrar sesión",
@@ -110,17 +169,22 @@ fun ProfileScreen(
                 danger = true,
                 icon = HSymbol.Logout,
             )
-        HTextAction(
-            "Ver todas las pantallas",
-            { nav.open(UiScreen.PreviewGallery) },
-            icon = HSymbol.Eye,
-        )
+        if (BuildConfig.SHOW_PREVIEW_GALLERY)
+            HTextAction(
+                "Ver todas las pantallas",
+                { nav.open(UiScreen.PreviewGallery) },
+                icon = HSymbol.Eye,
+            )
     }
     if (logout)
         AlertDialog(
             onDismissRequest = { logout = false },
             title = { Text("¿Cerrar sesión?") },
-            text = { Text("Puedes volver a explorar el catálogo cuando quieras.") },
+            text = {
+                Text(
+                    "Tus solicitudes enviadas se conservan. Los borradores de esta cuenta permanecen en este teléfono."
+                )
+            },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -132,6 +196,8 @@ fun ProfileScreen(
                     Text("Cerrar sesión")
                 }
             },
-            dismissButton = { TextButton(onClick = { logout = false }) { Text("Cancelar") } },
+            dismissButton = {
+                TextButton(onClick = { logout = false }) { Text("Seguir en mi cuenta") }
+            },
         )
 }

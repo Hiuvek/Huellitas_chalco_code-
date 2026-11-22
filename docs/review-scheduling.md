@@ -4,7 +4,7 @@ Desde una adopción registrada se elige la fecha (AAAA-MM-DD) y el tipo: visita 
 
 La función autenticada `programReview` consulta perfil, membresía, refugio y adopción dentro de la transacción. Crea un documento `revisiones` con los campos del modelo original: adopcionId, perritoId, refugioId, fechaProgramada, tipo, estado=PROGRAMADA, seguimientoId=null y creadoEn del servidor. El ID del intento se conserva al reintentar para evitar citas duplicadas.
 
-La agenda consulta solo el refugio autorizado, separa Programados de Adopciones y muestra fechas y tipos reales. Abrir revisión conserva su ID y muestra la cita seleccionada. La captura y el guardado del resultado se completan con HU-16; ese criterio se mantiene pendiente hasta integrar su formulario.
+La agenda consulta solo el refugio autorizado, separa Programados de Adopciones y muestra fechas y tipos reales. Abrir revisión conserva su ID y muestra la cita seleccionada. La captura y el guardado del resultado se integraron y comprobaron con HU-16; ver [follow-up-results.md](follow-up-results.md).
 
 La confirmación conserva fecha y tipo ante un fallo de conexión. Un rechazo definitivo permite corregirlos. Se confirma únicamente después de la respuesta del servidor. Volver sin programar no crea una cita ficticia.
 

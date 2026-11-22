@@ -54,3 +54,9 @@ El 21 de noviembre de 2026 se detectó `403 App attestation failed` en `com.exam
 Con autorización expresa del propietario se registró «Tableta app normal desarrollo», conservando el token local anterior y la protección de App Check. Se comprobó la instalación normal con `GeminiLiveSdkTest`, forzando un token nuevo y validando una propuesta real: `OK (1 test)`, 1.895 segundos. No se borraron datos, no se publicó ningún perrito ni se cambió el código de la app. Spark sigue activo.
 
 Si se reinstala borrando los datos o se usa otro dispositivo/build con almacenamiento independiente, se debe autorizar su token de desarrollo correspondiente. El token nunca debe incluirse en Git. Para una versión release sigue pendiente configurar y probar Play Integrity.
+
+## Mensajes de error y comprobación previa de App Check
+
+Antes de transmitir los datos de la ficha se solicita un token de App Check. Si falla la verificación, el asistente informa que la instalación necesita autorización. Los errores del SDK distinguen cuota, configuración, contenido bloqueado, tiempo agotado y servicio no disponible; los errores de red se reconocen también dentro de sus causas. Los mensajes son controlados y no muestran respuestas crudas del servidor ni credenciales. Se conserva la propuesta anterior cuando falla un nuevo intento.
+
+Se añadieron cuatro pruebas unitarias de clasificación y conservación de propuestas; el total es 113. Compilaciones normal/local, Lint y la petición real en la app normal actualizada pasaron. La comprobación completa con una tableta está en [demo-un-dispositivo.md](demo-un-dispositivo.md).

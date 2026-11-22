@@ -367,3 +367,21 @@ HU-01/HU-07 usan el proyecto real. HU-02/HU-03/HU-04/HU-05/HU-06/HU-12/HU-13/HU-
 ## Cierre de esta revisión
 
 18 de 18 historias comprobadas en el alcance escolar descrito: HU-01, HU-07 y Gemini en Firebase real; 13 historias de datos con emuladores; HU-17 con Room; HU-18 mediante Google Maps externo. Esto no equivale a un despliegue completo en la nube. La distribución release de Gemini requiere configurar y probar Play Integrity; la instalación debug de esta tableta ya está autorizada.
+
+## Preparación sin facturación con un dispositivo — 22 de noviembre de 2026
+
+- [x] Mensajes diferenciados de Gemini para conexión, App Check, cuota, configuración, tiempo agotado y servicio no disponible; descripción conservada.
+- [x] Comprobación previa de App Check y generación real en la app normal actualizada.
+- [x] Persistencia y aislamiento de borradores con bases Room reabiertas y ViewModels recreados.
+- [x] Catálogo, filtros, ficha, requisitos y borrador comprobados mediante interfaz sin conexión de Firestore; sin envío automático.
+- [x] Formularios, fotografías, salud y edición; validaciones y reintentos comprobados.
+- [x] Solicitudes, evaluación, entrega y seguimiento comprobados por recorridos en una tableta.
+- [x] Revisión de permisos: 89 pruebas de reglas, 17 de Functions y bloqueo de destinos privados.
+- [x] 113 pruebas unitarias y 69 comprobaciones Android finales correctas; compilaciones normal/local y Lint sin errores.
+- [x] APK privado de demostración generado, firma y paquete `.local` verificados; actualización instalada conservando datos.
+- [x] Guía de cuentas ficticias, preparación de emuladores, cambio de roles y scripts de construcción/conexión USB.
+- [ ] Sincronización simultánea entre dos dispositivos.
+- [ ] Todas las funciones desde redes independientes sin computadora; despliegue adicional en nube pospuesto.
+- [ ] Play Integrity y versión release para distribución.
+
+Guía y alcance exacto de las comprobaciones: [docs/demo-un-dispositivo.md](docs/demo-un-dispositivo.md). Las pruebas Android se ejecutaron el 21 de noviembre y el cierre se documentó el 22; al cierre el dispositivo estaba desconectado y los emuladores detenidos. No se vincula facturación. Los cambios personales pendientes de Android Studio se conservan sin incluirlos en estos commits.

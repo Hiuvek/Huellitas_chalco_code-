@@ -13,5 +13,5 @@ else
   device="${devices[0]}"
 fi
 [[ "$("$adb_bin" -s "$device" get-state)" == device ]]
-for port in 9099 8180 9199 5001; do "$adb_bin" -s "$device" reverse "tcp:$port" "tcp:$port"; done
+for port in 9099 8180; do "$adb_bin" -s "$device" reverse "tcp:$port" "tcp:$port"; done
 printf 'Conexión USB preparada para %s. Mantén los emuladores encendidos en la computadora.\n' "$device"

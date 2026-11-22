@@ -58,6 +58,11 @@ class AppContainer(context: Context) {
             firebase.functions,
             firebase.storage,
         )
+    val descriptionGenerator by lazy {
+        com.example.huellitaschalco.feature.shelter.description.data.FirebaseDescriptionGenerator(
+            com.example.huellitaschalco.core.firebase.FirebaseAiProvider(context.applicationContext)
+        )
+    }
     val dogPhotoImporter = AndroidDogPhotoImporter(context.applicationContext)
     private val remoteDogs =
         FirebaseDogRepository(

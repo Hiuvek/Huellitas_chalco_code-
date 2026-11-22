@@ -112,6 +112,7 @@ fun HuellitasApp(
                                     container.dogRepository,
                                     container.dogPhotoImporter,
                                     container.draftStore,
+                                    container.descriptionGenerator,
                                 )
                             }
                     UiScreen.Requirements ->
@@ -203,6 +204,7 @@ fun HuellitasApp(
                                     container.dogRepository,
                                     container.dogPhotoImporter,
                                     container.draftStore,
+                                    container.descriptionGenerator,
                                 )
                             }
                     UiScreen.DogPublished ->
@@ -214,6 +216,7 @@ fun HuellitasApp(
                                 container.dogRepository,
                                 container.dogPhotoImporter,
                                 container.draftStore,
+                                container.descriptionGenerator,
                             )
                         }
                     UiScreen.ShelterRequests,

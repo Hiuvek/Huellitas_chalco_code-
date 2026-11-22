@@ -21,6 +21,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.huellitaschalco.core.designsystem.*
 import com.example.huellitaschalco.core.navigation.*
+import com.example.huellitaschalco.feature.shelter.description.domain.*
+import com.example.huellitaschalco.feature.shelter.description.presentation.*
 import com.example.huellitaschalco.feature.shelter.dogs.domain.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -33,6 +35,7 @@ fun DogRegistrationRoute(
     repository: DogRepository,
     importer: DogPhotoImporter,
     drafts: com.example.huellitaschalco.core.local.DraftStore? = null,
+    generator: DescriptionGenerator? = null,
 ) {
     val model: DogRegistrationViewModel =
         viewModel(
@@ -47,6 +50,20 @@ fun DogRegistrationRoute(
         }
         return
     }
+    var assistantOpen by remember(uid, shelterId) { mutableStateOf(false) }
+    val assistant: DescriptionAssistantViewModel? =
+        if (generator != null)
+            viewModel(
+                key = "description-assistant-$uid-$shelterId",
+                factory = DescriptionAssistantViewModel.factory(generator),
+            )
+        else null
+    if (assistantOpen && assistant != null)
+        DescriptionAssistantDialog(
+            assistant,
+            { model.edit(DogField.Description, it) },
+            { assistantOpen = false },
+        )
     val picker =
         rememberLauncherForActivityResult(ActivityResultContracts.PickMultipleVisualMedia(6)) { uris
             ->
@@ -253,6 +270,17 @@ fun DogRegistrationRoute(
                     lines = 5,
                     enabled = editable,
                 )
+                if (assistant != null)
+                    HButton(
+                        "Redactar con Gemini",
+                        {
+                            assistant.open(DescriptionInput.fromDraft(state.draft))
+                            assistantOpen = true
+                        },
+                        Modifier.testTag("dog-ai"),
+                        outlined = true,
+                        enabled = editable,
+                    )
                 state.draftMessage?.let { HCaption(it) }
                 HHeading("Salud")
                 DogHealthChoices(state.draft.health, editable, "register-health", model::editHealth)

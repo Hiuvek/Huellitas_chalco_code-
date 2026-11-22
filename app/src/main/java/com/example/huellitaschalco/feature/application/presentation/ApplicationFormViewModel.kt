@@ -3,11 +3,14 @@ package com.example.huellitaschalco.feature.application.presentation
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.example.huellitaschalco.core.local.*
 import com.example.huellitaschalco.feature.application.domain.*
 import com.example.huellitaschalco.feature.auth.domain.AuthUser
 import java.util.UUID
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 data class ApplicationFormState(
     val draft: ApplicationDraft,
@@ -17,6 +20,9 @@ data class ApplicationFormState(
     val locked: Boolean = false,
     val error: String? = null,
     val receipt: ApplicationReceipt? = null,
+    val restoring: Boolean = false,
+    val draftMessage: String? = null,
+    val draftBlocked: Boolean = false,
 )
 
 class ApplicationFormViewModel(
@@ -24,11 +30,13 @@ class ApplicationFormViewModel(
     private val user: AuthUser,
     private val dogId: String,
     private val shelterId: String,
+    private val drafts: DraftStore? = null,
 ) : ViewModel() {
     private val current =
         MutableStateFlow(
             ApplicationFormState(
-                ApplicationDraft(name = user.displayName.orEmpty(), email = user.email.orEmpty())
+                ApplicationDraft(name = user.displayName.orEmpty(), email = user.email.orEmpty()),
+                restoring = drafts != null,
             )
         )
     val state = current.asStateFlow()
@@ -36,8 +44,79 @@ class ApplicationFormViewModel(
     private var nameEdited = false
     private var emailEdited = false
 
+    private val draftMutex = Mutex()
+
+    private fun saved(value: ApplicationFormState = state.value) =
+        SavedApplication(
+            value.draft,
+            value.step,
+            attempt?.id,
+            value.locked,
+            nameEdited,
+            emailEdited,
+        )
+
+    init {
+        if (drafts != null)
+            viewModelScope.launch {
+                try {
+                    val raw = drafts.get(user.uid, "SOLICITUD", dogId)
+                    if (raw != null) {
+                        val restored = DraftCodecs.application(raw)
+                        check(!restored.locked || restored.attemptId != null)
+                        nameEdited = restored.nameEdited
+                        emailEdited = restored.emailEdited
+                        attempt =
+                            restored.attemptId?.let {
+                                ApplicationAttempt(it, user.uid, dogId, shelterId, restored.draft)
+                            }
+                        current.value =
+                            ApplicationFormState(
+                                restored.draft,
+                                restored.step,
+                                locked = restored.locked,
+                                draftMessage = "Borrador restaurado en este dispositivo.",
+                            )
+                    } else current.update { it.copy(restoring = false) }
+                    current
+                        .map { saved(it) to (it.receipt != null) }
+                        .distinctUntilChanged()
+                        .collectLatest { (value, sent) ->
+                            draftMutex.withLock {
+                                if (sent) drafts.remove(user.uid, "SOLICITUD", dogId)
+                                else
+                                    drafts.put(
+                                        user.uid,
+                                        "SOLICITUD",
+                                        dogId,
+                                        DraftCodecs.application(value),
+                                    )
+                            }
+                            current.update {
+                                it.copy(
+                                    draftMessage =
+                                        if (sent) "Borrador eliminado después del envío confirmado."
+                                        else "Borrador guardado en este dispositivo."
+                                )
+                            }
+                        }
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (_: Exception) {
+                    current.update {
+                        it.copy(
+                            restoring = false,
+                            draftBlocked = true,
+                            draftMessage =
+                                "No se pudo recuperar o guardar el borrador. Vuelve a abrir la pantalla para reintentar; no se enviará la solicitud.",
+                        )
+                    }
+                }
+            }
+    }
+
     fun receiveIdentity(identity: AuthUser) {
-        if (identity.uid != user.uid || current.value.locked) return
+        if (identity.uid != user.uid || current.value.locked || current.value.restoring) return
         current.update {
             it.copy(
                 draft =
@@ -50,7 +129,7 @@ class ApplicationFormViewModel(
     }
 
     fun edit(field: ApplicationField, value: String) {
-        if (current.value.locked) return
+        if (current.value.locked || current.value.restoring) return
         if (field == ApplicationField.Name) nameEdited = true
         if (field == ApplicationField.Email) emailEdited = true
         current.update { old ->
@@ -95,7 +174,7 @@ class ApplicationFormViewModel(
 
     fun next() {
         val before = current.value
-        if (before.locked || before.step >= 4) return
+        if (before.locked || before.restoring || before.step >= 4) return
         val errors = before.draft.errors(if (before.step == 3) null else before.step)
         current.update {
             it.copy(
@@ -117,7 +196,14 @@ class ApplicationFormViewModel(
 
     fun send() {
         val before = current.value
-        if (before.step != 4 || before.sending || before.receipt != null) return
+        if (
+            before.step != 4 ||
+                before.sending ||
+                before.receipt != null ||
+                before.restoring ||
+                before.draftBlocked
+        )
+            return
         val errors = before.draft.errors()
         if (errors.isNotEmpty()) {
             current.update { it.copy(errors = errors, step = errors.keys.minOf { f -> f.step }) }
@@ -136,6 +222,10 @@ class ApplicationFormViewModel(
         current.update { it.copy(sending = true, locked = true, error = null) }
         viewModelScope.launch {
             try {
+                if (drafts != null)
+                    draftMutex.withLock {
+                        drafts.put(user.uid, "SOLICITUD", dogId, DraftCodecs.application(saved()))
+                    }
                 val receipt = withTimeout(30_000) { repo.submit(submission) }
                 current.update { it.copy(sending = false, receipt = receipt, error = null) }
             } catch (_: TimeoutCancellationException) {
@@ -168,11 +258,12 @@ class ApplicationFormViewModel(
             user: AuthUser,
             dogId: String,
             shelterId: String,
+            drafts: DraftStore? = null,
         ) =
             object : ViewModelProvider.Factory {
                 @Suppress("UNCHECKED_CAST")
                 override fun <T : ViewModel> create(modelClass: Class<T>): T =
-                    ApplicationFormViewModel(repo, user, dogId, shelterId) as T
+                    ApplicationFormViewModel(repo, user, dogId, shelterId, drafts) as T
             }
     }
 }

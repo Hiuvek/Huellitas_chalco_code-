@@ -111,6 +111,7 @@ fun HuellitasApp(
                                     scope.current.id,
                                     container.dogRepository,
                                     container.dogPhotoImporter,
+                                    container.draftStore,
                                 )
                             }
                     UiScreen.Requirements ->
@@ -147,6 +148,7 @@ fun HuellitasApp(
                                     container.adoptionApplicationRepository,
                                     container.dogRepository,
                                     container.publicShelterRepository,
+                                    container.draftStore,
                                 )
                         else ApplicationScreen(nav, destination)
                     UiScreen.ApplicationSent -> ApplicationSentScreen(nav)
@@ -200,6 +202,7 @@ fun HuellitasApp(
                                     scope.current.id,
                                     container.dogRepository,
                                     container.dogPhotoImporter,
+                                    container.draftStore,
                                 )
                             }
                     UiScreen.DogPublished ->
@@ -210,6 +213,7 @@ fun HuellitasApp(
                                 scope.current.id,
                                 container.dogRepository,
                                 container.dogPhotoImporter,
+                                container.draftStore,
                             )
                         }
                     UiScreen.ShelterRequests,

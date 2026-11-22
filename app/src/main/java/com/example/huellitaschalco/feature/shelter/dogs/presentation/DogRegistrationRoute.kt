@@ -32,13 +32,21 @@ fun DogRegistrationRoute(
     shelterId: String,
     repository: DogRepository,
     importer: DogPhotoImporter,
+    drafts: com.example.huellitaschalco.core.local.DraftStore? = null,
 ) {
     val model: DogRegistrationViewModel =
         viewModel(
             key = "dog-registration-$uid-$shelterId",
-            factory = DogRegistrationViewModel.factory(repository, importer, uid, shelterId),
+            factory =
+                DogRegistrationViewModel.factory(repository, importer, uid, shelterId, drafts),
         )
     val state by model.state.collectAsStateWithLifecycle()
+    if (state.restoring) {
+        HScaffold(nav, "Recuperando borrador", shelter = true) {
+            LinearProgressIndicator(Modifier.fillMaxWidth())
+        }
+        return
+    }
     val picker =
         rememberLauncherForActivityResult(ActivityResultContracts.PickMultipleVisualMedia(6)) { uris
             ->
@@ -100,8 +108,7 @@ fun DogRegistrationRoute(
                     HCaption(
                         if (repository.usesEmulator)
                             "Publicación de prueba local. No aparece en Firebase real."
-                        else
-                            "El registro está disponible en el catálogo de adopción."
+                        else "El registro está disponible en el catálogo de adopción."
                     )
                 } else
                     HBody(
@@ -121,7 +128,11 @@ fun DogRegistrationRoute(
                         else "Publicar perrito",
                         model::publish,
                         Modifier.testTag("dog-publish"),
-                        enabled = !state.publishing && repository.isConfigured && state.review,
+                        enabled =
+                            !state.publishing &&
+                                repository.isConfigured &&
+                                state.review &&
+                                !state.draftBlocked,
                     )
                     if (!state.locked)
                         HButton(
@@ -171,7 +182,7 @@ fun DogRegistrationRoute(
                 },
             ) {
                 HCaption(
-                    "Los datos se conservan durante esta sesión. El guardado de borradores con Room se implementará en HU-17."
+                    "El borrador se guarda en este dispositivo y se separa por cuenta y refugio. No se publica automáticamente."
                 )
                 if (!repository.isConfigured)
                     HBanner(
@@ -242,6 +253,7 @@ fun DogRegistrationRoute(
                     lines = 5,
                     enabled = editable,
                 )
+                state.draftMessage?.let { HCaption(it) }
                 HHeading("Salud")
                 DogHealthChoices(state.draft.health, editable, "register-health", model::editHealth)
                 state.error?.let { HBanner(it, HSymbol.Alert, error = true) }

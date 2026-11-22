@@ -1,6 +1,6 @@
 # HU-11 — Descripciones con Gemini
 
-Estado: código e interacción preparados y comprobados localmente. Falta habilitar Gemini Developer API, registrar la instalación de desarrollo en App Check y ejecutar la prueba real. HU-11 permanece pendiente en el checklist.
+Estado: implementada y comprobada. Gemini Developer API está habilitada en `huellitas-chalco`; la prueba real del SDK y la obtención de un token válido de App Check pasaron el 21 de noviembre de 2026. Se mantiene Spark sin vincular facturación.
 
 ## Uso
 
@@ -20,19 +20,19 @@ Se usa Firebase AI Logic con Gemini Developer API y el modelo configurable `gemi
 
 AI Logic necesita el servicio real: no se presenta una respuesta fija de un emulador como si fuera Gemini. Auth, Firestore, Storage y Functions conservan la configuración local elegida. Una instancia Firebase separada, `huellitas-gemini`, usa únicamente la configuración real de `app/google-services.json` para las acciones explícitas de IA. Esa configuración se lee localmente al compilar y no se incluye en Git. La clave privada de Gemini que administra Firebase no se copia a la app.
 
-App Check usa el proveedor de depuración en builds debug y Play Integrity en release. La autorización de la instalación de desarrollo está pendiente. No se deben publicar tokens de depuración; las preferencias de builds debug están excluidas del respaldo y transferencia. El modelo puede cambiarse con `-PgeminiModel=...` después de comprobar que siga disponible en el proveedor elegido.
+App Check usa el proveedor de depuración en builds debug y Play Integrity en release. El token privado de esta instalación está registrado como «Tableta desarrollo Huellitas». El proveedor de producción Play Integrity todavía debe registrarse y comprobarse antes de distribuir una versión release; la prueba realizada corresponde a debug. No se deben publicar tokens de depuración; las preferencias de builds debug están excluidas del respaldo y transferencia. El modelo puede cambiarse con `-PgeminiModel=...` después de comprobar que siga disponible en el proveedor elegido.
 
-## Activación pendiente
+## Activación realizada
 
-La consola de `huellitas-chalco` muestra el botón Habilita las APIs y exige aceptar las Condiciones del Servicio Adicionales de Gemini y sus Políticas de Uso Adicionales. Son condiciones nuevas respecto de la aceptación previa de Firebase. La activación y el registro de App Check requieren autorización del propietario antes de continuar.
+El propietario autorizó expresamente aceptar las condiciones adicionales de Gemini, sus políticas de uso y registrar el token privado de desarrollo. La consola confirmó «API de Gemini Developer Habilitada» y el token de la tableta quedó registrado. App Check conserva su aplicación básica para AI Logic. No se habilitó Agent Platform ni AI Monitoring y se conserva el plan Spark.
 
-Después de autorizar: habilitar solo Gemini Developer API sin facturación, mantener App Check activo, registrar el token privado de esta instalación de pruebas, completar el asistente sin servicios opcionales de pago y ejecutar una petición con datos ficticios del perrito. No se cambian las membresías ni las reglas de Firestore/Storage del proyecto real.
+No se modificaron membresías ni reglas de Firestore/Storage del proyecto real. El token de desarrollo permanece fuera del repositorio; no se incluyen tokens ni respuestas con datos personales en la evidencia.
 
 ## Pruebas
 
 109 pruebas unitarias totales sin fallos: captura de datos, rechazo de información no sustentada, falta de configuración, tiempo agotado, cancelación, doble envío, edición y descarte. La interfaz se comprobó con un generador controlado: error, retorno al texto original, propuesta editable, descarte y aceptación sin llamar a publicar. Pasaron también las regresiones de alta y los 16 destinos privados (18 pruebas Android); la prueba de IA se repitió después de reforzar las validaciones y pasó.
 
-La prueba real es independiente y se ejecuta únicamente después de activar y autorizar el servicio:
+La prueba real es independiente y requiere el argumento explícito siguiente:
 
 ```sh
 adb -s R5GYB24P92J shell am instrument -w \
@@ -41,8 +41,8 @@ adb -s R5GYB24P92J shell am instrument -w \
   com.example.huellitaschalco.local.test/androidx.test.runner.AndroidJUnitRunner
 ```
 
-La prueba manda solo una ficha ficticia y exige una propuesta válida. No escribe ni publica perritos. No se cuenta como superada hasta recibir una respuesta real del modelo.
+La prueba obtuvo un token nuevo y válido de App Check, envió solo una ficha ficticia (Luna, 12 meses, tamaño Mediano, sexo Hembra, sin notas) y validó una respuesta real del modelo. Resultado: `OK (1 test)`, 1.959 segundos. No escribe ni publica perritos. La comprobación anterior del generador real también pasó; la interfaz con edición, descarte y aceptación se probó por separado con un generador controlado.
 
 Referencias: [inicio de AI Logic](https://firebase.google.com/docs/ai-logic/get-started?platform=android), [modelos admitidos](https://firebase.google.com/docs/ai-logic/models), [precios y Spark](https://firebase.google.com/docs/ai-logic/pricing), [condiciones de Gemini](https://ai.google.dev/gemini-api/terms), [políticas de uso](https://ai.google.dev/gemini-api/docs/usage-policies).
 
-Compilaciones normal/local, 109 pruebas unitarias y Android Lint finales correctos. No se ha ejecutado la prueba GeminiLiveSdkTest ni se han aceptado las condiciones adicionales: la autorización está pendiente.
+Compilaciones normal/local, 109 pruebas unitarias y Android Lint finales correctos. La compilación de instrumentación con la comprobación explícita de App Check también pasó. La consola permitió verificar el estado del servicio, pero su herramienta de captura de pantalla agotó el tiempo de espera; no se adjunta una imagen que no se pudo obtener.

@@ -2,7 +2,7 @@
 
 Revisión del 21 de noviembre de 2026. Referencia: las 18 historias del Excel corregido, conservando sus identificadores.
 
-HU-01 y HU-07 están comprobadas en el proyecto Firebase real. El catálogo, solicitudes, decisiones, entrega y administración de perritos se comprueban en la instalación local con emuladores. Se mantiene Spark por elección del propietario; no se han publicado estas funciones adicionales en la nube.
+HU-01, HU-07 y la generación de HU-11 están comprobadas en el proyecto Firebase real. El catálogo, solicitudes, decisiones, entrega y administración de perritos se comprueban en la instalación local con emuladores. Se mantiene Spark por elección del propietario; no se han publicado estas funciones adicionales en la nube.
 
 ## Lo que ya está implementado
 
@@ -29,7 +29,7 @@ HU-01 y HU-07 están comprobadas en el proyecto Firebase real. El catálogo, sol
 | HU-08 | Registrar y publicar perritos | Formulario, fotos reales, revisión y consulta conectados a Firebase local | Implementada y comprobada en emuladores; nube pospuesta |
 | HU-09 | Registrar estado de salud | Captura, edición, guardado y lectura pública de los tres estados | Implementada y comprobada en emuladores; nube pospuesta |
 | HU-10 | Revisar y editar mis perritos | Datos y fotos guardados, edición, portada y revisión conectados a Firebase local | Implementada y comprobada en emuladores; nube pospuesta |
-| HU-11 | Redactar descripciones con Gemini | SDK de AI Logic, propuesta editable, validaciones y alternativa manual | Código y pruebas locales listos; activación de Gemini/App Check y prueba real pendientes |
+| HU-11 | Redactar descripciones con Gemini | SDK de AI Logic, propuesta editable, validaciones y alternativa manual | Implementada; Gemini real y token de App Check comprobados en Spark |
 | HU-12 | Consultar solicitudes recibidas | Bandeja por refugio, filtros, respuestas e historial de Firestore | Implementada y comprobada en emuladores; nube pospuesta |
 | HU-13 | Evaluar solicitudes | Decisiones confirmadas, historial y aprobación única en Firestore | Implementada y comprobada en emuladores; nube pospuesta |
 | HU-14 | Confirmar adopción realizada | Entrega confirmada, adopción única y cierre de pendientes mediante Firebase Functions local | Implementada y comprobada en emuladores; nube pospuesta |
@@ -316,7 +316,7 @@ Alcance, tablas y pruebas: [docs/local-room.md](docs/local-room.md).
 
 Alcance y prueba: [docs/public-maps.md](docs/public-maps.md). La carga y los errores de red del mapa externo los controla Google Maps o el navegador.
 
-### HU-11 preparada; activación real pendiente
+### HU-11 terminada: Gemini real y App Check comprobados
 
 - [x] Rama `codex/hu-11-gemini-descriptions` y commits separados por configuración, funcionalidad, pruebas y documentación.
 - [x] Firebase AI Logic con configuración real local, independiente de los emuladores de datos.
@@ -326,15 +326,15 @@ Alcance y prueba: [docs/public-maps.md](docs/public-maps.md). La carga y los err
 - [x] App Check de desarrollo/release preparado; preferencias debug excluidas de respaldo.
 - [x] 109 pruebas unitarias y 18 Android de interfaz controlada, alta y accesos sin fallos; repetición final del asistente correcta.
 - [x] Compilación normal/local y Android Lint sin errores.
-- [ ] Autorizar las condiciones adicionales de Gemini y el registro de la instalación en App Check.
-- [ ] Activar Gemini Developer API y autorizar App Check conservando Spark.
-- [ ] Obtener y validar una propuesta real con el SDK antes de marcar HU-11 terminada.
+- [x] Autorización del propietario para las condiciones adicionales de Gemini y el registro de la instalación en App Check.
+- [x] Gemini Developer API habilitada y token privado de desarrollo registrado, conservando Spark sin facturación.
+- [x] Propuesta real validada con el SDK y token nuevo de App Check verificado: `OK (1 test)`; sin escribir ni publicar perritos.
 
 Uso, configuración y alcance: [docs/gemini-descriptions.md](docs/gemini-descriptions.md).
 
 ## Orden para implementarlas una por una
 
-Firebase Authentication y la base Firestore están configurados. HU-07 está desplegada y comprobada con la cuenta autorizada en la tableta. HU-08 está comprobada con servicios locales; su activación en la nube está pospuesta para conservar Spark. HU-09 y HU-10 también están comprobadas en emuladores. HU-02 ya está comprobada en emuladores. HU-03 ya está comprobada en emuladores. HU-04 y HU-05 están comprobadas en emuladores; HU-06 permite consultar las solicitudes de la cuenta; HU-12 permite consultar las recibidas por el refugio; HU-13 guarda la revisión y decisiones; HU-14 registra la entrega y cierra pendientes; HU-15 programa revisiones y HU-16 guarda sus resultados; HU-17 conserva catálogo y borradores con Room; HU-18 abre la zona pública con Google Maps sin facturación; continúa HU-11 para Gemini. El diseño original se conserva como referencia.
+Firebase Authentication y la base Firestore están configurados. HU-07 está desplegada y comprobada con la cuenta autorizada en la tableta. HU-08 está comprobada con servicios locales; su activación en la nube está pospuesta para conservar Spark. HU-09 y HU-10 también están comprobadas en emuladores. HU-02 ya está comprobada en emuladores. HU-03 ya está comprobada en emuladores. HU-04 y HU-05 están comprobadas en emuladores; HU-06 permite consultar las solicitudes de la cuenta; HU-12 permite consultar las recibidas por el refugio; HU-13 guarda la revisión y decisiones; HU-14 registra la entrega y cierra pendientes; HU-15 programa revisiones y HU-16 guarda sus resultados; HU-17 conserva catálogo y borradores con Room; HU-18 abre la zona pública con Google Maps sin facturación; HU-11 genera propuestas con Gemini real y permite revisarlas antes de usarlas. El diseño original se conserva como referencia.
 
 1. [x] **HU-01 — Crear cuenta e iniciar sesión.** Crear usuarios y autenticar con Firebase Authentication. Validar campos, mostrar errores junto al campo y conservar los datos al fallar. Comprobar registro, acceso correcto, acceso incorrecto y cierre de sesión.
 2. [x] **HU-07 — Autorizar al refugio.** Identificar el rol y el refugio de la cuenta. Restringir también el acceso a los datos: cada refugio administra únicamente sus perritos, solicitudes y seguimientos. Comprobar cuentas de adoptante, visitante y dos refugios distintos.
@@ -353,7 +353,7 @@ Firebase Authentication y la base Firestore están configurados. HU-07 está des
 15. [x] **HU-16 — Guardar seguimientos.** Persistir fecha, adaptación, observaciones y fotografía opcional. Confirmar únicamente tras guardar, actualizar el historial, marcar la revisión como realizada y permitir programar la siguiente o cerrar el seguimiento.
 16. [x] **HU-17 — Conservar catálogo y borradores con Room.** Implementar entidades, DAO y base local. Guardar el último catálogo y borradores separados por cuenta; restaurarlos al volver a abrir la app. Comprobar uso sin conexión, aviso de información desactualizada, ausencia de caché y eliminación del borrador solo tras confirmar el envío correcto.
 17. [x] **HU-18 — Mostrar la ubicación con Google Maps.** Cargar la zona pública aproximada del refugio sin mostrar domicilios privados. Conservar nombre y zona si el mapa falla y permitir reintentar. Identificar los datos ficticios como demostración.
-18. [ ] **HU-11 — Conectar Gemini.** Generar una propuesta basada exclusivamente en los datos capturados, sin inventar características ni información médica. Permitir aceptar, editar, descartar y escribir manualmente si falla. Comprobar que nunca se publique automáticamente.
+18. [x] **HU-11 — Conectar Gemini.** Generar una propuesta basada exclusivamente en los datos capturados, sin inventar características ni información médica. Permitir aceptar, editar, descartar y escribir manualmente si falla. Comprobar que nunca se publique automáticamente.
 
 ## Cuándo marcar una historia como terminada
 
@@ -363,3 +363,7 @@ Firebase Authentication y la base Firestore están configurados. HU-07 está des
 - Las pantallas de éxito aparecen después de que la operación haya terminado correctamente.
 
 HU-01/HU-07 usan el proyecto real. HU-02/HU-03/HU-04/HU-05/HU-06/HU-12/HU-13/HU-14/HU-15/HU-16/HU-08/HU-09/HU-10 usan servicios locales en la instalación de pruebas. Las solicitudes ya se guardan en los emuladores; las evaluaciones también se guardan en emuladores; las adopciones también se guardan mediante Functions Emulator; la agenda y los seguimientos también usan emuladores.
+
+## Cierre de esta revisión
+
+18 de 18 historias comprobadas en el alcance escolar descrito: HU-01, HU-07 y Gemini en Firebase real; 13 historias de datos con emuladores; HU-17 con Room; HU-18 mediante Google Maps externo. Esto no equivale a un despliegue completo en la nube. La distribución release de Gemini requiere configurar y probar Play Integrity; la instalación debug de esta tableta ya está autorizada.

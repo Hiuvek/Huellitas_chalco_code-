@@ -11,6 +11,11 @@ data class PublicCatalog(
     val loading: Boolean = true,
     val dogs: List<CatalogDog> = emptyList(),
     val error: String? = null,
+    val shelters: List<com.example.huellitaschalco.feature.refuge.domain.PublicShelter> =
+        emptyList(),
+    val stale: Boolean = false,
+    val cachedAt: Long? = null,
+    val cacheWarning: String? = null,
 )
 
 interface CatalogRepository {

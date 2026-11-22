@@ -50,4 +50,5 @@ data class PublicDog(
     val loading: Boolean = true,
     val dog: RegisteredDog? = null,
     val error: String? = null,
+    val stale: Boolean = false,
 )

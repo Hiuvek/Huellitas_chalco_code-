@@ -17,6 +17,7 @@ data class PublicShelterState(
     val loading: Boolean = true,
     val shelter: PublicShelter? = null,
     val error: String? = null,
+    val stale: Boolean = false,
 )
 
 interface PublicShelterRepository {

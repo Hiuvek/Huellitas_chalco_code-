@@ -1,6 +1,8 @@
 # Demostración escolar con un dispositivo
 
-Esta modalidad mantiene Spark y no vincula facturación. Auth, Firestore, Storage y Functions se ejecutan en la computadora mediante emuladores. La tableta usa la app **Huellitas Chalco local** (`com.example.huellitaschalco.local`). La app normal conserva sus datos y su conexión al proyecto real.
+Actualización Spark: las fotos pequeñas y las operaciones de adopción se guardan en Firestore; Storage y Functions ya no se necesitan. Los resultados históricos al final de esta guía corresponden a la implementación anterior.
+
+Esta modalidad mantiene Spark y no vincula facturación. Auth y Firestore se ejecutan en la computadora mediante emuladores. La tableta usa la app **Huellitas Chalco local** (`com.example.huellitaschalco.local`). La app normal conserva sus datos y su conexión al proyecto real.
 
 Gemini usa el servicio real de `huellitas-chalco`, con internet y el token privado de esta instalación autorizado en App Check. No tiene emulador. Si se alcanza su cuota gratuita, se puede escribir la descripción manualmente; no hace falta activar Blaze.
 
@@ -29,7 +31,7 @@ Gemini usa el servicio real de `huellitas-chalco`, con internet y el token priva
    tools/demo/connect-device.sh
    ```
 
-   Repite este paso después de reconectar el USB. Si hay varios dispositivos, indica su serie como argumento. El script conecta los cuatro servicios a través de USB; no abre puertos a la red.
+   Repite este paso después de reconectar el USB. Si hay varios dispositivos, indica su serie como argumento. El script conecta los dos servicios a través de USB; no abre puertos a la red.
 
 4. Instala el APK de demostración `.local`. No desinstales ni borres los datos de la app normal. Si Android rechaza una actualización por una firma diferente, conserva los datos y recompila con la firma original.
 

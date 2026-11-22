@@ -1,6 +1,6 @@
 # Commits por historia de usuario
 
-Cada historia se desarrolla en una rama `codex/hu-XX-descripcion`. Los cambios se guardan en commits pequeños y completos, separados por su propósito, para que el historial muestre cómo se construyó la historia.
+Por indicación posterior del propietario, se conserva únicamente `main`. Los cambios actuales se registran en esa rama; solo se creará otra si el propietario lo solicita. Los cambios se guardan en commits pequeños y completos, separados por su propósito, para que el historial muestre cómo se construyó la historia.
 
 Formato: `tipo: HU-XX descripción concreta del cambio`.
 
@@ -14,7 +14,7 @@ Formato: `tipo: HU-XX descripción concreta del cambio`.
 | `docs:` | Alcance, configuración, evidencia y checklist | `docs: HU-08 documentar pruebas y actualizar checklist` |
 | `refactor:` | Reorganizar código conservando su comportamiento | `refactor: HU-08 separar la carga de fotografías del formulario` |
 
-Los ejemplos describen el formato; HU-08 sigue pendiente. Solo se utilizan los tipos que correspondan a cambios reales. No se crean commits vacíos ni correcciones artificiales para completar la lista. Los cambios estrechamente relacionados pueden compartir un commit.
+Los ejemplos describen el formato; HU-08 está implementada. Solo se utilizan los tipos que correspondan a cambios reales. No se crean commits vacíos ni correcciones artificiales para completar la lista. Los cambios estrechamente relacionados pueden compartir un commit.
 
 ## Flujo de trabajo
 
@@ -23,7 +23,7 @@ Los ejemplos describen el formato; HU-08 sigue pendiente. Solo se utilizan los t
 3. Ejecutar las comprobaciones adecuadas a cada cambio. Los cambios de documentación no requieren recompilar la app.
 4. Registrar las pruebas y limitaciones en la documentación de la historia. Marcarla como completada solo cuando cumpla sus criterios.
 5. Subir los commits desde esta computadora a la rama de GitHub y verificar que el último commit exista en el remoto. La autorización del usuario para subir cada historia se mantiene para las siguientes entregas.
-6. Integrar a `main` y eliminar la rama cuando el usuario indique ese paso para la entrega. Publicar una rama no implica que ya esté integrada.
+6. Mantener únicamente `main`, según la instrucción vigente del propietario. Publicar una rama no implica que ya esté integrada.
 
 Las reglas y configuración de Firebase necesarias para reproducir el proyecto se versionan. Las credenciales administrativas, contraseñas reales, archivos locales excluidos de Git, dependencias descargadas y resultados de compilación se mantienen fuera de los commits.
 

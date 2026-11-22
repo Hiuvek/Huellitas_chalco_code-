@@ -33,7 +33,7 @@ HU-01 y HU-07 están comprobadas en el proyecto Firebase real. El catálogo, sol
 | HU-12 | Consultar solicitudes recibidas | Bandeja por refugio, filtros, respuestas e historial de Firestore | Implementada y comprobada en emuladores; nube pospuesta |
 | HU-13 | Evaluar solicitudes | Decisiones confirmadas, historial y aprobación única en Firestore | Implementada y comprobada en emuladores; nube pospuesta |
 | HU-14 | Confirmar adopción realizada | Entrega confirmada, adopción única y cierre de pendientes mediante Firebase Functions local | Implementada y comprobada en emuladores; nube pospuesta |
-| HU-15 | Programar seguimientos | Campos y lista de revisiones de ejemplo | Pendiente |
+| HU-15 | Programar seguimientos | Agenda real por refugio, fecha, tipo y cita seleccionada | Programación comprobada en emuladores; captura del resultado pendiente de HU-16 |
 | HU-16 | Registrar seguimientos | Formulario, confirmación e historial de ejemplo | Pendiente |
 | HU-17 | Conservar catálogo y borradores con Room | Avisos y vistas sin conexión; no existe guardado local | Pendiente |
 | HU-18 | Consultar ubicación con Google Maps | Mapa ilustrativo y vista de error; no usa Google Maps | Pendiente |
@@ -255,6 +255,18 @@ Datos y recorrido: [docs/request-evaluation.md](docs/request-evaluation.md). HU-
 - [ ] Despliegue y comprobación en Firebase real, pospuestos para conservar Spark.
 
 Preparación y alcance: [docs/adoption-delivery.md](docs/adoption-delivery.md). Se añade Functions Emulator en el puerto 5001; el siguiente paso es HU-15.
+
+### HU-15 programación comprobada en emuladores
+
+- [x] Rama `codex/hu-15-schedule-reviews` y commits separados por funcionalidad, preparación, pruebas y documentación.
+- [x] Programación desde una adopción registrada, con fecha válida no anterior a la entrega y tipo obligatorio.
+- [x] Guardado autenticado mediante Functions Emulator, con membresía y adopción verificadas en el servidor.
+- [x] Confirmación previa, bloqueo de doble envío y reintento con el mismo identificador.
+- [x] Agenda privada por refugio, con Programados y Adopciones; apertura de la revisión seleccionada.
+- [x] Nueva programación con un identificador nuevo después de confirmar la anterior.
+- [ ] Capturar y guardar el resultado desde la revisión abierta: se integra con HU-16.
+
+Preparación y alcance: [docs/review-scheduling.md](docs/review-scheduling.md). HU-15 se mantiene sin marcar como terminada hasta completar su enlace con HU-16.
 
 ## Orden para implementarlas una por una
 

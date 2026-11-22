@@ -13,6 +13,7 @@ data class DogDetailState(
     val dog: RegisteredDog? = null,
     val shelter: PublicShelter? = null,
     val error: String? = null,
+    val stale: Boolean = false,
 )
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -41,7 +42,13 @@ class PublicDogDetailViewModel(id: String, dogs: DogRepository, shelters: Public
                                         false,
                                         error = refuge.error ?: "Este refugio no está disponible.",
                                     )
-                                else -> DogDetailState(false, value.dog, refuge.shelter)
+                                else ->
+                                    DogDetailState(
+                                        false,
+                                        value.dog,
+                                        refuge.shelter,
+                                        stale = value.stale || refuge.stale,
+                                    )
                             }
                         }
                 }

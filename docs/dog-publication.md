@@ -55,12 +55,13 @@ npm --prefix tools/firebase run seed:local
 adb reverse tcp:9099 tcp:9099
 adb reverse tcp:8180 tcp:8180
 adb reverse tcp:9199 tcp:9199
+adb reverse tcp:5001 tcp:5001
 ./gradlew -PfirebaseAuthEmulator=true -PfirebaseAuthEmulatorHost=127.0.0.1 :app:installDebug
 ```
 
 Abrir **Huellitas Chalco (local)** → Acceso para refugios. Cuenta ficticia: `hu07-a@example.test`; contraseña exclusiva del emulador: `PruebaHU07!`. El segundo refugio usa `hu07-b@example.test` y el adoptante `hu07-adopter@example.test`, con la misma contraseña local. Ninguna de estas cuentas modifica la cuenta personal del proyecto real.
 
-Para un emulador Android, omitir `firebaseAuthEmulatorHost` y los comandos `adb reverse`; el host inicial es `10.0.2.2`. No se necesita `google-services.json` para compilar el modo local. Las reglas requieren ejecutar Auth, Firestore y Storage con el mismo proyecto demo.
+Para un emulador Android, omitir `firebaseAuthEmulatorHost` y los comandos `adb reverse`; el host inicial es `10.0.2.2`. No se necesita `google-services.json` para compilar el modo local. Las reglas requieren ejecutar Auth, Firestore y Storage con el mismo proyecto demo. Desde HU-14 también se ejecuta Functions Emulator (5001); instalar primero `npm --prefix functions ci`.
 
 Los servicios locales deben permanecer activos y la tableta conectada por USB mientras se utiliza ese reenvío. Por defecto, los datos del emulador se reinician al detenerlo. Para conservarlos, consultar las opciones de [importación y exportación de emuladores](https://firebase.google.com/docs/emulator-suite/install_and_configure#export_and_import_emulator_data). No subir exportaciones a Git.
 

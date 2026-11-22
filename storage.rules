@@ -34,6 +34,16 @@ service firebase.storage {
       allow delete: if request.auth != null && request.auth.uid == uid && manages(shelterId) &&
         unused(dogId,shelterId,'perritos/' + shelterId + '/' + uid + '/' + dogId + '/' + fileName);
     }
+    match /refugios/{shelterId}/seguimientos/{reviewId}/{fileName} {
+      allow get: if manages(shelterId);
+      // Objetos inmutables: una carga parcial nunca puede sustituir una evidencia guardada.
+      allow create: if resource == null && manages(shelterId) &&
+        fileName.matches('[0-9a-f-]{36}\\.jpg') &&
+        request.resource.size > 0 && request.resource.size <= 2 * 1024 * 1024 &&
+        request.resource.contentType == 'image/jpeg' &&
+        firestore.get(/databases/(default)/documents/revisiones/$(reviewId)).data.refugioId == shelterId &&
+        firestore.get(/databases/(default)/documents/revisiones/$(reviewId)).data.estado == 'PROGRAMADA';
+    }
     match /{allPaths=**} { allow read, write: if false; }
   }
 }

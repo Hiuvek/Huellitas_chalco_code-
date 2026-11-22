@@ -15,7 +15,7 @@ import kotlinx.coroutines.withContext
 /** Copias privadas temporales, sin GPS ni otros metadatos de la fotografía original. */
 class AndroidDogPhotoImporter(context: Context) : DogPhotoImporter {
     private val resolver = context.applicationContext.contentResolver
-    private val directory = File(context.cacheDir, "dog-photos").apply { mkdirs() }
+    private val directory = File(context.filesDir, "draft-photos").apply { mkdirs() }
 
     override suspend fun import(uri: String): LocalDogPhoto =
         withContext(Dispatchers.IO) {

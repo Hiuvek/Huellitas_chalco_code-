@@ -28,6 +28,13 @@ fun RequirementsRoute(
         )
     val state by model.state.collectAsStateWithLifecycle()
     HScaffold(nav, "Requisitos de adopción") {
+        if (state.stale) {
+            HBanner(
+                "Última copia guardada. La información y la disponibilidad pueden haber cambiado.",
+                HSymbol.Alert,
+            )
+            HButton("Actualizar ficha", model::retry, outlined = true)
+        }
         when {
             state.loading -> LinearProgressIndicator(Modifier.fillMaxWidth())
             state.error != null -> {

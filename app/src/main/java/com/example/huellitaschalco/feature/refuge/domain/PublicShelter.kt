@@ -11,12 +11,14 @@ data class PublicShelter(
     val hours: String,
     val demonstration: Boolean,
     val policy: AdoptionPolicy? = null,
+    val location: PublicCoordinates? = null,
 )
 
 data class PublicShelterState(
     val loading: Boolean = true,
     val shelter: PublicShelter? = null,
     val error: String? = null,
+    val stale: Boolean = false,
 )
 
 interface PublicShelterRepository {

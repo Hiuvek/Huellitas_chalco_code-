@@ -21,6 +21,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.huellitaschalco.core.designsystem.*
 import com.example.huellitaschalco.core.navigation.*
+import com.example.huellitaschalco.feature.shelter.description.domain.*
+import com.example.huellitaschalco.feature.shelter.description.presentation.*
 import com.example.huellitaschalco.feature.shelter.dogs.domain.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -32,13 +34,36 @@ fun DogRegistrationRoute(
     shelterId: String,
     repository: DogRepository,
     importer: DogPhotoImporter,
+    drafts: com.example.huellitaschalco.core.local.DraftStore? = null,
+    generator: DescriptionGenerator? = null,
 ) {
     val model: DogRegistrationViewModel =
         viewModel(
             key = "dog-registration-$uid-$shelterId",
-            factory = DogRegistrationViewModel.factory(repository, importer, uid, shelterId),
+            factory =
+                DogRegistrationViewModel.factory(repository, importer, uid, shelterId, drafts),
         )
     val state by model.state.collectAsStateWithLifecycle()
+    if (state.restoring) {
+        HScaffold(nav, "Recuperando borrador", shelter = true) {
+            LinearProgressIndicator(Modifier.fillMaxWidth())
+        }
+        return
+    }
+    var assistantOpen by remember(uid, shelterId) { mutableStateOf(false) }
+    val assistant: DescriptionAssistantViewModel? =
+        if (generator != null)
+            viewModel(
+                key = "description-assistant-$uid-$shelterId",
+                factory = DescriptionAssistantViewModel.factory(generator),
+            )
+        else null
+    if (assistantOpen && assistant != null)
+        DescriptionAssistantDialog(
+            assistant,
+            { model.edit(DogField.Description, it) },
+            { assistantOpen = false },
+        )
     val picker =
         rememberLauncherForActivityResult(ActivityResultContracts.PickMultipleVisualMedia(6)) { uris
             ->
@@ -100,8 +125,7 @@ fun DogRegistrationRoute(
                     HCaption(
                         if (repository.usesEmulator)
                             "Publicación de prueba local. No aparece en Firebase real."
-                        else
-                            "El registro está disponible en el catálogo de adopción."
+                        else "El registro está disponible en el catálogo de adopción."
                     )
                 } else
                     HBody(
@@ -121,7 +145,11 @@ fun DogRegistrationRoute(
                         else "Publicar perrito",
                         model::publish,
                         Modifier.testTag("dog-publish"),
-                        enabled = !state.publishing && repository.isConfigured && state.review,
+                        enabled =
+                            !state.publishing &&
+                                repository.isConfigured &&
+                                state.review &&
+                                !state.draftBlocked,
                     )
                     if (!state.locked)
                         HButton(
@@ -171,7 +199,7 @@ fun DogRegistrationRoute(
                 },
             ) {
                 HCaption(
-                    "Los datos se conservan durante esta sesión. El guardado de borradores con Room se implementará en HU-17."
+                    "El borrador se guarda en este dispositivo y se separa por cuenta y refugio. No se publica automáticamente."
                 )
                 if (!repository.isConfigured)
                     HBanner(
@@ -242,6 +270,18 @@ fun DogRegistrationRoute(
                     lines = 5,
                     enabled = editable,
                 )
+                if (assistant != null)
+                    HButton(
+                        "Redactar con Gemini",
+                        {
+                            assistant.open(DescriptionInput.fromDraft(state.draft))
+                            assistantOpen = true
+                        },
+                        Modifier.testTag("dog-ai"),
+                        outlined = true,
+                        enabled = editable,
+                    )
+                state.draftMessage?.let { HCaption(it) }
                 HHeading("Salud")
                 DogHealthChoices(state.draft.health, editable, "register-health", model::editHealth)
                 state.error?.let { HBanner(it, HSymbol.Alert, error = true) }

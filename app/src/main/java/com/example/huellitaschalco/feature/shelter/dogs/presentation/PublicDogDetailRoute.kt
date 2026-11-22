@@ -30,6 +30,13 @@ fun PublicDogDetailRoute(
     val state by model.state.collectAsStateWithLifecycle()
     var selectedPhoto by rememberSaveable(id) { mutableStateOf<String?>(null) }
     HScaffold(nav, if (refugeOnly) "Información del refugio" else "Ficha pública") {
+        if (state.stale) {
+            HBanner(
+                "Última copia guardada. La información y la disponibilidad pueden haber cambiado.",
+                HSymbol.Alert,
+            )
+            HButton("Actualizar ficha", model::retry, outlined = true)
+        }
         when {
             state.loading ->
                 LinearProgressIndicator(Modifier.fillMaxWidth().testTag("detail-loading"))
@@ -112,6 +119,7 @@ fun PublicDogDetailRoute(
                         HKeyValue("Zona", shelter.zone, true)
                         HKeyValue("Horario", shelter.hours, true)
                     }
+                    com.example.huellitaschalco.feature.refuge.maps.PublicMapPanel(shelter)
                     HButton(
                         "Ver requisitos de adopción",
                         { nav.open(UiScreen.Requirements, recordId = id) },

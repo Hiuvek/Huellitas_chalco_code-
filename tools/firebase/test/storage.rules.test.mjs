@@ -10,7 +10,11 @@ before(async()=>{env=await initializeTestEnvironment({projectId:'demo-huellitas-
 });});
 after(async()=>{await env?.cleanup();});
 beforeEach(async()=>{
-  await env.clearStorage(); await env.clearFirestore();
+  await env.withSecurityRulesDisabled(async context=>{
+    const clear=async folder=>{const entries=await listAll(folder);await Promise.all(entries.items.map(deleteObject));await Promise.all(entries.prefixes.map(clear));};
+    await clear(ref(context.storage()));
+  });
+  await env.clearFirestore();
   await env.withSecurityRulesDisabled(async context=>{
     const db=context.firestore();
     for(const uid of ['a','b','adopter']) await setDoc(doc(db,'usuarios',uid),{activo:true});
@@ -92,4 +96,28 @@ test('HU10 Storage otra cuenta del mismo refugio no sobrescribe una imagen usada
   await adminSet('perritos','nuevo',{refugioId:'a',publicado:true,estado:'Disponible',fotos:[{archivoId:'foto',ruta:path,orden:0}]});
   await assertFails(put('b',path));
   await assertSucceeds(put('b','perritos/a/b/nuevo/nueva.jpg'));
+});
+
+const followupPath='refugios/a/seguimientos/review/10000000-0000-4000-8000-000000000001.jpg';
+const readyReview=()=>adminSet('revisiones','review',{refugioId:'a',estado:'PROGRAMADA',seguimientoId:null});
+test('HU16 foto privada solo se carga con membresía activa y revisión pendiente del refugio',async()=>{
+ await readyReview();await assertSucceeds(put('a',followupPath));
+ await assertSucceeds(getBytes(ref(storage('a'),followupPath)));
+ for(const uid of [null,'adopter','b']) await assertFails(getBytes(ref(storage(uid),followupPath)));
+ await assertFails(listAll(ref(storage('a'),'refugios/a/seguimientos')));
+});
+test('HU16 fotos son inmutables incluso antes de guardar el resultado',async()=>{
+ await readyReview();await assertSucceeds(put('a',followupPath));await assertFails(put('a',followupPath));await assertFails(deleteObject(ref(storage('a'),followupPath)));
+ await adminSet('revisiones','review',{refugioId:'a',estado:'REALIZADA',seguimientoId:'review'});
+ await assertSucceeds(getBytes(ref(storage('a'),followupPath)));
+ await assertFails(put('a',followupPath.replace('0001.jpg','0002.jpg')));
+});
+test('HU16 no se permiten cargas sin revisión, ajenas, anónimas o con formato inválido',async()=>{
+ await assertFails(put('a',followupPath));await readyReview();
+ for(const uid of [null,'adopter','b']) await assertFails(put(uid,followupPath));
+ await assertFails(put('a',followupPath,image,'text/plain'));await assertFails(put('a',followupPath,new Uint8Array(2*1024*1024+1)));
+ await assertFails(put('a',followupPath.replace('.jpg','.png')));await assertFails(put('a',followupPath.replace('refugios/a/','refugios/b/')));
+});
+test('HU16 revocar membresía retira la lectura privada de la evidencia',async()=>{
+ await readyReview();await assertSucceeds(put('a',followupPath));await env.withSecurityRulesDisabled(ctx=>updateDoc(doc(ctx.firestore(),'membresias','a__a'),{activo:false}));await assertFails(getBytes(ref(storage('a'),followupPath)));
 });

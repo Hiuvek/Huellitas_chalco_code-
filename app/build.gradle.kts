@@ -1,4 +1,7 @@
+import groovy.json.JsonSlurper
+
 plugins {
+    alias(libs.plugins.ksp)
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
 }
@@ -19,6 +22,18 @@ tasks.matching { it.name == "processDebugGoogleServices" }.configureEach {
     enabled = !authEmulatorEnabled
 }
 
+// AI Logic usa el proyecto real incluso si Auth/Firestore/Storage se prueban en emuladores.
+// Solo se lee la configuración local existente; no se guarda en Git.
+val aiConfig = file("google-services.json").takeIf { it.isFile }?.let { JsonSlurper().parse(it) as Map<*, *> }
+val aiProject = (aiConfig?.get("project_info") as? Map<*, *>)?.get("project_id") as? String ?: ""
+val aiClient = (aiConfig?.get("client") as? List<*>)?.filterIsInstance<Map<*, *>>()?.firstOrNull {
+    ((it["client_info"] as? Map<*, *>)?.get("android_client_info") as? Map<*, *>)?.get("package_name") == "com.example.huellitaschalco"
+}
+val aiAppId = (aiClient?.get("client_info") as? Map<*, *>)?.get("mobilesdk_app_id") as? String ?: ""
+val aiApiKey = ((aiClient?.get("api_key") as? List<*>)?.firstOrNull() as? Map<*, *>)?.get("current_key") as? String ?: ""
+fun quotedConfig(value: String): String = "\"" + value.replace("\\", "\\\\").replace("\"", "\\\"") + "\""
+val aiModel = providers.gradleProperty("geminiModel").getOrElse("gemini-3.5-flash-lite")
+
 android {
     namespace = "com.example.huellitaschalco"
     compileSdk {
@@ -27,6 +42,10 @@ android {
 
     defaultConfig {
         applicationId = "com.example.huellitaschalco"
+        buildConfigField("String", "FIREBASE_AI_PROJECT", quotedConfig(aiProject))
+        buildConfigField("String", "FIREBASE_AI_APP_ID", quotedConfig(aiAppId))
+        buildConfigField("String", "FIREBASE_AI_API_KEY", quotedConfig(aiApiKey))
+        buildConfigField("String", "GEMINI_MODEL", quotedConfig(aiModel))
         minSdk = 24
         targetSdk = 37
         versionCode = 1
@@ -62,7 +81,11 @@ android {
     }
 }
 
+ksp { arg("room.schemaLocation", "$projectDir/schemas") }
+
 dependencies {
+    implementation(libs.androidx.room.runtime)
+    ksp(libs.androidx.room.compiler)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.compose.material3)
@@ -77,6 +100,10 @@ dependencies {
     implementation(libs.firebase.auth)
     implementation(libs.firebase.firestore)
     implementation(libs.firebase.storage)
+    implementation(libs.firebase.functions)
+    implementation(libs.firebase.ai)
+    implementation(libs.firebase.appcheck.debug)
+    implementation(libs.firebase.appcheck.playintegrity)
     implementation(libs.kotlinx.coroutines.play.services)
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)

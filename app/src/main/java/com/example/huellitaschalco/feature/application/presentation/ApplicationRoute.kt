@@ -29,6 +29,7 @@ fun ApplicationRoute(
     repository: AdoptionApplicationRepository,
     dogs: DogRepository,
     shelters: PublicShelterRepository,
+    drafts: com.example.huellitaschalco.core.local.DraftStore? = null,
 ) {
     val detail: PublicDogDetailViewModel =
         viewModel(
@@ -42,7 +43,7 @@ fun ApplicationRoute(
             else {
                 HBanner(context.error!!, HSymbol.Alert, error = true)
                 HCaption(
-                    "Las respuestas de esta sesión se conservan si necesitas reintentar la consulta."
+                    "El borrador de esta cuenta se conserva si necesitas reintentar la consulta."
                 )
                 HButton("Reintentar", detail::retry, outlined = true)
             }
@@ -74,9 +75,13 @@ fun ApplicationRoute(
     val model: ApplicationFormViewModel =
         viewModel(
             key = "application-${user.uid}-$id",
-            factory = ApplicationFormViewModel.factory(repository, user, id, dog.shelterId),
+            factory = ApplicationFormViewModel.factory(repository, user, id, dog.shelterId, drafts),
         )
     val state by model.state.collectAsStateWithLifecycle()
+    if (state.restoring) {
+        HScaffold(nav, "Recuperando borrador") { LinearProgressIndicator(Modifier.fillMaxWidth()) }
+        return
+    }
     LaunchedEffect(user) { model.receiveIdentity(user) }
     var confirmExit by rememberSaveable(user.uid, id) { mutableStateOf(false) }
     BackHandler {
@@ -105,7 +110,11 @@ fun ApplicationRoute(
                     else if (state.step == 4) "Enviar solicitud" else "Continuar",
                     { if (state.step == 4) model.send() else model.next() },
                     Modifier.testTag("application-next"),
-                    enabled = !state.sending && allowed,
+                    enabled =
+                        !state.sending &&
+                            !state.draftBlocked &&
+                            allowed &&
+                            !(state.step == 4 && context.stale),
                 )
                 if (state.step > 0 && !state.locked)
                     HButton(
@@ -123,6 +132,14 @@ fun ApplicationRoute(
             }
         },
     ) {
+        state.draftMessage?.let { HCaption(it) }
+        if (context.stale) HButton("Actualizar ficha", detail::retry, outlined = true)
+        if (context.stale)
+            HBanner(
+                "Consulta de la última copia guardada. Puedes preparar el borrador; conéctate y actualiza la ficha para enviar.",
+                HSymbol.Alert,
+            )
+
         if (state.receipt != null) {
             val receipt = state.receipt!!
             HSuccessHeader(
@@ -136,9 +153,14 @@ fun ApplicationRoute(
             HKeyValue("Folio", receipt.folio)
             HTag(receipt.status)
             HBody("El refugio revisará tus respuestas y actualizará el estado de la solicitud.")
+            HButton(
+                "Ver mi solicitud",
+                { nav.open(UiScreen.RequestDetail, recordId = receipt.id) },
+                Modifier.testTag("application-view-request"),
+            )
         } else {
             HBody(shelter.name)
-            HCaption("Tus respuestas se conservan durante esta sesión.")
+            HCaption("El borrador se guarda en este dispositivo para esta cuenta.")
             if (dog.demonstration || shelter.demonstration)
                 HCaption("Solicitud de demostración: se guarda solo en los emuladores locales.")
             if (!allowed)
@@ -322,7 +344,7 @@ fun ApplicationRoute(
                     if (state.locked)
                         "El resultado del último envío puede no haberse confirmado. Reintentar comprobará la solicitud existente antes de crear otra."
                     else
-                        "Tus respuestas se conservan durante esta sesión; todavía no se han enviado."
+                        "El borrador se conserva en este dispositivo para esta cuenta; todavía no se ha enviado."
                 )
             },
             confirmButton = { TextButton(onClick = { nav.back() }) { Text("Salir") } },

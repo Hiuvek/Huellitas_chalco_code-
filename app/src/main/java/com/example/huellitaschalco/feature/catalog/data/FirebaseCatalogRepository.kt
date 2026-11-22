@@ -1,6 +1,7 @@
 package com.example.huellitaschalco.feature.catalog.data
 
 import com.example.huellitaschalco.feature.catalog.domain.*
+import com.example.huellitaschalco.feature.refuge.domain.*
 import com.example.huellitaschalco.feature.shelter.dogs.data.parseRegisteredDog
 import com.google.firebase.firestore.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -65,7 +66,30 @@ class FirebaseCatalogRepository(
                                     compareBy<CatalogDog> { it.dog.name.searchKey() }
                                         .thenBy { it.dog.id }
                                 )
-                        PublicCatalog(false, items)
+                        PublicCatalog(
+                            false,
+                            items,
+                            shelters =
+                                shelterValue.snapshot.documents.mapNotNull { d ->
+                                    val name = names[d.id] ?: return@mapNotNull null
+                                    PublicShelter(
+                                        d.id,
+                                        name,
+                                        "Chalco",
+                                        "Estado de México",
+                                        d.getString("zonaPublica")?.takeIf { it.isNotBlank() }
+                                            ?: "Zona pública no registrada",
+                                        d.getString("horarioPublico")?.takeIf { it.isNotBlank() }
+                                            ?: "Horario no registrado",
+                                        d.getBoolean("esDemostracion") == true,
+                                        AdoptionPolicy.fromStored(
+                                            d.get("requisitos"),
+                                            d.get("pasos"),
+                                        ),
+                                        PublicCoordinates.fromStored(d.get("ubicacionAproximada")),
+                                    )
+                                },
+                        )
                     }
                 }
             }

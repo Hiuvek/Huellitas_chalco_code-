@@ -111,6 +111,8 @@ fun HuellitasApp(
                                     scope.current.id,
                                     container.dogRepository,
                                     container.dogPhotoImporter,
+                                    container.draftStore,
+                                    container.descriptionGenerator,
                                 )
                             }
                     UiScreen.Requirements ->
@@ -147,11 +149,30 @@ fun HuellitasApp(
                                     container.adoptionApplicationRepository,
                                     container.dogRepository,
                                     container.publicShelterRepository,
+                                    container.draftStore,
                                 )
                         else ApplicationScreen(nav, destination)
                     UiScreen.ApplicationSent -> ApplicationSentScreen(nav)
-                    UiScreen.MyRequests -> MyRequestsScreen(nav, destination)
-                    UiScreen.RequestDetail -> RequestDetailScreen(nav, destination)
+                    UiScreen.MyRequests ->
+                        if (destination.variant == UiVariant.Normal)
+                            com.example.huellitaschalco.feature.requests.presentation
+                                .MyRequestsRoute(
+                                    nav,
+                                    user,
+                                    null,
+                                    container.adoptionRequestsRepository,
+                                )
+                        else MyRequestsScreen(nav, destination)
+                    UiScreen.RequestDetail ->
+                        if (destination.variant == UiVariant.Normal)
+                            com.example.huellitaschalco.feature.requests.presentation
+                                .MyRequestsRoute(
+                                    nav,
+                                    user,
+                                    destination.recordId,
+                                    container.adoptionRequestsRepository,
+                                )
+                        else RequestDetailScreen(nav, destination)
                     UiScreen.AdopterProfile ->
                         ProfileScreen(nav, false, user, authRepository::signOut)
                     UiScreen.ShelterProfile ->
@@ -182,6 +203,8 @@ fun HuellitasApp(
                                     scope.current.id,
                                     container.dogRepository,
                                     container.dogPhotoImporter,
+                                    container.draftStore,
+                                    container.descriptionGenerator,
                                 )
                             }
                     UiScreen.DogPublished ->
@@ -192,17 +215,68 @@ fun HuellitasApp(
                                 scope.current.id,
                                 container.dogRepository,
                                 container.dogPhotoImporter,
+                                container.draftStore,
+                                container.descriptionGenerator,
                             )
                         }
-                    UiScreen.ShelterRequests -> ShelterRequestsScreen(nav, destination)
-                    UiScreen.EvaluateRequest -> EvaluateRequestScreen(nav, destination)
-                    UiScreen.AdoptionForm -> AdoptionFormScreen(nav)
-                    UiScreen.AdoptionComplete -> AdoptionCompleteScreen(nav)
-                    UiScreen.AdoptionBlocked -> AdoptionBlockedScreen(nav)
-                    UiScreen.FollowUps -> FollowUpsScreen(nav, destination)
-                    UiScreen.FollowUpForm -> FollowUpFormScreen(nav)
-                    UiScreen.FollowUpSaved -> FollowUpSavedScreen(nav)
-                    UiScreen.FollowUpDetail -> FollowUpDetailScreen(nav, destination)
+                    UiScreen.ShelterRequests,
+                    UiScreen.EvaluateRequest ->
+                        if (destination.variant != UiVariant.Normal) {
+                            if (destination.screen == UiScreen.ShelterRequests)
+                                ShelterRequestsScreen(nav, destination)
+                            else EvaluateRequestScreen(nav, destination)
+                        } else
+                            LocalShelterScope.current?.let { scope ->
+                                com.example.huellitaschalco.feature.shelter.requests.presentation
+                                    .ReceivedRequestsRoute(
+                                        nav,
+                                        requireNotNull(user).uid,
+                                        scope.current.id,
+                                        scope.current.name,
+                                        if (destination.screen == UiScreen.EvaluateRequest)
+                                            destination.recordId
+                                        else null,
+                                        container.adoptionRequestsRepository,
+                                        container.evaluationRepository,
+                                    )
+                            }
+                    UiScreen.AdoptionForm,
+                    UiScreen.AdoptionComplete,
+                    UiScreen.AdoptionBlocked ->
+                        LocalShelterScope.current?.let { scope ->
+                            com.example.huellitaschalco.feature.shelter.adoption.presentation
+                                .AdoptionRoute(
+                                    nav,
+                                    requireNotNull(user).uid,
+                                    scope.current.id,
+                                    destination.recordId,
+                                    container.adoptionRequestsRepository,
+                                    container.adoptionRepository,
+                                )
+                        }
+                    UiScreen.FollowUps,
+                    UiScreen.ScheduleReview,
+                    UiScreen.FollowUpForm,
+                    UiScreen.FollowUpSaved,
+                    UiScreen.FollowUpDetail ->
+                        if (destination.variant != UiVariant.Normal) {
+                            when (destination.screen) {
+                                UiScreen.FollowUps -> FollowUpsScreen(nav, destination)
+                                UiScreen.FollowUpDetail -> FollowUpDetailScreen(nav, destination)
+                                UiScreen.FollowUpSaved -> FollowUpSavedScreen(nav)
+                                else -> FollowUpFormScreen(nav)
+                            }
+                        } else
+                            LocalShelterScope.current?.let { scope ->
+                                com.example.huellitaschalco.feature.shelter.followup.presentation
+                                    .FollowUpRoutes(
+                                        nav,
+                                        requireNotNull(user).uid,
+                                        scope.current.id,
+                                        container.followUpRepository,
+                                        container.dogPhotoImporter,
+                                    )
+                            }
                     UiScreen.PreviewGallery -> PreviewGalleryScreen(nav)
                 }
             }

@@ -2,6 +2,7 @@ package com.example.huellitaschalco.app
 
 import android.content.Context
 import com.example.huellitaschalco.core.firebase.FirebaseProvider
+import com.example.huellitaschalco.core.local.*
 import com.example.huellitaschalco.feature.access.data.FirestoreShelterAccessRepository
 import com.example.huellitaschalco.feature.auth.data.FirebaseAuthRepository
 import com.example.huellitaschalco.feature.auth.domain.AuthRepository
@@ -16,27 +17,61 @@ class AppContainer(context: Context) {
     private val firebase = FirebaseProvider(context.applicationContext)
     val authRepository: AuthRepository =
         FirebaseAuthRepository(firebase.auth, firebase.usesEmulator)
-    val catalogRepository =
+    val localDatabase = HuellitasDatabase.open(context)
+    val draftStore: DraftStore = RoomDraftStore(localDatabase.local())
+    val publicCache = RoomPublicCache(localDatabase.local(), context)
+    private val remoteCatalog =
         com.example.huellitaschalco.feature.catalog.data.FirebaseCatalogRepository(
             firebase.firestore
         )
-    val publicShelterRepository =
+    val catalogRepository = CachedCatalogRepository(remoteCatalog, publicCache)
+    private val remotePublicShelter =
         com.example.huellitaschalco.feature.refuge.data.FirebasePublicShelterRepository(
             firebase.firestore
         )
+    val publicShelterRepository = CachedPublicShelterRepository(remotePublicShelter, publicCache)
     val adoptionApplicationRepository =
         com.example.huellitaschalco.feature.application.data.FirebaseAdoptionApplicationRepository(
             authRepository,
             firebase.firestore,
         )
+    val adoptionRequestsRepository =
+        com.example.huellitaschalco.feature.requests.data.FirebaseAdoptionRequestsRepository(
+            authRepository,
+            firebase.firestore,
+        )
+    val evaluationRepository =
+        com.example.huellitaschalco.feature.shelter.requests.data.FirebaseEvaluationRepository(
+            authRepository,
+            firebase.firestore,
+        )
+    val adoptionRepository =
+        com.example.huellitaschalco.feature.shelter.adoption.data.FirebaseAdoptionRepository(
+            authRepository,
+            firebase.firestore,
+            firebase.functions,
+        )
+    val followUpRepository =
+        com.example.huellitaschalco.feature.shelter.followup.data.FirebaseFollowUpRepository(
+            authRepository,
+            firebase.firestore,
+            firebase.functions,
+            firebase.storage,
+        )
+    val descriptionGenerator by lazy {
+        com.example.huellitaschalco.feature.shelter.description.data.FirebaseDescriptionGenerator(
+            com.example.huellitaschalco.core.firebase.FirebaseAiProvider(context.applicationContext)
+        )
+    }
     val dogPhotoImporter = AndroidDogPhotoImporter(context.applicationContext)
-    val dogRepository =
+    private val remoteDogs =
         FirebaseDogRepository(
             authRepository,
             firebase.firestore,
             firebase.storage,
             firebase.usesEmulator,
         )
+    val dogRepository = CachedDogRepository(remoteDogs, publicCache)
     val shelterAccessRepository =
         FirestoreShelterAccessRepository(authRepository, firebase.firestore, scope)
 }

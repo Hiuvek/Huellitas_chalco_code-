@@ -57,6 +57,17 @@ class FirebaseProvider(context: Context) {
                 }
             }
 
+    val functions: CallableFunctions? = auth?.let { client ->
+        if (usesEmulator) EmulatorCallableFunctions(client, BuildConfig.FIREBASE_AUTH_EMULATOR_HOST)
+        else
+            SdkCallableFunctions(
+                com.google.firebase.functions.FirebaseFunctions.getInstance(
+                    client.app,
+                    "us-central1",
+                )
+            )
+    }
+
     private companion object {
         const val EMULATOR_APP = "huellitas-auth-emulator"
     }

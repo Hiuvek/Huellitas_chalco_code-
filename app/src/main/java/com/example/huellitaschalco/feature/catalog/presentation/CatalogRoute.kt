@@ -61,6 +61,19 @@ fun CatalogRoute(
                 Modifier.testTag("catalog-clear"),
                 outlined = true,
             )
+        if (state.catalog.stale) {
+            HBanner(
+                "Última copia guardada: ${state.catalog.cachedAt?.let { com.example.huellitaschalco.core.date.civilDateLabel(it) } ?: "fecha no disponible"}. La disponibilidad puede haber cambiado.",
+                HSymbol.Alert,
+            )
+            HButton(
+                "Actualizar catálogo",
+                model::retry,
+                Modifier.testTag("catalog-refresh"),
+                outlined = true,
+            )
+        }
+        state.catalog.cacheWarning?.let { HCaption(it) }
         when {
             state.catalog.loading -> {
                 LinearProgressIndicator(Modifier.fillMaxWidth().testTag("catalog-loading"))

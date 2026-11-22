@@ -45,6 +45,62 @@
           "order": "ASCENDING"
         }
       ]
+    },
+    {
+      "collectionGroup": "historial_solicitudes",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "usuarioUid",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "solicitudId",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "historial_solicitudes",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "refugioId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "solicitudId",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "solicitudes",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "refugioId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "perritoId",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "adopciones",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "refugioId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "perritoId",
+          "order": "ASCENDING"
+        }
+      ]
     }
   ],
   "fieldOverrides": []

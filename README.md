@@ -2,7 +2,7 @@
 
 Revisión del 21 de noviembre de 2026. Referencia: las 18 historias del Excel corregido, conservando sus identificadores.
 
-HU-01 usa Firebase Authentication para registrar cuentas e iniciar y cerrar sesión. HU-07 usa membresías activas de Cloud Firestore para autorizar al responsable y limitarlo a sus refugios; su acceso y el rechazo de consultas a un refugio ajeno están comprobados con una sesión del proyecto real. HU-08 tiene registro, fotografías, publicación y consulta comprobados con emuladores en la tableta. HU-09 incorpora captura y actualización de salud con lectura en la ficha pública por identificador, también comprobadas en emuladores. HU-10 permite editar datos generales y fotografías con revisión, guardado y consulta del registro actualizado, comprobados en emuladores. Se mantiene Spark por elección del propietario. HU-02 conecta el catálogo público de Chalco, búsqueda, filtros y navegación por identificador, comprobados en emuladores. HU-03 completa la ficha pública con galería, características, salud e información del refugio. HU-04 permite consultar requisitos e iniciar HU-05, que guarda solicitudes privadas con folio, respuestas e historial sin duplicarlas. Ambas están comprobadas en emuladores. Las otras 9 historias siguen pendientes.
+HU-01, HU-07 y la generación de HU-11 están comprobadas en el proyecto Firebase real. El catálogo, solicitudes, decisiones, entrega y administración de perritos se comprueban en la instalación local con emuladores. Se mantiene Spark por elección del propietario; no se han publicado estas funciones adicionales en la nube.
 
 ## Lo que ya está implementado
 
@@ -24,21 +24,21 @@ HU-01 usa Firebase Authentication para registrar cuentas e iniciar y cerrar sesi
 | HU-03 | Consultar detalle del perrito | Galería, características, salud y refugio del registro seleccionado desde Firebase | Implementada y comprobada en emuladores; nube pospuesta |
 | HU-04 | Consultar requisitos y pasos | Condiciones y pasos de Firestore por refugio, consulta pública | Implementada y comprobada en emuladores; nube pospuesta |
 | HU-05 | Enviar solicitud de adopción | Cinco pasos, revisión y envío atómico a Firestore | Implementada y comprobada en emuladores; nube pospuesta |
-| HU-06 | Consultar mis solicitudes | Lista, detalle y estados de ejemplo | Pendiente |
+| HU-06 | Consultar mis solicitudes | Lista, respuestas originales e historial privados de Firestore | Implementada y comprobada en emuladores; nube pospuesta |
 | HU-07 | Acceso autorizado del refugio | Inicio de sesión real, verificación de membresías y bloqueo central | Implementada y comprobada |
 | HU-08 | Registrar y publicar perritos | Formulario, fotos reales, revisión y consulta conectados a Firebase local | Implementada y comprobada en emuladores; nube pospuesta |
 | HU-09 | Registrar estado de salud | Captura, edición, guardado y lectura pública de los tres estados | Implementada y comprobada en emuladores; nube pospuesta |
 | HU-10 | Revisar y editar mis perritos | Datos y fotos guardados, edición, portada y revisión conectados a Firebase local | Implementada y comprobada en emuladores; nube pospuesta |
-| HU-11 | Redactar descripciones con Gemini | Propuesta fija, aceptación, descarte y error de ejemplo | Pendiente |
-| HU-12 | Consultar solicitudes recibidas | Lista, respuestas y vista vacía de ejemplo | Pendiente |
-| HU-13 | Evaluar solicitudes | Revisión, decisión, confirmación y bloqueo de ejemplo | Pendiente |
-| HU-14 | Confirmar adopción realizada | Entrega, carta, confirmación y bloqueo de ejemplo | Pendiente |
-| HU-15 | Programar seguimientos | Campos y lista de revisiones de ejemplo | Pendiente |
-| HU-16 | Registrar seguimientos | Formulario, confirmación e historial de ejemplo | Pendiente |
-| HU-17 | Conservar catálogo y borradores con Room | Avisos y vistas sin conexión; no existe guardado local | Pendiente |
-| HU-18 | Consultar ubicación con Google Maps | Mapa ilustrativo y vista de error; no usa Google Maps | Pendiente |
+| HU-11 | Redactar descripciones con Gemini | SDK de AI Logic, propuesta editable, validaciones y alternativa manual | Implementada; Gemini real y token de App Check comprobados en Spark |
+| HU-12 | Consultar solicitudes recibidas | Bandeja por refugio, filtros, respuestas e historial de Firestore | Implementada y comprobada en emuladores; nube pospuesta |
+| HU-13 | Evaluar solicitudes | Decisiones confirmadas, historial y aprobación única en Firestore | Implementada y comprobada en emuladores; nube pospuesta |
+| HU-14 | Confirmar adopción realizada | Entrega confirmada, adopción única y cierre de pendientes mediante Firebase Functions local | Implementada y comprobada en emuladores; nube pospuesta |
+| HU-15 | Programar seguimientos | Agenda real por refugio, fecha, tipo y apertura de captura del resultado | Implementada y comprobada en emuladores; nube pospuesta |
+| HU-16 | Registrar seguimientos | Resultado, foto privada, historial y siguiente revisión mediante Firebase local | Implementada y comprobada en emuladores; nube pospuesta |
+| HU-17 | Conservar catálogo y borradores con Room | Tres tablas locales, catálogo guardado y borradores por cuenta | Implementada y comprobada en la tableta |
+| HU-18 | Consultar ubicación con Google Maps | Zona pública real abierta mediante Maps URLs, con reintento | Implementada en la variante externa sin facturación; mapa incrustado fuera de alcance |
 
-**Avance: 9 de 18 historias implementadas: 2 comprobadas en el proyecto real y 7 solo en emuladores.**
+**Avance: 17 de 18 historias implementadas: 2 comprobadas en el proyecto real, 13 con servicios locales, HU-17 con Room y HU-18 con Maps URLs sin facturación.**
 
 ### HU-01 comprobada
 
@@ -94,7 +94,7 @@ El propietario eligió mantener Spark y utilizar emuladores sin costo. La activa
 - [x] Recorrido de interfaz en la tableta: validación, imagen ficticia entregada por el selector de prueba, revisión, regreso al formulario, publicación y consulta del detalle guardado.
 - [ ] Activación y comprobación de Storage en Firebase real, pospuestas para mantener Spark.
 
-Instrucciones y alcance: [docs/dog-publication.md](docs/dog-publication.md). HU-09 incorpora la salud y HU-10 la edición general; HU-02 conecta el catálogo público y los borradores persistentes siguen pendientes.
+Instrucciones y alcance: [docs/dog-publication.md](docs/dog-publication.md). HU-09 incorpora la salud y HU-10 la edición general; HU-02 conecta el catálogo público y los borradores persistentes ya están implementados en HU-17.
 
 ### HU-09 comprobada en emuladores
 
@@ -193,9 +193,148 @@ Uso y alcance: [docs/adoption-requirements.md](docs/adoption-requirements.md). E
 
 Datos, límites y recorrido: [docs/adoption-application.md](docs/adoption-application.md). La persistencia de borradores tras cerrar la app corresponde a HU-17; HU-06 conecta la consulta habitual de solicitudes.
 
+### HU-06 comprobada en emuladores
+
+- [x] Rama `codex/hu-06-my-requests`, con commits de funcionalidad, pruebas y documentación.
+- [x] Lista consultada por UID de la sesión, ordenada por fecha y con folio, perrito y estado.
+- [x] Detalle por ID real, fechas del servidor, respuestas completas e historial cronológico.
+- [x] Indicaciones diferentes para Enviada, En revisión, Aprobada y No aprobada; motivo de rechazo cuando exista.
+- [x] Acceso al detalle desde la confirmación de envío y desde Mis solicitudes.
+- [x] Vista sin registros, acceso sin sesión, error, tiempo de espera y reintento.
+- [x] Retirada de información al cerrar sesión o perder acceso; otra cuenta no puede abrir el ID anterior.
+- [x] 78 pruebas unitarias totales y 9 Android de consulta, privacidad, desconexión y regresión de envío, sin fallos; reglas de HU-05 conservadas.
+- [x] Compilación normal/local y Android Lint sin errores.
+- [ ] Comprobación en Firebase real, pospuesta para conservar Spark.
+
+Uso y alcance: [docs/my-requests.md](docs/my-requests.md). La evaluación y los cambios de estado por el responsable corresponden a HU-13.
+
+### HU-12 comprobada en emuladores
+
+- [x] Rama `codex/hu-12-received-requests`, con commits de preparación, funcionalidad, pruebas y documentación.
+- [x] Consulta por refugio activo, con solicitante, perrito, folio, fecha y estado.
+- [x] Filtros con conteos de registros reales, lista vacía y filtro sin coincidencias.
+- [x] Apertura por ID de respuestas originales completas e historial cronológico.
+- [x] Protección por perfil y membresía; otro refugio y un adoptante no pueden consultar la bandeja administrativa.
+- [x] Modelos separados por cuenta, refugio e ID; errores y reintento sin confirmar caché privada.
+- [x] Escenario reproducible con dos solicitudes de A y una de B, sin modificar el proyecto real.
+- [x] 78 pruebas unitarias totales y 25 Android de recepción y regresión de consulta y 15 destinos privados, sin fallos.
+- [x] Compilación normal/local y Android Lint sin errores; reglas vigentes de HU-05 conservadas.
+- [ ] Comprobación en Firebase real, pospuesta para conservar Spark.
+
+Preparación y uso: [docs/received-requests.md](docs/received-requests.md). HU-13 conecta las decisiones del responsable.
+
+### HU-13 comprobada en emuladores
+
+- [x] Rama `codex/hu-13-evaluate-requests`, con commits de datos/reglas, interfaz, pruebas y documentación.
+- [x] Enviada → En revisión → Aprobada o No aprobada; confirmación previa y estados finales protegidos.
+- [x] Motivo de no aprobación visible al adoptante; respuestas originales conservadas.
+- [x] Estado, historial inmutable y fechas del servidor guardados juntos.
+- [x] Aprobación atómica con control único y cambio del perrito a En proceso; nuevas solicitudes bloqueadas.
+- [x] Dos aprobaciones simultáneas dejan solo una aprobada; la otra conserva En revisión.
+- [x] Doble envío bloqueado; reintento sin duplicar historial ni fecha, y conservación del motivo ante errores.
+- [x] Visitantes, adoptantes, refugios ajenos y membresías revocadas no pueden decidir.
+- [x] 83 pruebas unitarias totales, 84 de reglas y 35 Android de decisiones y regresión, sin fallos.
+- [x] Compilación normal/local y Android Lint sin errores.
+- [ ] Despliegue y comprobación en Firebase real, pospuestos para conservar Spark.
+
+Datos y recorrido: [docs/request-evaluation.md](docs/request-evaluation.md). HU-14 registra la entrega y cambia el perrito a Adoptado.
+
+### HU-14 comprobada en emuladores
+
+- [x] Rama `codex/hu-14-record-adoption`, con commits separados de configuración, backend, interfaz/conexión, pruebas y documentación.
+- [x] Solicitud aprobada, fecha real no futura, entrega y carta firmada obligatorias, con confirmación final.
+- [x] Función Firebase autenticada que vuelve a comprobar perfil, membresía y refugio en la transacción.
+- [x] Adopción única por perrito, control actualizado y cambio a Adoptado en el mismo commit.
+- [x] Cierre de todas las otras solicitudes pendientes del perrito con motivo e historial; otros perritos y decisiones anteriores conservados.
+- [x] Reintentos y dos llamadas simultáneas sin duplicar adopción ni fechas.
+- [x] Salida del catálogo y acceso privado del adoptante al nombre de su perrito, sin ampliar lectura pública.
+- [x] Errores sin éxito ficticio; datos conservados y posibilidad de corregir un rechazo definitivo del servidor.
+- [x] Transporte callable local autenticado, sin solicitar token FCM externo; SDK de Functions preparado para la configuración normal.
+- [x] 89 pruebas unitarias totales, 85 de reglas, 6 del backend y 35 Android finales, sin fallos.
+- [x] Compilación normal/local y Android Lint sin errores.
+- [ ] Despliegue y comprobación en Firebase real, pospuestos para conservar Spark.
+
+Preparación y alcance: [docs/adoption-delivery.md](docs/adoption-delivery.md). Se añade Functions Emulator en el puerto 5001; el siguiente paso es HU-15.
+
+### HU-15 comprobada en emuladores
+
+- [x] Rama `codex/hu-15-schedule-reviews` y commits separados por funcionalidad, preparación, pruebas y documentación.
+- [x] Programación desde una adopción registrada, con fecha válida no anterior a la entrega y tipo obligatorio.
+- [x] Guardado autenticado mediante Functions Emulator, con membresía y adopción verificadas en el servidor.
+- [x] Confirmación previa, bloqueo de doble envío y reintento con el mismo identificador.
+- [x] Agenda privada por refugio, con Programados y Adopciones; apertura de la revisión seleccionada.
+- [x] Nueva programación con un identificador nuevo después de confirmar la anterior.
+- [x] Capturar y guardar el resultado desde la revisión abierta, integrado y comprobado con HU-16.
+
+Preparación y alcance: [docs/review-scheduling.md](docs/review-scheduling.md). El enlace con HU-16 ya está comprobado en la tableta.
+
+### HU-16 comprobada en emuladores
+
+- [x] Rama `codex/hu-16-record-followups` y commits separados por datos, interfaz, pruebas y documentación.
+- [x] Fecha real válida, adaptación y observaciones obligatorias; fotografía opcional JPEG de hasta 2 MB.
+- [x] Confirmación previa y éxito solo después de recibir confirmación del servidor.
+- [x] Guardado atómico del resultado, revisión Realizada y siguiente cita opcional.
+- [x] Cierre sin crear otra cita, conservando las demás revisiones programadas.
+- [x] Evidencia privada e inmutable del refugio y bloqueo de cuentas ajenas.
+- [x] Reintentos idempotentes, rechazo de otro resultado y conservación del intento ante respuesta ambigua.
+- [x] Historial real, aviso de registros heredados incompletos y consulta de la fotografía guardada.
+- [x] 99 pruebas unitarias totales, 89 de reglas y 17 del backend, sin fallos.
+- [x] 18 pruebas Android de agenda y acceso pasaron; las 2 nuevas del SDK e interfaz pasaron después de corregir la consulta previa de un resultado todavía inexistente.
+- [x] Compilación local y Android Lint sin errores.
+- [ ] Despliegue y comprobación en Firebase real, pospuestos para conservar Spark.
+
+Uso y alcance: [docs/follow-up-results.md](docs/follow-up-results.md).
+
+### HU-17 comprobada en la tableta
+
+- [x] Rama `codex/hu-17-room-cache-drafts` y commits separados de configuración, caché, borradores, pruebas y documentación.
+- [x] Entidades, DAO, FK y base Room con las tres tablas originales; esquema exportado.
+- [x] Sustitución atómica del último catálogo público confirmado, con búsqueda y filtros sin conexión.
+- [x] Aviso de copia guardada, fecha y disponibilidad posiblemente desactualizada; error explícito cuando no hay caché.
+- [x] Ficha y requisitos guardados; preparación de solicitud sin conexión, con envío bloqueado hasta actualizar.
+- [x] Caché de fotografías públicas consultadas, excluyendo evidencias privadas.
+- [x] Borradores de solicitud y alta de perrito separados por cuenta y referencia.
+- [x] Restauración de respuestas, paso, salud, JPEG privado e identificador de un envío ambiguo.
+- [x] Error de envío conserva el borrador; confirmación lo elimina. El descarte explícito del alta también elimina su borrador.
+- [x] Reapertura de la base y creación de un ViewModel nuevo comprobadas; permisos administrativos de HU-07 conservados.
+- [x] 99 pruebas unitarias y 28 Android (persistencia, interfaz sin Firestore, solicitud, publicación y accesos), sin fallos.
+- [x] Compilación normal/local y Android Lint sin errores.
+
+Alcance, tablas y pruebas: [docs/local-room.md](docs/local-room.md).
+
+### HU-18 comprobada en la variante externa sin facturación
+
+- [x] Rama `codex/hu-18-public-google-maps` y commits separados de funcionalidad, pruebas y documentación.
+- [x] Zona y coordenadas aproximadas opcionales del refugio seleccionado; sin GPS ni domicilio del adoptante.
+- [x] Maps URLs oficial con codificación de parámetros, aplicación de Google Maps o navegador.
+- [x] Coordenadas validadas y aproximadas; búsqueda por zona cuando no hay coordenadas; sin punto inventado.
+- [x] Nombre, zona y horario conservados; error y reintento si Android no puede abrir Maps.
+- [x] Datos de demostración identificados; metadatos de ubicación pública conservados en Room.
+- [x] 103 pruebas unitarias y 10 Android de Maps y regresión de Room, sin fallos.
+- [x] Compilación local y Android Lint sin errores.
+- [ ] Mapa incrustado con Maps SDK: no forma parte de la variante sin facturación implementada.
+
+Alcance y prueba: [docs/public-maps.md](docs/public-maps.md). La carga y los errores de red del mapa externo los controla Google Maps o el navegador.
+
+### HU-11 terminada: Gemini real y App Check comprobados
+
+- [x] Rama `codex/hu-11-gemini-descriptions` y commits separados por configuración, funcionalidad, pruebas y documentación.
+- [x] Firebase AI Logic con configuración real local, independiente de los emuladores de datos.
+- [x] Captura solo de datos de la ficha; instrucciones sin invención y filtros de propuestas no sustentadas.
+- [x] Generación explícita, propuesta editable, aceptación y descarte sin publicación automática.
+- [x] Texto original conservado, alternativa manual, tiempo agotado, cancelación y bloqueo de solicitudes simultáneas.
+- [x] App Check de desarrollo/release preparado; preferencias debug excluidas de respaldo.
+- [x] 109 pruebas unitarias y 18 Android de interfaz controlada, alta y accesos sin fallos; repetición final del asistente correcta.
+- [x] Compilación normal/local y Android Lint sin errores.
+- [x] Autorización del propietario para las condiciones adicionales de Gemini y el registro de la instalación en App Check.
+- [x] Gemini Developer API habilitada y token privado de desarrollo registrado, conservando Spark sin facturación.
+- [x] Propuesta real validada con el SDK y token nuevo de App Check verificado: `OK (1 test)`; sin escribir ni publicar perritos.
+
+Uso, configuración y alcance: [docs/gemini-descriptions.md](docs/gemini-descriptions.md).
+
 ## Orden para implementarlas una por una
 
-Firebase Authentication y la base Firestore están configurados. HU-07 está desplegada y comprobada con la cuenta autorizada en la tableta. HU-08 está comprobada con servicios locales; su activación en la nube está pospuesta para conservar Spark. HU-09 y HU-10 también están comprobadas en emuladores. HU-02 ya está comprobada en emuladores. HU-03 ya está comprobada en emuladores. HU-04 y HU-05 están comprobadas en emuladores; continúa HU-06 para consultar las solicitudes de la cuenta. El diseño original se conserva como referencia.
+Firebase Authentication y la base Firestore están configurados. HU-07 está desplegada y comprobada con la cuenta autorizada en la tableta. HU-08 está comprobada con servicios locales; su activación en la nube está pospuesta para conservar Spark. HU-09 y HU-10 también están comprobadas en emuladores. HU-02 ya está comprobada en emuladores. HU-03 ya está comprobada en emuladores. HU-04 y HU-05 están comprobadas en emuladores; HU-06 permite consultar las solicitudes de la cuenta; HU-12 permite consultar las recibidas por el refugio; HU-13 guarda la revisión y decisiones; HU-14 registra la entrega y cierra pendientes; HU-15 programa revisiones y HU-16 guarda sus resultados; HU-17 conserva catálogo y borradores con Room; HU-18 abre la zona pública con Google Maps sin facturación; HU-11 genera propuestas con Gemini real y permite revisarlas antes de usarlas. El diseño original se conserva como referencia.
 
 1. [x] **HU-01 — Crear cuenta e iniciar sesión.** Crear usuarios y autenticar con Firebase Authentication. Validar campos, mostrar errores junto al campo y conservar los datos al fallar. Comprobar registro, acceso correcto, acceso incorrecto y cierre de sesión.
 2. [x] **HU-07 — Autorizar al refugio.** Identificar el rol y el refugio de la cuenta. Restringir también el acceso a los datos: cada refugio administra únicamente sus perritos, solicitudes y seguimientos. Comprobar cuentas de adoptante, visitante y dos refugios distintos.
@@ -206,15 +345,15 @@ Firebase Authentication y la base Firestore están configurados. HU-07 está des
 7. [x] **HU-03 — Consultar el detalle real (comprobada en emuladores).** Abrir el registro seleccionado y cargar sus fotografías, edad, tamaño, sexo, descripción, refugio, estado de adopción y salud. Comprobar que los datos correspondan al perrito elegido.
 8. [x] **HU-04 — Mostrar los requisitos del refugio.** Obtener los requisitos correspondientes al refugio del perrito y los pasos de adopción. Permitir consultarlos sin cuenta e iniciar la solicitud desde esa pantalla. Mantener identificados los datos de demostración.
 9. [x] **HU-05 — Enviar una solicitud real.** Validar contacto, hogar, otras mascotas y motivos; conservar las respuestas entre pasos y permitir revisarlas. Exigir sesión para enviar. Confirmar el folio solo después de guardar y comprobar que reintentar no duplique la solicitud ni borre las respuestas si falla.
-10. [ ] **HU-06 — Consultar mis solicitudes reales.** Obtener únicamente las solicitudes de la cuenta actual, sus respuestas y cambios de estado con fecha. Mostrar Enviada, En revisión, Aprobada o No aprobada y el siguiente paso correspondiente. Comprobar que otra cuenta no pueda leerlas.
-11. [ ] **HU-12 — Consultar solicitudes recibidas.** Obtener solo solicitudes de perritos del refugio actual, con solicitante, perrito, fecha, estado y respuestas. Comprobar la vista sin registros y el aislamiento entre refugios.
-12. [ ] **HU-13 — Evaluar y guardar decisiones.** Aplicar Enviada → En revisión → Aprobada o No aprobada, con confirmación. Permitir una sola solicitud aprobada por perrito. Al aprobar, cambiarlo a En proceso y bloquear solicitudes nuevas. Comprobar también intentos simultáneos de aprobar dos solicitudes.
-13. [ ] **HU-14 — Registrar la entrega y adopción.** Exigir solicitud aprobada, fecha real de entrega y confirmación de carta firmada. Al confirmar, marcar al perrito Adoptado, impedir otra adopción y pasar las solicitudes restantes a No aprobada con su motivo. Comprobar que desaparezca del catálogo público.
-14. [ ] **HU-15 — Programar revisiones.** Desde una adopción registrada, guardar fecha y tipo de revisión: visita, llamada o videollamada. Mostrar las pendientes y permitir abrir su registro de seguimiento.
-15. [ ] **HU-16 — Guardar seguimientos.** Persistir fecha, adaptación, observaciones y fotografía opcional. Confirmar únicamente tras guardar, actualizar el historial, marcar la revisión como realizada y permitir programar la siguiente o cerrar el seguimiento.
-16. [ ] **HU-17 — Conservar catálogo y borradores con Room.** Implementar entidades, DAO y base local. Guardar el último catálogo y borradores separados por cuenta; restaurarlos al volver a abrir la app. Comprobar uso sin conexión, aviso de información desactualizada, ausencia de caché y eliminación del borrador solo tras confirmar el envío correcto.
-17. [ ] **HU-18 — Mostrar la ubicación con Google Maps.** Cargar la zona pública aproximada del refugio sin mostrar domicilios privados. Conservar nombre y zona si el mapa falla y permitir reintentar. Identificar los datos ficticios como demostración.
-18. [ ] **HU-11 — Conectar Gemini.** Generar una propuesta basada exclusivamente en los datos capturados, sin inventar características ni información médica. Permitir aceptar, editar, descartar y escribir manualmente si falla. Comprobar que nunca se publique automáticamente.
+10. [x] **HU-06 — Consultar mis solicitudes reales.** Obtener únicamente las solicitudes de la cuenta actual, sus respuestas y cambios de estado con fecha. Mostrar Enviada, En revisión, Aprobada o No aprobada y el siguiente paso correspondiente. Comprobar que otra cuenta no pueda leerlas.
+11. [x] **HU-12 — Consultar solicitudes recibidas.** Obtener solo solicitudes de perritos del refugio actual, con solicitante, perrito, fecha, estado y respuestas. Comprobar la vista sin registros y el aislamiento entre refugios.
+12. [x] **HU-13 — Evaluar y guardar decisiones.** Aplicar Enviada → En revisión → Aprobada o No aprobada, con confirmación. Permitir una sola solicitud aprobada por perrito. Al aprobar, cambiarlo a En proceso y bloquear solicitudes nuevas. Comprobar también intentos simultáneos de aprobar dos solicitudes.
+13. [x] **HU-14 — Registrar la entrega y adopción.** Exigir solicitud aprobada, fecha real de entrega y confirmación de carta firmada. Al confirmar, marcar al perrito Adoptado, impedir otra adopción y pasar las solicitudes restantes a No aprobada con su motivo. Comprobar que desaparezca del catálogo público.
+14. [x] **HU-15 — Programar revisiones.** Desde una adopción registrada, guardar fecha y tipo de revisión: visita, llamada o videollamada. Mostrar las pendientes y permitir abrir su registro de seguimiento.
+15. [x] **HU-16 — Guardar seguimientos.** Persistir fecha, adaptación, observaciones y fotografía opcional. Confirmar únicamente tras guardar, actualizar el historial, marcar la revisión como realizada y permitir programar la siguiente o cerrar el seguimiento.
+16. [x] **HU-17 — Conservar catálogo y borradores con Room.** Implementar entidades, DAO y base local. Guardar el último catálogo y borradores separados por cuenta; restaurarlos al volver a abrir la app. Comprobar uso sin conexión, aviso de información desactualizada, ausencia de caché y eliminación del borrador solo tras confirmar el envío correcto.
+17. [x] **HU-18 — Mostrar la ubicación con Google Maps.** Cargar la zona pública aproximada del refugio sin mostrar domicilios privados. Conservar nombre y zona si el mapa falla y permitir reintentar. Identificar los datos ficticios como demostración.
+18. [x] **HU-11 — Conectar Gemini.** Generar una propuesta basada exclusivamente en los datos capturados, sin inventar características ni información médica. Permitir aceptar, editar, descartar y escribir manualmente si falla. Comprobar que nunca se publique automáticamente.
 
 ## Cuándo marcar una historia como terminada
 
@@ -223,4 +362,8 @@ Firebase Authentication y la base Firestore están configurados. HU-07 está des
 - Se comprueban el caso correcto, los errores relevantes y la conservación o actualización de la información.
 - Las pantallas de éxito aparecen después de que la operación haya terminado correctamente.
 
-HU-01/HU-07 usan el proyecto real. HU-02/HU-03/HU-04/HU-05/HU-08/HU-09/HU-10 usan servicios locales en la instalación de pruebas. Las solicitudes ya se guardan en los emuladores; las evaluaciones, adopciones y seguimientos siguen pendientes.
+HU-01/HU-07 usan el proyecto real. HU-02/HU-03/HU-04/HU-05/HU-06/HU-12/HU-13/HU-14/HU-15/HU-16/HU-08/HU-09/HU-10 usan servicios locales en la instalación de pruebas. Las solicitudes ya se guardan en los emuladores; las evaluaciones también se guardan en emuladores; las adopciones también se guardan mediante Functions Emulator; la agenda y los seguimientos también usan emuladores.
+
+## Cierre de esta revisión
+
+18 de 18 historias comprobadas en el alcance escolar descrito: HU-01, HU-07 y Gemini en Firebase real; 13 historias de datos con emuladores; HU-17 con Room; HU-18 mediante Google Maps externo. Esto no equivale a un despliegue completo en la nube. La distribución release de Gemini requiere configurar y probar Play Integrity; la instalación debug de esta tableta ya está autorizada.

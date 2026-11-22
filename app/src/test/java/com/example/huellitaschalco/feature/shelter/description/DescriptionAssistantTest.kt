@@ -144,4 +144,25 @@ class DescriptionAssistantTest {
         assertNull(vm.state.value.proposal)
         assertNull(vm.state.value.input)
     }
+
+    @Test
+    fun serviceErrorsAreDistinctDoNotExposeServerDetailsAndKeepPreviousProposal() = runTest {
+        val generator = Generator()
+        val vm = DescriptionAssistantViewModel(generator)
+        vm.open(input)
+        vm.generate()
+        runCurrent()
+        for (kind in DescriptionFailureKind.entries) {
+            generator.action = { throw DescriptionServiceFailure(kind) }
+            vm.generate()
+            runCurrent()
+            assertEquals(kind.userMessage, vm.state.value.error)
+            assertEquals(valid, vm.state.value.proposal)
+            assertFalse(vm.state.value.generating)
+        }
+        assertEquals(
+            DescriptionFailureKind.entries.size,
+            DescriptionFailureKind.entries.map { it.userMessage }.toSet().size,
+        )
+    }
 }

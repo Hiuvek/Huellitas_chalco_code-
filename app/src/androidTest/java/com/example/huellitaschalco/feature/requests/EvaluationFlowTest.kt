@@ -65,7 +65,7 @@ class EvaluationFlowTest {
         compose.onNodeWithText("Escribe el motivo con 5 a 1000 caracteres.").assertExists()
         val reason = "No cumple las condiciones revisadas para este perrito de demostración."
         compose.onNodeWithTag("evaluation-reason").performTextInput(reason)
-        androidx.test.espresso.Espresso.closeSoftKeyboard()
+        // La confirmación usa semántica y no necesita cerrar el teclado del diálogo.
         compose.onNodeWithTag("evaluation-confirm").performSemanticsAction(
             SemanticsActions.OnClick
         ) {

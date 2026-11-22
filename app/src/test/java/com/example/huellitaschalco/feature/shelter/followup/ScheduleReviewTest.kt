@@ -43,6 +43,10 @@ class ScheduleReviewTest {
         val calls = mutableListOf<ScheduleAttempt>()
         var action: suspend () -> Unit = {}
 
+        override suspend fun record(attempt: FollowUpAttempt): FollowUpReceipt = error("unused")
+
+        override suspend fun photo(path: String): ByteArray = error("unused")
+
         override fun observe(uid: String, shelterId: String) = flowOf(FollowUpBoard(false))
 
         override suspend fun program(attempt: ScheduleAttempt): ReviewReceipt {

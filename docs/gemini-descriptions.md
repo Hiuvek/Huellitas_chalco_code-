@@ -46,3 +46,11 @@ La prueba obtuvo un token nuevo y válido de App Check, envió solo una ficha fi
 Referencias: [inicio de AI Logic](https://firebase.google.com/docs/ai-logic/get-started?platform=android), [modelos admitidos](https://firebase.google.com/docs/ai-logic/models), [precios y Spark](https://firebase.google.com/docs/ai-logic/pricing), [condiciones de Gemini](https://ai.google.dev/gemini-api/terms), [políticas de uso](https://ai.google.dev/gemini-api/docs/usage-policies).
 
 Compilaciones normal/local, 109 pruebas unitarias y Android Lint finales correctos. La compilación de instrumentación con la comprobación explícita de App Check también pasó. La consola permitió verificar el estado del servicio, pero su herramienta de captura de pantalla agotó el tiempo de espera; no se adjunta una imagen que no se pudo obtener.
+
+## Incidencia de App Check en la app normal
+
+El 21 de noviembre de 2026 se detectó `403 App attestation failed` en `com.example.huellitaschalco`. La prueba inicial había autorizado `com.example.huellitaschalco.local`: cada instalación conserva su propio token de depuración, incluso en la misma tableta.
+
+Con autorización expresa del propietario se registró «Tableta app normal desarrollo», conservando el token local anterior y la protección de App Check. Se comprobó la instalación normal con `GeminiLiveSdkTest`, forzando un token nuevo y validando una propuesta real: `OK (1 test)`, 1.895 segundos. No se borraron datos, no se publicó ningún perrito ni se cambió el código de la app. Spark sigue activo.
+
+Si se reinstala borrando los datos o se usa otro dispositivo/build con almacenamiento independiente, se debe autorizar su token de desarrollo correspondiente. El token nunca debe incluirse en Git. Para una versión release sigue pendiente configurar y probar Play Integrity.

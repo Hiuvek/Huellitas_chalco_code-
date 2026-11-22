@@ -328,7 +328,7 @@ Alcance y prueba: [docs/public-maps.md](docs/public-maps.md). La carga y los err
 - [x] Compilación normal/local y Android Lint sin errores.
 - [x] Autorización del propietario para las condiciones adicionales de Gemini y el registro de la instalación en App Check.
 - [x] Gemini Developer API habilitada y token privado de desarrollo registrado, conservando Spark sin facturación.
-- [x] Propuesta real validada con el SDK y token nuevo de App Check verificado: `OK (1 test)`; sin escribir ni publicar perritos.
+- [x] Propuesta real validada con el SDK y token nuevo de App Check verificado: `OK (1 test)` en instalación local y normal; sin escribir ni publicar perritos.
 
 Uso, configuración y alcance: [docs/gemini-descriptions.md](docs/gemini-descriptions.md).
 

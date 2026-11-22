@@ -7,12 +7,14 @@ import com.example.huellitaschalco.feature.shelter.followup.domain.*
 import com.google.firebase.firestore.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.tasks.await
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class FirebaseFollowUpRepository(
     private val auth: AuthRepository,
     private val db: FirebaseFirestore?,
     private val functions: CallableFunctions?,
+    private val storage: com.google.firebase.storage.FirebaseStorage? = null,
 ) : FollowUpRepository {
     override fun observe(uid: String, shelterId: String): Flow<FollowUpBoard> =
         auth.user.flatMapLatest { user ->
@@ -20,11 +22,18 @@ class FirebaseFollowUpRepository(
                 flowOf(FollowUpBoard(false, error = "Inicia sesión para consultar la agenda."))
             else
                 combine(
-                        listOf("adopciones", "revisiones", "perritos", "solicitudes").map { name ->
-                            db.collection(name)
-                                .whereEqualTo("refugioId", shelterId)
-                                .serverDocuments()
-                        }
+                        listOf(
+                                "adopciones",
+                                "revisiones",
+                                "perritos",
+                                "solicitudes",
+                                "seguimientos",
+                            )
+                            .map { name ->
+                                db.collection(name)
+                                    .whereEqualTo("refugioId", shelterId)
+                                    .serverDocuments()
+                            }
                     ) { values ->
                         when {
                             values.any { it == ServerDocuments.Failed } ->
@@ -105,7 +114,76 @@ class FirebaseFollowUpRepository(
                                                 compareBy<ScheduledReview> { it.plannedAt }
                                                     .thenBy { it.id }
                                             )
-                                    FollowUpBoard(false, adoptions, reviews)
+                                    val results =
+                                        docs[4]
+                                            .mapNotNull { d ->
+                                                runCatching {
+                                                    val r =
+                                                        FollowUpResult(
+                                                            d.id,
+                                                            requireNotNull(
+                                                                d.getString("adopcionId")
+                                                            ),
+                                                            requireNotNull(
+                                                                d.getString("revisionId")
+                                                            ),
+                                                            requireNotNull(
+                                                                d.getString("perritoId")
+                                                            ),
+                                                            requireNotNull(
+                                                                d.getString("refugioId")
+                                                            ),
+                                                            requireNotNull(
+                                                                    d.getTimestamp(
+                                                                        "fechaRealizacion"
+                                                                    )
+                                                                )
+                                                                .toDate()
+                                                                .time,
+                                                            requireNotNull(
+                                                                d.getString("adaptacion")
+                                                            ),
+                                                            requireNotNull(
+                                                                d.getString("observaciones")
+                                                            ),
+                                                            ((d.get("fotos") as? List<*>)
+                                                                    ?.firstOrNull() as? Map<*, *>)
+                                                                ?.get("ruta") as? String,
+                                                            requireNotNull(
+                                                                d.getString("registradoPorUid")
+                                                            ),
+                                                            requireNotNull(
+                                                                    d.getTimestamp("creadoEn")
+                                                                )
+                                                                .toDate()
+                                                                .time,
+                                                        )
+                                                    check(
+                                                        r.shelterId == shelterId &&
+                                                            r.id == r.reviewId &&
+                                                            r.adaptation in Adaptations.labels
+                                                    )
+                                                    check(
+                                                        reviews.any {
+                                                            it.id == r.reviewId &&
+                                                                it.followUpId == r.id &&
+                                                                it.status == "REALIZADA" &&
+                                                                it.adoptionId == r.adoptionId &&
+                                                                it.dogId == r.dogId
+                                                        }
+                                                    )
+                                                    r
+                                                }
+                                                    .getOrNull()
+                                            }
+                                            .sortedByDescending { it.doneAt }
+                                    FollowUpBoard(
+                                        false,
+                                        adoptions,
+                                        reviews,
+                                        results = results,
+                                        incompleteResults = docs[4].size - results.size,
+                                    )
                                 } catch (_: Exception) {
                                     FollowUpBoard(
                                         false,
@@ -172,6 +250,91 @@ class FirebaseFollowUpRepository(
             attempt.adoptionId,
             attempt.date,
             attempt.type,
+            result["alreadyExisting"] == true,
+        )
+    }
+
+    override suspend fun photo(path: String): ByteArray =
+        requireNotNull(storage).reference.child(path).getBytes(2L * 1024 * 1024).await()
+
+    override suspend fun record(attempt: FollowUpAttempt): FollowUpReceipt {
+        require(auth.user.value?.uid == attempt.uid)
+        require(attempt.error(1) == null)
+        val database = requireNotNull(db)
+        val path = attempt.photoPath()
+        // A retry after an ambiguous response must not overwrite immutable evidence.
+        val existing =
+            database
+                .collection("seguimientos")
+                .whereEqualTo("refugioId", attempt.shelterId)
+                    .get(Source.SERVER)
+                .await()
+        if (path != null && existing.documents.none { it.id == attempt.reviewId }) {
+            val reference = requireNotNull(storage).reference.child(path)
+            val file = java.io.File(requireNotNull(attempt.photo).filePath)
+            require(file.length() in 1..2L * 1024 * 1024)
+            try {
+                reference
+                    .putFile(
+                        android.net.Uri.fromFile(file),
+                        com.google.firebase.storage.StorageMetadata.Builder()
+                            .setContentType("image/jpeg")
+                            .build(),
+                    )
+                    .await()
+            } catch (e: Exception) {
+                // Upload acknowledgements can be lost; confirm this immutable object before
+                // retrying the callable.
+                val metadata = runCatching { reference.metadata.await() }.getOrNull()
+                if (metadata?.sizeBytes != file.length() || metadata.contentType != "image/jpeg")
+                    throw e
+            }
+        }
+        val result =
+            try {
+                requireNotNull(functions)
+                    .call(
+                        "recordFollowUp",
+                        mapOf(
+                            "reviewId" to attempt.reviewId,
+                            "shelterId" to attempt.shelterId,
+                            "date" to attempt.date,
+                            "adaptation" to attempt.adaptation,
+                            "notes" to attempt.notes.trim(),
+                            "photo" to path,
+                            "next" to
+                                if (attempt.disposition == "PROGRAMAR")
+                                    mapOf("date" to attempt.nextDate, "type" to attempt.nextType)
+                                else null,
+                        ),
+                    )
+            } catch (e: CallableFailure) {
+                if (
+                    e.status in
+                        setOf(
+                            "INVALID_ARGUMENT",
+                            "FAILED_PRECONDITION",
+                            "PERMISSION_DENIED",
+                            "ALREADY_EXISTS",
+                        )
+                )
+                    throw FollowUpRejected(e.message ?: "No se admitió el seguimiento.")
+                throw e
+            }
+        check(
+            result["id"] == attempt.reviewId &&
+                result["reviewId"] == attempt.reviewId &&
+                result["date"] == attempt.date
+        )
+        val next = result["nextReviewId"] as? String
+        check(
+            next == if (attempt.disposition == "PROGRAMAR") nextReviewId(attempt.reviewId) else null
+        )
+        return FollowUpReceipt(
+            attempt.reviewId,
+            attempt.reviewId,
+            attempt.date,
+            next,
             result["alreadyExisting"] == true,
         )
     }

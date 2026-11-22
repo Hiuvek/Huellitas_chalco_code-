@@ -50,6 +50,7 @@ class AppContainer(context: Context) {
             authRepository,
             firebase.firestore,
             firebase.functions,
+            firebase.storage,
         )
     val dogPhotoImporter = AndroidDogPhotoImporter(context.applicationContext)
     val dogRepository =

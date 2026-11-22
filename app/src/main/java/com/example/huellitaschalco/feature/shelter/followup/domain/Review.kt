@@ -32,6 +32,8 @@ data class FollowUpBoard(
     val adoptions: List<AdoptedDog> = emptyList(),
     val reviews: List<ScheduledReview> = emptyList(),
     val error: String? = null,
+    val results: List<FollowUpResult> = emptyList(),
+    val incompleteResults: Int = 0,
 )
 
 data class ScheduleAttempt(
@@ -66,4 +68,8 @@ interface FollowUpRepository {
     fun observe(uid: String, shelterId: String): Flow<FollowUpBoard>
 
     suspend fun program(attempt: ScheduleAttempt): ReviewReceipt
+
+    suspend fun record(attempt: FollowUpAttempt): FollowUpReceipt
+
+    suspend fun photo(path: String): ByteArray
 }

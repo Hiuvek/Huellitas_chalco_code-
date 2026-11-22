@@ -1,11 +1,11 @@
-import {FieldValue,Timestamp} from 'firebase-admin/firestore';
+import {FieldValue} from 'firebase-admin/firestore';
 import {HttpsError} from 'firebase-functions/v2/https';
+import {civilTimestamp,requireMembership} from './shared.js';
 export const adoptedElsewhereReason='El perrito fue adoptado por otra persona.';
 export function deliveryTimestamp(value,now=Date.now()) {
- if(typeof value!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(value)) throw new HttpsError('invalid-argument','Escribe una fecha válida con formato AAAA-MM-DD.');
- const milliseconds=Date.parse(`${value}T00:00:00-06:00`);
- if(!Number.isFinite(milliseconds)||new Date(milliseconds-6*3600_000).toISOString().slice(0,10)!==value||milliseconds<=0||milliseconds>now) throw new HttpsError('invalid-argument','La fecha de entrega debe ser real y no puede estar en el futuro.');
- return Timestamp.fromMillis(milliseconds);
+ const date=civilTimestamp(value);
+ if(date.toMillis()>now) throw new HttpsError('invalid-argument','La fecha de entrega no puede estar en el futuro.');
+ return date;
 }
 export async function recordAdoptionOperation(db,uid,data) {
  if(!uid) throw new HttpsError('unauthenticated','Inicia sesión para registrar la entrega.');
@@ -14,9 +14,7 @@ export async function recordAdoptionOperation(db,uid,data) {
  if(signedLetter!==true) throw new HttpsError('invalid-argument','Confirma la entrega y la carta de adopción firmada.');
  const delivery=deliveryTimestamp(date);
  return db.runTransaction(async tx=>{
-  const profile=db.doc(`usuarios/${uid}`),membership=db.doc(`membresias/${uid}__${shelterId}`),shelter=db.doc(`refugios/${shelterId}`);
-  const [user,member,refuge]=await tx.getAll(profile,membership,shelter);
-  if(user.get('activo')!==true||member.get('activo')!==true||member.get('usuarioUid')!==uid||member.get('refugioId')!==shelterId||refuge.get('activo')!==true) throw new HttpsError('permission-denied','No tienes una membresía activa para este refugio.');
+  await requireMembership(tx,db,uid,shelterId);
   const adoptionRef=db.doc(`adopciones/${dogId}`),requestRef=db.doc(`solicitudes/${requestId}`),dogRef=db.doc(`perritos/${dogId}`),controlRef=db.doc(`perritos_control/${dogId}`);
   const [adoption,application,dog,control]=await tx.getAll(adoptionRef,requestRef,dogRef,controlRef);
   if(application.get('refugioId')!==shelterId||application.get('perritoId')!==dogId||dog.get('refugioId')!==shelterId||control.get('refugioId')!==shelterId) throw new HttpsError('permission-denied','La solicitud y el perrito deben pertenecer al refugio.');

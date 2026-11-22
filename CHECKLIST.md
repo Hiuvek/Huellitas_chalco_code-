@@ -29,7 +29,7 @@ HU-01 y HU-07 están comprobadas en el proyecto Firebase real. El catálogo, sol
 | HU-08 | Registrar y publicar perritos | Formulario, fotos reales, revisión y consulta conectados a Firebase local | Implementada y comprobada en emuladores; nube pospuesta |
 | HU-09 | Registrar estado de salud | Captura, edición, guardado y lectura pública de los tres estados | Implementada y comprobada en emuladores; nube pospuesta |
 | HU-10 | Revisar y editar mis perritos | Datos y fotos guardados, edición, portada y revisión conectados a Firebase local | Implementada y comprobada en emuladores; nube pospuesta |
-| HU-11 | Redactar descripciones con Gemini | Propuesta fija, aceptación, descarte y error de ejemplo | Pendiente |
+| HU-11 | Redactar descripciones con Gemini | SDK de AI Logic, propuesta editable, validaciones y alternativa manual | Código y pruebas locales listos; activación de Gemini/App Check y prueba real pendientes |
 | HU-12 | Consultar solicitudes recibidas | Bandeja por refugio, filtros, respuestas e historial de Firestore | Implementada y comprobada en emuladores; nube pospuesta |
 | HU-13 | Evaluar solicitudes | Decisiones confirmadas, historial y aprobación única en Firestore | Implementada y comprobada en emuladores; nube pospuesta |
 | HU-14 | Confirmar adopción realizada | Entrega confirmada, adopción única y cierre de pendientes mediante Firebase Functions local | Implementada y comprobada en emuladores; nube pospuesta |
@@ -315,6 +315,22 @@ Alcance, tablas y pruebas: [docs/local-room.md](docs/local-room.md).
 - [ ] Mapa incrustado con Maps SDK: no forma parte de la variante sin facturación implementada.
 
 Alcance y prueba: [docs/public-maps.md](docs/public-maps.md). La carga y los errores de red del mapa externo los controla Google Maps o el navegador.
+
+### HU-11 preparada; activación real pendiente
+
+- [x] Rama `codex/hu-11-gemini-descriptions` y commits separados por configuración, funcionalidad, pruebas y documentación.
+- [x] Firebase AI Logic con configuración real local, independiente de los emuladores de datos.
+- [x] Captura solo de datos de la ficha; instrucciones sin invención y filtros de propuestas no sustentadas.
+- [x] Generación explícita, propuesta editable, aceptación y descarte sin publicación automática.
+- [x] Texto original conservado, alternativa manual, tiempo agotado, cancelación y bloqueo de solicitudes simultáneas.
+- [x] App Check de desarrollo/release preparado; preferencias debug excluidas de respaldo.
+- [x] 109 pruebas unitarias y 18 Android de interfaz controlada, alta y accesos sin fallos; repetición final del asistente correcta.
+- [x] Compilación normal/local y Android Lint sin errores.
+- [ ] Autorizar las condiciones adicionales de Gemini y el registro de la instalación en App Check.
+- [ ] Activar Gemini Developer API y autorizar App Check conservando Spark.
+- [ ] Obtener y validar una propuesta real con el SDK antes de marcar HU-11 terminada.
+
+Uso, configuración y alcance: [docs/gemini-descriptions.md](docs/gemini-descriptions.md).
 
 ## Orden para implementarlas una por una
 

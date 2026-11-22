@@ -36,12 +36,25 @@ Actualización: 22 de noviembre de 2026. La app normal está adaptada a Firebase
 - [x] Publicar reglas e índices en el proyecto real, sin activar facturación.
 - [x] Probar los recorridos de ambos roles en la tableta y corregir los problemas encontrados.
 - [x] Comprobar fotografías con clientes independientes contra el proyecto real.
-- [x] Instalar y entregar el APK normal actualizado, versión 1.1.
+- [x] Instalar y entregar el APK normal actualizado, versión 1.2.
 
 No se ha comprobado el uso simultáneo de dos dispositivos físicos. El modo normal usa internet; el APK `.local` continúa siendo una instalación separada para pruebas con emuladores. Gemini conserva su propia cuota gratuita y configuración de App Check.
 
 Detalles técnicos y limitaciones: [modo Spark](docs/spark.md). Resultados anteriores a esta adaptación: [checklist histórico](docs/checklist-anterior-a-spark.md).
 
-Verificación: **114 pruebas unitarias, 85 de reglas y 63 comprobaciones en tableta correctas**, incluida una generación real con Gemini. [Reporte de pruebas y limitaciones](docs/pruebas-spark.md).
+Verificación anterior de Spark: **114 pruebas unitarias, 85 de reglas y 63 comprobaciones en tableta correctas**, incluida una generación real con Gemini. [Reporte de pruebas y limitaciones](docs/pruebas-spark.md).
 
 - [x] Catálogo real preparado con ocho perritos ficticios, fotografías y controles para probar solicitudes y adopciones.
+
+## Interfaz para entrega — versión 1.2
+
+- [x] Mejorar tamaños, contraste y jerarquía de títulos, instrucciones y botones.
+- [x] Identificar las tarjetas con acciones claras: ver ficha, revisar solicitud y consultar estado.
+- [x] Mantener visibles las acciones de requisitos e inicio de solicitud.
+- [x] Explicar el paso siguiente del formulario y cuándo se envía la solicitud.
+- [x] Ocultar el muestrario en la compilación habitual y retirar cifras ficticias del perfil.
+- [x] Mostrar los datos publicados del refugio y accesos a sus funciones reales.
+- [x] Verificar compilación, Lint, 114 pruebas unitarias y 39 comprobaciones de interfaz.
+- [x] Revisar un ancho de teléfono de 411 dp y la bienvenida con letra al 130 % en la tableta; restaurar sus ajustes originales.
+
+[Detalle de cambios y validación](docs/interfaz-entregable.md). El APK 1.2 conserva la firma y los datos de la instalación normal.

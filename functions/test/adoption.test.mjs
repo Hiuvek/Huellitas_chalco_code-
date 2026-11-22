@@ -1,4 +1,4 @@
-import {before,after,beforeEach,test} from 'node:test';
+import {before,after,beforeEach,afterEach,test} from 'node:test';
 import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
 import {initializeApp,deleteApp} from 'firebase-admin/app';
@@ -20,11 +20,16 @@ const input=()=>({requestId:fixture.ids[0],dogId:fixture.dog,shelterId:'hu07-a',
 before(async()=>{actors={a:await login('a'),b:await login('b'),owner:await login('adopter')};});
 after(async()=>{await db.terminate();await deleteApp(app);});
 beforeEach(async()=>{
- const dog=`hu14-${randomUUID()}`,ids=Array.from({length:4},()=>randomUUID()),stamp=Timestamp.now();fixture={dog,ids,otherRequest:randomUUID()};
+ const dog=`hu14-${randomUUID()}`,ids=Array.from({length:4},()=>randomUUID()),stamp=Timestamp.now();fixture={dog,ids,otherRequest:`hu14-other-${randomUUID()}`};
  await db.doc(`perritos/${dog}`).set({refugioId:'hu07-a',nombre:'Demo entrega',publicado:true,estado:'En proceso',actualizadoEn:stamp});
  await db.doc(`perritos_control/${dog}`).set({refugioId:'hu07-a',solicitudAprobadaId:ids[0],adopcionId:null});
  await db.doc(`solicitudes/${fixture.otherRequest}`).set({usuarioUid:actors.owner.uid,refugioId:'hu07-a',perritoId:'another-dog',estado:'Enviada'});
  for(const [index,id] of ids.entries()) await db.doc(`solicitudes/${id}`).set({usuarioUid:index===0?actors.owner.uid:`demo-owner-${index}`,refugioId:'hu07-a',perritoId:dog,estado:['Aprobada','Enviada','En revisión','No aprobada'][index],motivoNoAprobacion:index===3?'Decisión anterior':null,creadoEn:stamp,actualizadoEn:stamp});
+});
+afterEach(async()=>{
+ const batch=db.batch();
+ for(const path of [`perritos/${fixture.dog}`,`perritos_control/${fixture.dog}`,`adopciones/${fixture.dog}`,`solicitudes/${fixture.otherRequest}`,...fixture.ids.map(id=>`solicitudes/${id}`),...fixture.ids.map(id=>`historial_solicitudes/${id}-no-aprobada`)]) batch.delete(db.doc(path));
+ await batch.commit();
 });
 test('HU14 registra entrega y cierra todas las pendientes con historial sin alterar decisiones previas',async()=>{
  const response=await record(input());assert.ok(response.result,JSON.stringify(response));assert.equal(response.result.id,fixture.dog);

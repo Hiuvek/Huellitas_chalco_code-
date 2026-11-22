@@ -64,7 +64,8 @@ class DescriptionAssistantViewModel(private val generator: DescriptionGenerator)
                     it.copy(
                         generating = false,
                         error =
-                            if (e is DescriptionRejected) e.message
+                            if (e is DescriptionRejected || e is DescriptionServiceFailure)
+                                e.message
                             else
                                 "No pudimos obtener una propuesta de Gemini. Revisa la conexión o sigue escribiendo manualmente.",
                     )

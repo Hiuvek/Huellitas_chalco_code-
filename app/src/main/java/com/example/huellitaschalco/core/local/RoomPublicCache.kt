@@ -29,6 +29,8 @@ class RoomPublicCache(
                 val metadata =
                     JSONObject()
                         .put("demo", s.demonstration)
+                        .put("latitude", s.location?.latitude ?: JSONObject.NULL)
+                        .put("longitude", s.location?.longitude ?: JSONObject.NULL)
                         .put(
                             "requirements",
                             JSONArray(s.policy?.requirements ?: emptyList<String>()),
@@ -94,6 +96,10 @@ class RoomPublicCache(
                 AdoptionPolicy.fromStored(
                     metadata.getJSONArray("requirements").strings(),
                     metadata.getJSONArray("steps").strings(),
+                ),
+                PublicCoordinates.checked(
+                    if (metadata.isNull("latitude")) null else metadata.getDouble("latitude"),
+                    if (metadata.isNull("longitude")) null else metadata.getDouble("longitude"),
                 ),
             )
         }

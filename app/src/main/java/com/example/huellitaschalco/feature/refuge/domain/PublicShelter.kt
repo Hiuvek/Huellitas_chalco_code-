@@ -11,6 +11,7 @@ data class PublicShelter(
     val hours: String,
     val demonstration: Boolean,
     val policy: AdoptionPolicy? = null,
+    val location: PublicCoordinates? = null,
 )
 
 data class PublicShelterState(

@@ -86,6 +86,7 @@ class FirebaseCatalogRepository(
                                             d.get("requisitos"),
                                             d.get("pasos"),
                                         ),
+                                        PublicCoordinates.fromStored(d.get("ubicacionAproximada")),
                                     )
                                 },
                         )

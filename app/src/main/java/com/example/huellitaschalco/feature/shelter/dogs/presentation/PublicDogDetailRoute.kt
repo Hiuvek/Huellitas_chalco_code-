@@ -119,6 +119,7 @@ fun PublicDogDetailRoute(
                         HKeyValue("Zona", shelter.zone, true)
                         HKeyValue("Horario", shelter.hours, true)
                     }
+                    com.example.huellitaschalco.feature.refuge.maps.PublicMapPanel(shelter)
                     HButton(
                         "Ver requisitos de adopción",
                         { nav.open(UiScreen.Requirements, recordId = id) },

@@ -58,6 +58,9 @@ class FirebasePublicShelterRepository(private val db: FirebaseFirestore?) :
                                             doc.get("requisitos"),
                                             doc.get("pasos"),
                                         ),
+                                        PublicCoordinates.fromStored(
+                                            doc.get("ubicacionAproximada")
+                                        ),
                                     ),
                                 )
                         }

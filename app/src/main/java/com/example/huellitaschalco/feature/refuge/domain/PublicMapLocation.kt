@@ -3,6 +3,7 @@ package com.example.huellitaschalco.feature.refuge.domain
 import java.net.URLEncoder
 import java.util.Locale
 
+@ConsistentCopyVisibility
 data class PublicCoordinates private constructor(val latitude: Double, val longitude: Double) {
     companion object {
         fun checked(latitude: Double?, longitude: Double?): PublicCoordinates? =

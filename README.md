@@ -58,3 +58,11 @@ Verificación anterior de Spark: **114 pruebas unitarias, 85 de reglas y 63 comp
 - [x] Revisar un ancho de teléfono de 411 dp y la bienvenida con letra al 130 % en la tableta; restaurar sus ajustes originales.
 
 [Detalle de cambios y validación](docs/interfaz-entregable.md). El APK 1.2 conserva la firma y los datos de la instalación normal.
+
+## Verificación en la nube
+
+- [x] Recorrido completo con repositorios Android en Firebase real: solicitud, evaluación, entrega simulada, revisión y seguimiento con foto privada.
+- [x] Comprobar cambios entre sesiones independientes, reintentos sin duplicación y rechazo del acceso privado del adoptante.
+- [ ] Comprobar simultaneidad entre dos dispositivos físicos y redes distintas.
+
+[Resultado y evidencia de la adopción en la nube](docs/adopcion-nube.md). El recorrido automatizado no equivale a completar manualmente todos los formularios en producción.

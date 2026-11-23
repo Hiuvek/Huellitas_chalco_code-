@@ -90,3 +90,12 @@ La fecha se inicializa al abrir un formulario nuevo; editarla no cambia las fech
 - [x] Retirar accesos que duplicaban las pestañas de administración.
 - [x] Separar información pública, catálogo para adoptantes y cuenta responsable.
 - [x] Mostrar el nombre del refugio una sola vez en Solicitudes recibidas.
+
+## Eliminar perritos — versión 1.3.0
+
+- [x] Eliminar de Mis perritos con confirmación por nombre.
+- [x] Retirar disponibles del catálogo público y conservar el historial relacionado.
+- [x] Proteger adopciones en proceso y restringir la operación al refugio autorizado.
+- [x] Permitir cancelación y reintento sin duplicar la operación.
+
+[Comportamiento, permisos y pruebas](docs/eliminar-perritos.md). Las solicitudes pendientes se resuelven desde Solicitudes; no se cierran automáticamente.

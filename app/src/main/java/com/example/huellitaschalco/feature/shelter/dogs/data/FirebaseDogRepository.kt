@@ -19,6 +19,47 @@ class FirebaseDogRepository(
     override val isConfigured
         get() = db != null
 
+    override suspend fun remove(uid: String, shelterId: String, dogId: String) {
+        require(auth.user.value?.uid == uid)
+        val database = requireNotNull(db)
+        database
+            .runTransaction { tx ->
+                val reference = database.collection("perritos").document(dogId)
+                val dog = tx.get(reference)
+                val control = tx.get(database.collection("perritos_control").document(dogId))
+                if (
+                    dog.getString("refugioId") != shelterId ||
+                        control.getString("refugioId") != shelterId
+                )
+                    throw DogRemovalRejected("Este perrito no pertenece al refugio seleccionado.")
+                if (dog.getBoolean("eliminado") != true) {
+                    val status = dog.getString("estado")
+                    if (
+                        status !in listOf("Disponible", "Adoptado") ||
+                            (status == "Disponible" &&
+                                (control.getString("solicitudAprobadaId") != null ||
+                                    control.getString("adopcionId") != null)) ||
+                            (status == "Adoptado" && control.getString("adopcionId") != dogId)
+                    )
+                        throw DogRemovalRejected(
+                            "No se puede eliminar un perrito con una adopción en proceso. Completa primero la entrega."
+                        )
+                    tx.update(
+                        reference,
+                        mapOf(
+                            "eliminado" to true,
+                            "eliminadoEn" to FieldValue.serverTimestamp(),
+                            "eliminadoPorUid" to uid,
+                            "publicado" to
+                                (status == "Adoptado" && dog.getBoolean("publicado") == true),
+                            "actualizadoEn" to FieldValue.serverTimestamp(),
+                        ),
+                    )
+                }
+            }
+            .await()
+    }
+
     override suspend fun publish(
         publication: DogPublication,
         progress: (String) -> Unit,

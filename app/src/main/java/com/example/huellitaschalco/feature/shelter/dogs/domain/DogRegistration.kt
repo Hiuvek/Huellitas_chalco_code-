@@ -79,6 +79,10 @@ interface DogRepository {
 
     suspend fun publish(publication: DogPublication, progress: (String) -> Unit): RegisteredDog
 
+    suspend fun remove(uid: String, shelterId: String, dogId: String) {
+        throw UnsupportedOperationException("La eliminación no está disponible.")
+    }
+
     suspend fun updateDog(attempt: DogEditAttempt, progress: (String) -> Unit): RegisteredDog
 
     fun observe(shelterId: String): Flow<ShelterDogs>

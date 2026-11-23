@@ -82,14 +82,26 @@ service cloud.firestore {
       allow get: if resource == null && activeUser();
       allow create: if validNewDog(request.resource.data, id);
       // Salud y datos generales se guardan por separado; propietario y ciclo de adopción son inmutables aquí.
-      allow update: if request.resource.data.estado == resource.data.estado && manages(resource.data.refugioId) && request.resource.data.actualizadoEn == request.time && (
+      allow update: if request.resource.data.estado == resource.data.estado && resource.data.get('eliminado', false) == false && manages(resource.data.refugioId) && request.resource.data.actualizadoEn == request.time && (
         (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['vacunacion','desparasitacion','esterilizacion','actualizadoEn']) &&
           validHealth(request.resource.data)) ||
         (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['nombre','edadMeses','tamano','sexo','descripcion','fotos','actualizadoEn']) &&
           validEditedDog(request.resource.data,id))
       );
       allow update: if resource.data.estado == 'Disponible' && request.resource.data.estado == 'En proceso' && validApprovalDog(request.resource.data,id);
+      allow update: if validDogRemoval(request.resource.data,id);
       allow delete: if false;
+    }
+    function validDogRemoval(d,id) {
+      let old = resource.data;
+      let control = get(/databases/$(database)/documents/perritos_control/$(id)).data;
+      return manages(old.refugioId) && old.get('eliminado',false) == false &&
+        old.estado in ['Disponible','Adoptado'] && control.refugioId == old.refugioId &&
+        ((old.estado == 'Disponible' && control.solicitudAprobadaId == null && control.adopcionId == null) ||
+          (old.estado == 'Adoptado' && control.adopcionId == id)) &&
+        d.diff(old).affectedKeys().hasOnly(['eliminado','eliminadoEn','eliminadoPorUid','publicado','actualizadoEn']) &&
+        d.eliminado == true && d.eliminadoEn == request.time && d.eliminadoPorUid == request.auth.uid &&
+        d.actualizadoEn == request.time && d.publicado == (old.estado == 'Adoptado' ? old.publicado : false);
     }
     function validContact(c) {
       return c is map && c.keys().hasOnly(['nombre','correo','telefono']) &&

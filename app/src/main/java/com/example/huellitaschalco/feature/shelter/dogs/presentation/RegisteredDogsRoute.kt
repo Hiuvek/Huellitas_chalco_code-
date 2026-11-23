@@ -14,13 +14,14 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.huellitaschalco.core.designsystem.*
 import com.example.huellitaschalco.core.navigation.*
 import com.example.huellitaschalco.feature.shelter.dogs.domain.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-/** Consulta mínima para comprobar el alta de HU-08; la edición queda pendiente de HU-10. */
+/** Administración de fichas, salud y eliminación de la lista del refugio. */
 @Composable
 fun RegisteredDogsRoute(
     nav: UiNavigator,
@@ -34,6 +35,15 @@ fun RegisteredDogsRoute(
     val state by flow.collectAsStateWithLifecycle(ShelterDogs())
     val recordId = nav.current.recordId
     val selected = state.dogs.firstOrNull { it.id == recordId }
+    val removal: DogRemovalViewModel =
+        viewModel(
+            key = "remove-$uid-$shelterId-$recordId",
+            factory = DogRemovalViewModel.factory(repository, uid, shelterId, recordId ?: ""),
+        )
+    val removalState by removal.state.collectAsStateWithLifecycle()
+    LaunchedEffect(removalState.removed) {
+        if (removalState.removed) nav.root(UiScreen.ShelterDogs)
+    }
     var editing by rememberSaveable(uid, shelterId, recordId) { mutableStateOf(false) }
     var session by rememberSaveable(uid, shelterId, recordId) { mutableIntStateOf(0) }
     if (editing && selected != null) {
@@ -57,6 +67,10 @@ fun RegisteredDogsRoute(
         if (repository.usesEmulator)
             HCaption("Entorno de prueba local: registros ficticios en emuladores.")
         when {
+            removalState.removing || removalState.removed -> {
+                LinearProgressIndicator(Modifier.fillMaxWidth())
+                HBody("Eliminando de la lista…")
+            }
             state.loading -> LinearProgressIndicator(Modifier.fillMaxWidth())
             state.error != null -> {
                 HBanner(state.error!!, HSymbol.Alert, error = true)
@@ -86,6 +100,20 @@ fun RegisteredDogsRoute(
                     Modifier.testTag("dog-edit"),
                     icon = HSymbol.Edit,
                 )
+                HorizontalDivider()
+                HButton(
+                    "Eliminar de la lista",
+                    { removal.ask(selected.name) },
+                    Modifier.testTag("dog-remove"),
+                    outlined = true,
+                    danger = true,
+                    enabled = selected.status != "En proceso",
+                )
+                HCaption(
+                    if (selected.status == "En proceso")
+                        "Tiene una adopción en proceso. Completa la entrega antes de retirarlo de la lista."
+                    else "Se conservarán las solicitudes y el historial relacionados."
+                )
             }
             state.dogs.isEmpty() -> HBody("Todavía no has publicado perritos en este refugio.")
             else ->
@@ -100,6 +128,44 @@ fun RegisteredDogsRoute(
                 }
         }
     }
+    if (removalState.confirming)
+        AlertDialog(
+            onDismissRequest = removal::cancel,
+            title = { Text("¿Eliminar a ${removalState.name} de la lista?") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    HBody(
+                        "Se quitará de Mis perritos y, si está disponible, del catálogo público. Esta acción no se puede deshacer desde la app."
+                    )
+                    HBody(
+                        "Las solicitudes, adopciones y seguimientos se conservan. Las solicitudes pendientes deben resolverse desde Solicitudes."
+                    )
+                    if (removalState.removing) LinearProgressIndicator(Modifier.fillMaxWidth())
+                    removalState.error?.let { HBanner(it, HSymbol.Alert, error = true) }
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = removal::confirm,
+                    enabled = !removalState.removing,
+                    modifier = Modifier.testTag("dog-remove-confirm"),
+                ) {
+                    Text(
+                        if (removalState.removing) "Eliminando…" else "Eliminar de la lista",
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = removal::cancel,
+                    enabled = !removalState.removing,
+                    modifier = Modifier.testTag("dog-remove-cancel"),
+                ) {
+                    Text("Conservar perrito")
+                }
+            },
+        )
 }
 
 @Composable

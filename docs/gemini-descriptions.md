@@ -60,3 +60,11 @@ Si se reinstala borrando los datos o se usa otro dispositivo/build con almacenam
 Antes de transmitir los datos de la ficha se solicita un token de App Check. Si falla la verificación, el asistente informa que la instalación necesita autorización. Los errores del SDK distinguen cuota, configuración, contenido bloqueado, tiempo agotado y servicio no disponible; los errores de red se reconocen también dentro de sus causas. Los mensajes son controlados y no muestran respuestas crudas del servidor ni credenciales. Se conserva la propuesta anterior cuando falla un nuevo intento.
 
 Se añadieron cuatro pruebas unitarias de clasificación y conservación de propuestas; el total es 113. Compilaciones normal/local, Lint y la petición real en la app normal actualizada pasaron. La comprobación completa con una tableta está en [demo-un-dispositivo.md](demo-un-dispositivo.md).
+
+## Disponible también al editar un perrito — versión 1.4.0
+
+Desde Mis perritos → abrir ficha → Editar perrito → Redactar con Gemini. Reutiliza el mismo generador y controles del registro. Usa el nombre, edad, tamaño, sexo y descripción actuales del formulario. No envía fotografías ni datos privados de solicitudes.
+
+Permite generar, editar, descartar o aceptar la propuesta. Aceptar solo cambia el borrador: todavía se debe revisar y confirmar el guardado del perrito. Cerrar el editor cancela la generación pendiente y cada ficha y sesión de edición tiene su propio estado de asistente.
+
+`DogEditAssistantFlowTest` usa un generador controlado para comprobar datos editados, error, descarte, edición y aceptación sin guardar automáticamente. La configuración de Gemini y App Check es la misma que en el registro.

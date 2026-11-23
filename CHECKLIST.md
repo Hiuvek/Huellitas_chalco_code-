@@ -99,3 +99,12 @@ La fecha se inicializa al abrir un formulario nuevo; editarla no cambia las fech
 - [x] Permitir cancelación y reintento sin duplicar la operación.
 
 [Comportamiento, permisos y pruebas](docs/eliminar-perritos.md). Las solicitudes pendientes se resuelven desde Solicitudes; no se cierran automáticamente.
+
+## Edición del refugio y Gemini — versión 1.4.0
+
+- [x] Editar datos públicos, requisitos, pasos y ubicación desde Perfil.
+- [x] Validar permisos y evitar sobrescribir otra edición del refugio.
+- [x] Confirmar antes de descartar cambios y permitir reintentos ante errores.
+- [x] Ofrecer propuestas de Gemini en Editar perrito con revisión y aceptación manual.
+
+[Edición del refugio](docs/editar-refugio.md). Crear refugios y asignar responsables sigue siendo administrativo.

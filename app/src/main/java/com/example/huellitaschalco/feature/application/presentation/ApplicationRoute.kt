@@ -174,8 +174,6 @@ fun ApplicationRoute(
         } else {
             HBody(shelter.name)
             HCaption("El borrador se guarda en este dispositivo para esta cuenta.")
-            if (dog.demonstration || shelter.demonstration)
-                HCaption("Solicitud de demostración escolar. No corresponde a una adopción real.")
             if (!allowed)
                 HBanner(
                     "Este perrito no admite solicitudes nuevas o su refugio no tiene requisitos completos.",

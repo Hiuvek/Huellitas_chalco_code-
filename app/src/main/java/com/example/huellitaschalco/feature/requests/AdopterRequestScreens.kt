@@ -42,7 +42,7 @@ fun RequestDetailScreen(nav: UiNavigator, destination: UiDestination) {
     HScaffold(nav, "Detalle de solicitud", "Folio HC-2026-0148") {
         HDogRow(
             PreviewData.dog(destination.dogId),
-            "Refugio 1",
+            "Huellitas del Valle",
             onClick = { nav.open(UiScreen.DogDetail) },
         )
         HCard {

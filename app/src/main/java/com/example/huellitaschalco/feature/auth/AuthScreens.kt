@@ -64,7 +64,8 @@ fun AuthScreen(nav: UiNavigator, destination: UiDestination) {
             )
         HInput(
             if (shelter) "Correo del refugio" else "Correo electrónico",
-            if (signUp) "" else if (shelter) "refugio1@demo.mx" else "usuario1@demo.mx",
+            if (signUp) ""
+            else if (shelter) "adopciones@huellitasdelvalle.invalid" else "ana@correo.invalid",
             keyboard = KeyboardType.Email,
         )
         HInput(

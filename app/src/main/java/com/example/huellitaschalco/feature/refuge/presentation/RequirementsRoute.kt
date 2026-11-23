@@ -68,11 +68,6 @@ fun RequirementsRoute(
                     "Antes de solicitar a ${dog.name}",
                     "Lee las condiciones y los pasos de ${shelter.name}. Después pulsa Iniciar solicitud.",
                 )
-                if (shelter.demonstration || dog.demonstration)
-                    HBanner(
-                        "Requisitos de demostración escolar. No corresponden a una adopción real.",
-                        HSymbol.Info,
-                    )
                 val policy = shelter.policy
                 if (policy == null) {
                     HBanner(

@@ -17,7 +17,6 @@ fun PublicMapPanel(shelter: PublicShelter, launcher: PublicMapLauncher? = null) 
     HCard {
         HHeading("Ubicación pública aproximada")
         HBody("${shelter.zone}, ${shelter.municipality}, ${shelter.state}")
-        if (shelter.demonstration) HTag("Ubicación de demostración")
         if (url == null) HBody("El refugio todavía no ha publicado una ubicación para Google Maps.")
         else {
             HCaption(

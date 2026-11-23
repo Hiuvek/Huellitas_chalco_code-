@@ -176,13 +176,10 @@ fun PreviewGalleryScreen(nav: UiNavigator) {
         )
     HScaffold(
         nav,
-        "Vistas de ejemplo",
+        "Vistas de la aplicación",
         "${groups.sumOf { it.second.size }} pantallas y variantes",
     ) {
-        HBanner(
-            "Muestrario de interfaz. Los formularios, estados e imágenes son ejemplos; no se crean cuentas ni se guardan solicitudes o adopciones.",
-            HSymbol.Eye,
-        )
+        HBanner("Recorre las pantallas y consulta sus diferentes estados.", HSymbol.Eye)
         groups.forEach { (name, entries) ->
             HHeading(name)
             entries.forEach { entry ->

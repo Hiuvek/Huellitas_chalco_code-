@@ -38,7 +38,6 @@ internal fun ShelterProfileContent(
             icon = HSymbol.Edit,
             enabled = info != null && !state.loading && !state.stale && state.error == null,
         )
-        if (info?.demonstration == true) HTag("Refugio de demostración")
         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
             HCaption("Zona pública")
             HBody(

@@ -40,7 +40,6 @@ fun CatalogRoute(
         back = false,
         tab = "Explorar",
     ) {
-        if (photos.usesEmulator) HCaption("Entorno de prueba local: registros de demostración.")
         HScreenIntro(
             "Encuentra a tu compañero",
             "Elige una tarjeta para ver su foto, conocerlo y revisar cómo adoptar.",
@@ -109,7 +108,10 @@ fun CatalogRoute(
                     HButton("Ver todos", model::clear, outlined = true)
                 }
             else -> {
-                HCaption("${state.visible.size} perritos buscan hogar")
+                HCaption(
+                    if (state.visible.size == 1) "1 perrito busca hogar"
+                    else "${state.visible.size} perritos buscan hogar"
+                )
                 state.visible.forEach { item ->
                     Surface(
                         onClick = { nav.open(UiScreen.DogDetail, recordId = item.dog.id) },

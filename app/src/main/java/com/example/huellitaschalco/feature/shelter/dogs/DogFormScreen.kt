@@ -38,7 +38,7 @@ fun DogFormScreen(nav: UiNavigator, destination: UiDestination) {
     HScaffold(
         nav,
         if (editing) "Editar perrito" else "Registrar perrito",
-        if (editing) "${dog.name} · ${dog.status}" else "Refugio 1",
+        if (editing) "${dog.name} · ${dog.status}" else "Huellitas del Valle",
         bottom = {
             HButton(
                 if (editing) "Guardar cambios" else "Revisar antes de publicar",

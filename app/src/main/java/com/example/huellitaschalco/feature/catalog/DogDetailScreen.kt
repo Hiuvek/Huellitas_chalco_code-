@@ -55,7 +55,6 @@ fun DogDetailScreen(nav: UiNavigator, destination: UiDestination) {
         HHeading("Refugio")
         HCard(onClick = { nav.open(UiScreen.RefugeInformation) }) {
             HHeading(dog.refuge)
-            HCaption("Refugio ficticio · demostración")
             HBody("Zona centro de Chalco", muted = true)
             HBody("Lunes a sábado · 10:00 a 17:00", muted = true)
         }
@@ -75,9 +74,7 @@ fun RequirementsScreen(nav: UiNavigator) {
         "${PreviewData.dog(nav.current.dogId).name} · ${PreviewData.dog(nav.current.dogId).refuge}",
         bottom = { HButton("Iniciar solicitud", { nav.open(UiScreen.ApplicationContact) }) },
     ) {
-        HBanner(
-            "Requisitos de ejemplo. Cada refugio define sus propias condiciones; confírmalas durante la entrevista."
-        )
+        HBanner("Revisa las condiciones del refugio y confírmalas durante la entrevista.")
         HHeading("Condiciones del refugio")
         PreviewData.requirements.forEach { requirement ->
             HCard {
@@ -116,7 +113,6 @@ fun RequirementsScreen(nav: UiNavigator) {
 @Composable
 fun RefugeInformationScreen(nav: UiNavigator) {
     HScaffold(nav, PreviewData.dog(nav.current.dogId).refuge, "Información pública") {
-        HTag("Refugio ficticio")
         HCard {
             HKeyValue("Municipio", "Chalco, Estado de México")
             HKeyValue("Zona", "Centro de Chalco", true)

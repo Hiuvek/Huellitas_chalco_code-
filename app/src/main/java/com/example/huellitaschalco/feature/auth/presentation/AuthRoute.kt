@@ -82,11 +82,6 @@ fun AuthRoute(nav: UiNavigator, destination: UiDestination, repository: AuthRepo
                 HSymbol.Info,
                 error = true,
             )
-        if (repository.usesEmulator)
-            HBanner(
-                "Entorno de prueba local. Estas cuentas no se crean en el proyecto real.",
-                HSymbol.Info,
-            )
         if (signUp)
             HInput(
                 label = "Nombre completo",

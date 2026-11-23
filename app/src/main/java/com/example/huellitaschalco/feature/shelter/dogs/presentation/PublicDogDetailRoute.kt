@@ -122,13 +122,8 @@ fun PublicDogDetailRoute(
                         Modifier.testTag("detail-refuge"),
                         outlined = true,
                     )
-                    if (dog.demonstration || shelter.demonstration)
-                        HCaption(
-                            "Ejemplo escolar: este registro no corresponde a una adopción real."
-                        )
                 } else {
                     HHeading(shelter.name)
-                    if (shelter.demonstration) HTag("Refugio de demostración")
                     HCard {
                         HKeyValue("Municipio", "${shelter.municipality}, ${shelter.state}")
                         HKeyValue("Zona", shelter.zone, true)

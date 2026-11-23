@@ -69,8 +69,6 @@ fun RegisteredDogsRoute(
             )
         if (recordId == null)
             HButton("Registrar perrito", { nav.open(UiScreen.DogForm) }, icon = HSymbol.Plus)
-        if (repository.usesEmulator)
-            HCaption("Entorno de prueba local: registros ficticios en emuladores.")
         when {
             removalState.removing || removalState.removed -> {
                 LinearProgressIndicator(Modifier.fillMaxWidth())
@@ -93,7 +91,6 @@ fun RegisteredDogsRoute(
                 HHeading(selected.name)
                 HBody("${selected.ageMonths} meses · ${selected.size} · ${selected.sex}")
                 HBody(selected.description)
-                HCaption("Folio: ${selected.id}")
                 DogHealthEditor(uid, selected, repository)
                 HButton(
                     "Ver ficha pública",

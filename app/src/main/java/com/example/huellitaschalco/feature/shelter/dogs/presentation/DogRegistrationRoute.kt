@@ -120,11 +120,7 @@ fun DogRegistrationRoute(
                     )
                     HBody("${dog.ageMonths} meses · ${dog.size} · ${dog.sex}")
                     HCaption("Folio: ${dog.id}")
-                    HCaption(
-                        if (repository.usesEmulator)
-                            "Publicación de prueba local. No aparece en Firebase real."
-                        else "El registro está disponible en el catálogo de adopción."
-                    )
+                    HCaption("El registro está disponible en el catálogo de adopción.")
                 } else
                     HBody(
                         "No hay una publicación confirmada en esta sesión. Consulta Mis perritos para revisar los registros guardados."
@@ -169,11 +165,6 @@ fun DogRegistrationRoute(
                     HBody(state.draft.description.trim())
                     HCaption("Estado inicial: Disponible.")
                     DogHealthSummary(state.draft.health)
-                    if (repository.usesEmulator)
-                        HBanner(
-                            "Prueba local: los datos y fotografías se guardan únicamente en los emuladores.",
-                            HSymbol.Info,
-                        )
                     if (state.publishing) LinearProgressIndicator(Modifier.fillMaxWidth())
                     state.error?.let { HBanner(it, HSymbol.Alert, error = true) }
                     if (state.locked && !state.publishing)

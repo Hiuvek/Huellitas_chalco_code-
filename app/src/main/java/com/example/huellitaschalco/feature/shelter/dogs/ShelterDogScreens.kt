@@ -20,7 +20,7 @@ fun ShelterDogsScreen(nav: UiNavigator, destination: UiDestination) {
     HScaffold(
         nav,
         "Mis perritos",
-        "Refugio 1 · demostración",
+        "Huellitas del Valle",
         back = false,
         shelter = true,
         tab = "Perritos",

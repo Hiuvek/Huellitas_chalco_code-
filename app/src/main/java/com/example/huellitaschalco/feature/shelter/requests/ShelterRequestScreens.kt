@@ -18,7 +18,7 @@ fun ShelterRequestsScreen(nav: UiNavigator, destination: UiDestination) {
     HScaffold(
         nav,
         "Solicitudes",
-        "Recibidas · Refugio 1",
+        "Recibidas · Huellitas del Valle",
         back = false,
         shelter = true,
         tab = "Solicitudes",
@@ -155,7 +155,7 @@ fun EvaluateRequestScreen(nav: UiNavigator, destination: UiDestination) {
         HCard {
             HHeading(request.user)
             HBody("550000000${request.id}")
-            HBody("usuario${request.id}@demo.mx", muted = true)
+            HBody("adoptante${request.id}@correo.invalid", muted = true)
             HorizontalDivider()
             HKeyValue("Estado actual", state)
             if (completed) HTag("Adopción realizada")

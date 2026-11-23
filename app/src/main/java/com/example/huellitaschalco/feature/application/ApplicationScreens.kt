@@ -76,7 +76,7 @@ fun ApplicationScreen(nav: UiNavigator, destination: UiDestination) {
                     keyboard = KeyboardType.Phone,
                     error = if (fieldError) "El teléfono debe tener 10 dígitos." else null,
                 )
-                HInput("Correo electrónico", "usuario1@demo.mx", keyboard = KeyboardType.Email)
+                HInput("Correo electrónico", "ana@correo.invalid", keyboard = KeyboardType.Email)
                 if (fieldError)
                     HBanner("Completa los campos obligatorios marcados.", HSymbol.Alert, true)
             }
@@ -118,7 +118,7 @@ fun ApplicationScreen(nav: UiNavigator, destination: UiDestination) {
                 ReviewSection("Contacto", { nav.open(UiScreen.ApplicationContact) }) {
                     HKeyValue("Nombre", "Usuario 1")
                     HKeyValue("Teléfono", "5500000001", true)
-                    HKeyValue("Correo", "usuario1@demo.mx", true)
+                    HKeyValue("Correo", "ana@correo.invalid", true)
                 }
                 ReviewSection("Tu hogar", { nav.open(UiScreen.ApplicationHome) }) {
                     HKeyValue("Vivienda", "Casa")

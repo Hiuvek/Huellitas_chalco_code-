@@ -1,0 +1,58 @@
+{
+  "generator": "image_gen builtin",
+  "style": "photorealistic-natural; cuerpo completo, patio con luz natural, sin texto ni marcas",
+  "subjects": [
+    {
+      "name": "chispa",
+      "file": "photos/chispa.jpg",
+      "subject": "female, four-month-old small cream short-haired terrier mix puppy, floppy ears, playful seated pose",
+      "prompt": "Use case: photorealistic-natural. Asset: dog adoption app portrait photograph. A single female mixed-breed puppy named Chispa, four months old, small cream short-haired terrier mix with floppy ears, sitting on a clean shaded courtyard floor, attentive and playful. Full body and all paws entirely visible, natural daylight, realistic candid rescue shelter portrait, simple neutral background, square framing, no person, no collars with text, no written text, no watermark. This is one portrait, not a collage."
+    },
+    {
+      "name": "canelo",
+      "file": "photos/canelo.jpg",
+      "subject": "male, 8-year-old medium-sized cinnamon short-haired mixed-breed dog, gray muzzle, calm seated posture, front right paw resting gently with an old healed stiffness, all four legs intact, no injury, warm brown eyes"
+    },
+    {
+      "name": "oliva",
+      "file": "photos/oliva.jpg",
+      "subject": "female, 2-year-old medium-sized black-and-white border collie mix, semi-floppy ears, standing attentively with tennis ball beside her, energetic but relaxed"
+    },
+    {
+      "name": "mora",
+      "file": "photos/mora.jpg",
+      "subject": "female, 3-year-old small black scruffy schnauzer terrier mix with soft gray eyebrows, shy gentle gaze, relaxed lying on a blanket"
+    },
+    {
+      "name": "dante",
+      "file": "photos/dante.jpg",
+      "subject": "male, 4-year-old large German shepherd mix, tan coat and black saddle, upright ears, calmly sitting"
+    },
+    {
+      "name": "lola",
+      "file": "photos/lola.jpg",
+      "subject": "female, 5-year-old medium-sized caramel beagle mix, long floppy ears and white chest, friendly seated pose"
+    },
+    {
+      "name": "simon",
+      "file": "photos/simon.jpg",
+      "subject": "male, 5-year-old medium-sized tan-and-white hound mix, white muzzle stripe, floppy ears, friendly standing pose"
+    },
+    {
+      "name": "pipa",
+      "file": "photos/pipa.jpg",
+      "subject": "female, 3-month-old small white-and-tan short-haired mixed-breed puppy, floppy ears, curious seated pose"
+    },
+    {
+      "name": "nube",
+      "file": "photos/nube.jpg",
+      "subject": "male, 10-year-old small white poodle mix with curly coat and gray nose, relaxed gentle seated pose"
+    },
+    {
+      "name": "sol",
+      "file": "photos/sol.jpg",
+      "subject": "female, 18-month-old large golden labrador mix with honey coat, soft ears, cheerful standing pose"
+    }
+  ],
+  "promptTemplate": "Use case: photorealistic-natural. Asset type: individual dog adoption portrait photograph. Subject: one {subject}. Scene: clean shaded rescue shelter courtyard with simple warm neutral walls and a little greenery out of focus, natural daylight. Realistic candid portrait with visible fur texture, full body and every paw within frame, square composition, natural proportions, no people, no text, no watermark, no logos, no collage. Exactly one dog."
+}

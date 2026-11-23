@@ -43,3 +43,13 @@ Esta actualización cambia presentación, orientación y accesos del perfil. El 
 Los registros de ejecución se conservaron en el directorio de trabajo local de esta revisión: `ui-hierarchy-delivery-build.log`, `ui-hierarchy-flows.log`, `ui-hierarchy-regressions.log`, `ui-hierarchy-delivery.log`, `ui-hierarchy-followups.log` y `ui-phone-review.log`. Las dos comprobaciones que inicialmente esperaban etiquetas o conteos antiguos se corrigieron y volvieron a pasar. Los 39 casos se cuentan una sola vez.
 
 Esta revisión no repite las 85 pruebas de reglas de la adaptación a Spark ni equivale a una prueba en dos dispositivos físicos.
+
+## Ajustes de la versión 1.2.1
+
+La fecha real de entrega se inicializa al día actual en la zona de Ciudad de México, con formato AAAA-MM-DD. Se puede editar antes de confirmar para indicar una entrega anterior. Se mantienen el rechazo de fechas futuras y la confirmación de entrega y carta. Las entregas ya registradas conservan su fecha original.
+
+Cuando el cierre de otras solicitudes termina, aparece «Cierre completado. No quedan otras solicitudes pendientes para este perrito.» y se oculta su botón. Antes seguía visible aunque el cierre ya se había confirmado, lo que hacía parecer que no respondía al pulsarlo de nuevo. No se modificaron las transacciones ni los permisos. Al volver a abrir una entrega guardada se puede verificar/completar el cierre de nuevo; no crea otra adopción.
+
+Validación 1.2.1: compilación normal, 114 pruebas unitarias y Lint correctos. La prueba de interfaz de entrega comprobó hoy por defecto, cambio a ayer y persistencia de la fecha modificada en emuladores. Después se ajustó la visibilidad del cierre y se verificó manualmente en la app normal contra Firebase real con la entrega ya guardada de Kira: tras verificar el cierre aparece el mensaje de confirmación y desaparece el botón, sin registrar otra adopción.
+
+Evidencia local: `delivery-date-ui.log`, `delivery-date-final-build.log` y `delivery-closure-fixed.png`. APK 1.2.1 (código 4), firma original, instalado en la tableta y copiado a Descargas/Huellitas-Chalco-Spark.

@@ -66,3 +66,12 @@ Verificación anterior de Spark: **114 pruebas unitarias, 85 de reglas y 63 comp
 - [ ] Comprobar simultaneidad entre dos dispositivos físicos y redes distintas.
 
 [Resultado y evidencia de la adopción en la nube](docs/adopcion-nube.md). El recorrido automatizado no equivale a completar manualmente todos los formularios en producción.
+
+## Fecha de entrega — versión 1.2.1
+
+- [x] Mostrar la fecha actual por defecto al abrir el formulario, según la zona de Ciudad de México.
+- [x] Permitir cambiarla para registrar una entrega anterior, manteniendo las validaciones de fecha y confirmación.
+
+La fecha se inicializa al abrir un formulario nuevo; editarla no cambia las fechas de entregas ya guardadas.
+
+- [x] Ocultar «Completar cierre de solicitudes» al confirmar el cierre y mostrar «Cierre completado». El botón sigue disponible para recuperar un cierre que se haya interrumpido.

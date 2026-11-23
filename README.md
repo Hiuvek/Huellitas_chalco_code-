@@ -75,3 +75,10 @@ Verificación anterior de Spark: **114 pruebas unitarias, 85 de reglas y 63 comp
 La fecha se inicializa al abrir un formulario nuevo; editarla no cambia las fechas de entregas ya guardadas.
 
 - [x] Ocultar «Completar cierre de solicitudes» al confirmar el cierre y mostrar «Cierre completado». El botón sigue disponible para recuperar un cierre que se haya interrumpido.
+
+## Colores — versión 1.2.2
+
+- [x] Verde bosque para las selecciones y controles activos en el tema global.
+- [x] Fondos de selección verde salvia; estados negativos en neutro, identificados con texto e icono.
+- [x] Rojo reservado para errores, avisos críticos y acciones destructivas.
+- [x] Retirar rojo de estados rutinarios, mapa ilustrativo normal y cierre de sesión.

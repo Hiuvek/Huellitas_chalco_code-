@@ -53,3 +53,13 @@ Cuando el cierre de otras solicitudes termina, aparece «Cierre completado. No q
 Validación 1.2.1: compilación normal, 114 pruebas unitarias y Lint correctos. La prueba de interfaz de entrega comprobó hoy por defecto, cambio a ayer y persistencia de la fecha modificada en emuladores. Después se ajustó la visibilidad del cierre y se verificó manualmente en la app normal contra Firebase real con la entrega ya guardada de Kira: tras verificar el cierre aparece el mensaje de confirmación y desaparece el botón, sin registrar otra adopción.
 
 Evidencia local: `delivery-date-ui.log`, `delivery-date-final-build.log` y `delivery-closure-fixed.png`. APK 1.2.1 (código 4), firma original, instalado en la tableta y copiado a Descargas/Huellitas-Chalco-Spark.
+
+## Paleta de la versión 1.2.2
+
+Por elección del usuario, los colores principal, secundario y terciario usan verde bosque `#4D6550`, con contenedores salvia `#E3E9DF`. Los componentes Material de selección, filtros, pestañas y formularios heredan esta paleta global. Los controles personalizados conservan el mismo verde.
+
+Los estados rutinarios En proceso, En revisión y Esta semana dejan de usar terracota. No y No aprobada usan un tono neutro, con texto e icono para distinguirlos sin depender del color. El mapa ilustrativo normal y Cerrar sesión también dejan de usar rojo. Los errores, instrucciones críticas y acciones destructivas conservan terracota `#B24B32` con fondo suave cuando corresponde.
+
+El cambio solo afecta la presentación: no modifica estados de solicitudes, permisos ni operaciones en Firebase.
+
+Verificación 1.2.2: compilación normal y Android Lint correctos. Se revisaron los colores heredados por los controles Material y los usos directos de terracota; la revisión visual en la tableta confirmó el foco verde del formulario de seguimiento. Se conserva la evidencia local en `forest-theme-build.log` y `forest-selection-tablet.png`. Esta actualización visual no repitió las pruebas funcionales anteriores. APK firmado con la clave original, instalado sin borrar datos y actualizado en Descargas.

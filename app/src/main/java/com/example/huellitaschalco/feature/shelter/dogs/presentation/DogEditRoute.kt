@@ -15,6 +15,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.huellitaschalco.core.designsystem.*
 import com.example.huellitaschalco.core.navigation.UiNavigator
+import com.example.huellitaschalco.feature.shelter.description.domain.*
+import com.example.huellitaschalco.feature.shelter.description.presentation.*
 import com.example.huellitaschalco.feature.shelter.dogs.domain.*
 
 @Composable
@@ -25,6 +27,7 @@ fun DogEditRoute(
     session: Int,
     repository: DogRepository,
     importer: DogPhotoImporter,
+    generator: DescriptionGenerator? = null,
     onClose: () -> Unit,
 ) {
     val model: DogEditViewModel =
@@ -33,6 +36,21 @@ fun DogEditRoute(
             factory = DogEditViewModel.factory(repository, importer, uid, initial),
         )
     val state by model.state.collectAsStateWithLifecycle()
+    var assistantOpen by remember(uid, initial.id, session) { mutableStateOf(false) }
+    val assistant: DescriptionAssistantViewModel? =
+        if (generator != null)
+            viewModel(
+                key = "edit-description-$uid-${initial.shelterId}-${initial.id}-$session",
+                factory = DescriptionAssistantViewModel.factory(generator),
+            )
+        else null
+    DisposableEffect(assistant) { onDispose { assistant?.close() } }
+    if (assistantOpen && assistant != null)
+        DescriptionAssistantDialog(
+            assistant,
+            { model.edit(DogField.Description, it) },
+            { assistantOpen = false },
+        )
     var confirmDiscard by rememberSaveable { mutableStateOf(false) }
     val picker =
         rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
@@ -160,6 +178,22 @@ fun DogEditRoute(
                 lines = 5,
                 enabled = editable,
             )
+            if (assistant != null) {
+                HButton(
+                    "Redactar con Gemini",
+                    {
+                        assistant.open(DescriptionInput.fromDraft(state.draft.form))
+                        assistantOpen = true
+                    },
+                    Modifier.testTag("edit-ai"),
+                    outlined = true,
+                    enabled = editable,
+                    icon = HSymbol.Sparkles,
+                )
+                HCaption(
+                    "Revisa y acepta la propuesta. Solo se guardará al confirmar los cambios del perrito."
+                )
+            }
         }
         if (state.saving || state.importing) LinearProgressIndicator(Modifier.fillMaxWidth())
         state.error?.let { HBanner(it, HSymbol.Alert, error = true) }

@@ -214,6 +214,7 @@ fun HuellitasApp(
                                     scope.current.id,
                                     container.dogRepository,
                                     container.dogPhotoImporter,
+                                    container.descriptionGenerator,
                                 )
                             }
                     UiScreen.DogForm ->

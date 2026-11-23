@@ -29,6 +29,9 @@ fun RegisteredDogsRoute(
     shelterId: String,
     repository: DogRepository,
     importer: DogPhotoImporter,
+    generator:
+        com.example.huellitaschalco.feature.shelter.description.domain.DescriptionGenerator? =
+        null,
 ) {
     var refresh by remember { mutableIntStateOf(0) }
     val flow = remember(shelterId, refresh) { repository.observe(shelterId) }
@@ -47,7 +50,9 @@ fun RegisteredDogsRoute(
     var editing by rememberSaveable(uid, shelterId, recordId) { mutableStateOf(false) }
     var session by rememberSaveable(uid, shelterId, recordId) { mutableIntStateOf(0) }
     if (editing && selected != null) {
-        DogEditRoute(nav, uid, selected, session, repository, importer) { editing = false }
+        DogEditRoute(nav, uid, selected, session, repository, importer, generator) {
+            editing = false
+        }
         return
     }
     HScaffold(

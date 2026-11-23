@@ -190,6 +190,16 @@ fun HuellitasApp(
                             authRepository::signOut,
                             container.publicShelterRepository,
                         )
+                    UiScreen.EditShelter ->
+                        LocalShelterScope.current?.let { scope ->
+                            com.example.huellitaschalco.feature.refuge.presentation
+                                .ShelterEditRoute(
+                                    nav,
+                                    requireNotNull(user).uid,
+                                    scope.current.id,
+                                    container.publicShelterRepository,
+                                )
+                        }
                     UiScreen.ShelterDogs,
                     UiScreen.ShelterDogDetail ->
                         if (destination.variant != UiVariant.Normal) {

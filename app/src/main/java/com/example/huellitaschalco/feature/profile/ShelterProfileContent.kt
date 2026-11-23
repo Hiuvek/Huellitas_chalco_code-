@@ -30,6 +30,14 @@ internal fun ShelterProfileContent(
     var expanded by rememberSaveable(refuge?.id) { mutableStateOf(false) }
     HCard {
         HHeading("Información del refugio")
+        HButton(
+            "Editar información",
+            { nav.open(UiScreen.EditShelter, recordId = java.util.UUID.randomUUID().toString()) },
+            Modifier.testTag("profile-edit-shelter"),
+            outlined = true,
+            icon = HSymbol.Edit,
+            enabled = info != null && !state.loading && !state.stale && state.error == null,
+        )
         if (info?.demonstration == true) HTag("Refugio de demostración")
         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
             HCaption("Zona pública")

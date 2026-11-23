@@ -39,6 +39,7 @@ enum class UiScreen {
     FollowUpSaved,
     FollowUpDetail,
     ShelterProfile,
+    EditShelter,
     RefugeInformation,
     AccessRestricted,
     PreviewGallery,
@@ -151,4 +152,5 @@ val UiScreen.requiresShelterAccess: Boolean
                 UiScreen.FollowUpSaved,
                 UiScreen.FollowUpDetail,
                 UiScreen.ShelterProfile,
+                UiScreen.EditShelter,
             )

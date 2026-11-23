@@ -31,7 +31,35 @@ service cloud.firestore {
     }
     match /refugios/{id} {
       allow read: if resource.data.activo == true;
-      allow write: if false;
+      allow update: if validShelterEdit(request.resource.data,id);
+      allow create, delete: if false;
+    }
+    function validPublicText(value,maxSize) {
+      return value is string && value.size() >= 1 && value.size() <= maxSize && value.matches('\\S([\\s\\S]*\\S)?');
+    }
+    function validPolicyList(value) {
+      return value is list && value.size() >= 1 && value.size() <= 10 &&
+        validPublicText(value[0],300) &&
+        (value.size() < 2 || validPublicText(value[1],300)) &&
+        (value.size() < 3 || validPublicText(value[2],300)) &&
+        (value.size() < 4 || validPublicText(value[3],300)) &&
+        (value.size() < 5 || validPublicText(value[4],300)) &&
+        (value.size() < 6 || validPublicText(value[5],300)) &&
+        (value.size() < 7 || validPublicText(value[6],300)) &&
+        (value.size() < 8 || validPublicText(value[7],300)) &&
+        (value.size() < 9 || validPublicText(value[8],300)) &&
+        (value.size() < 10 || validPublicText(value[9],300));
+    }
+    function validShelterLocation(value) {
+      return value == null || (value is map && value.keys().hasAll(['latitud','longitud']) && value.keys().hasOnly(['latitud','longitud']) &&
+        value.latitud is number && value.longitud is number && value.latitud >= -90 && value.latitud <= 90 && value.longitud >= -180 && value.longitud <= 180);
+    }
+    function validShelterEdit(d,id) {
+      return manages(id) && resource.data.municipio == 'Chalco' && resource.data.entidad == 'Estado de México' &&
+        d.diff(resource.data).affectedKeys().hasOnly(['nombre','zonaPublica','horarioPublico','requisitos','pasos','ubicacionAproximada','actualizadoEn','actualizadoPorUid']) &&
+        validPublicText(d.nombre,100) && validPublicText(d.zonaPublica,250) && validPublicText(d.horarioPublico,250) &&
+        validPolicyList(d.requisitos) && validPolicyList(d.pasos) && validShelterLocation(d.get('ubicacionAproximada',null)) &&
+        d.actualizadoEn == request.time && d.actualizadoPorUid == request.auth.uid;
     }
     function samePhoto(a, b) { return a.archivoId == b.archivoId && a.ruta == b.ruta; }
     function retainedPhoto(photo) {

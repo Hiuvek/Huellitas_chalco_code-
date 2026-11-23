@@ -48,10 +48,12 @@ class CachedPublicShelterRepository(
     private val remote: PublicShelterRepository,
     private val cache: RoomPublicCache,
 ) : PublicShelterRepository {
+    override suspend fun update(uid: String, expected: PublicShelter, draft: ShelterEditDraft) =
+        remote.update(uid, expected, draft)
+
     override fun observe(id: String): Flow<PublicShelterState> = flow {
-        val saved = runCatching {
-            cache.snapshot()?.shelters?.firstOrNull { it.id == id }
-        }.getOrNull()
+        val saved =
+            runCatching { cache.snapshot()?.shelters?.firstOrNull { it.id == id } }.getOrNull()
         remote.observe(id).collect { state ->
             if ((state.loading || state.error != null) && saved != null)
                 emit(PublicShelterState(false, saved, stale = true))
@@ -63,9 +65,8 @@ class CachedPublicShelterRepository(
 class CachedDogRepository(private val remote: DogRepository, private val cache: RoomPublicCache) :
     DogRepository by remote {
     override fun observePublic(id: String): Flow<PublicDog> = flow {
-        val saved = runCatching {
-            cache.snapshot()?.dogs?.firstOrNull { it.dog.id == id }?.dog
-        }.getOrNull()
+        val saved =
+            runCatching { cache.snapshot()?.dogs?.firstOrNull { it.dog.id == id }?.dog }.getOrNull()
         remote.observePublic(id).collect { state ->
             if ((state.loading || state.error != null) && saved != null)
                 emit(PublicDog(false, saved, stale = true))

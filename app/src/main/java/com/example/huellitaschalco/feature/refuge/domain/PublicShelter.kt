@@ -23,4 +23,8 @@ data class PublicShelterState(
 
 interface PublicShelterRepository {
     fun observe(id: String): Flow<PublicShelterState>
+
+    suspend fun update(uid: String, expected: PublicShelter, draft: ShelterEditDraft) {
+        throw UnsupportedOperationException("La edición no está disponible.")
+    }
 }

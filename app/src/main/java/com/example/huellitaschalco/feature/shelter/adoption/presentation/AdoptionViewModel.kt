@@ -2,11 +2,18 @@ package com.example.huellitaschalco.feature.shelter.adoption.presentation
 
 import androidx.lifecycle.*
 import com.example.huellitaschalco.feature.shelter.adoption.domain.*
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import java.util.TimeZone
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 
 data class AdoptionFormState(
-    val date: String = "",
+    val date: String =
+        SimpleDateFormat("yyyy-MM-dd", Locale.ROOT)
+            .apply { timeZone = TimeZone.getTimeZone("America/Mexico_City") }
+            .format(Date()),
     val signed: Boolean = false,
     val confirming: Boolean = false,
     val sending: Boolean = false,

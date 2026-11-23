@@ -101,18 +101,23 @@ fun AdoptionRoute(
                     saved?.let { requestDate(it.deliveryAt) } ?: form.receipt!!.date,
                 )
                 if (form.pendingClosed)
-                    HBody("Las solicitudes pendientes se cerraron con su motivo e historial.")
+                    HBody(
+                        "Cierre completado. No quedan otras solicitudes pendientes para este perrito."
+                    )
                 else
                     HBody(
                         "La entrega está confirmada. Puedes completar el cierre de las solicitudes pendientes si hubo una interrupción."
                     )
                 form.error?.let { HBanner(it, HSymbol.Alert, error = true) }
-                HButton(
-                    if (form.sending) "Completando cierre…" else "Completar cierre de solicitudes",
-                    model::completePending,
-                    enabled = !form.sending,
-                    outlined = true,
-                )
+                if (!form.pendingClosed)
+                    HButton(
+                        if (form.sending) "Completando cierre…"
+                        else "Completar cierre de solicitudes",
+                        model::completePending,
+                        Modifier.testTag("adoption-close-pending"),
+                        enabled = !form.sending,
+                        outlined = true,
+                    )
                 HButton(
                     "Programar revisión",
                     { nav.open(UiScreen.ScheduleReview, recordId = item.dogId) },
@@ -141,7 +146,8 @@ fun AdoptionRoute(
                     form.date,
                     model::date,
                     Modifier.testTag("adoption-date"),
-                    helper = "Formato AAAA-MM-DD, sin fechas futuras.",
+                    helper =
+                        "Hoy por defecto. Puedes cambiarla si la entrega fue antes. Formato AAAA-MM-DD.",
                     enabled = !form.locked,
                 )
                 Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {

@@ -108,3 +108,10 @@ La fecha se inicializa al abrir un formulario nuevo; editarla no cambia las fech
 - [x] Ofrecer propuestas de Gemini en Editar perrito con revisión y aceptación manual.
 
 [Edición del refugio](docs/editar-refugio.md). Crear refugios y asignar responsables sigue siendo administrativo.
+
+### Fotografías completas — versión 1.4.1
+
+- [x] La ficha pública y la ficha del refugio muestran la fotografía completa, conservando su proporción y sin recortarla.
+- [x] Se conserva un espacio reservado mientras carga la imagen y la opción de reintento.
+
+- [x] Perfil del adoptante con nombre, correo, rol y accesos a solicitudes y catálogo; sin acceso a refugios ni mensajes repetidos. El perfil de visitante y del refugio conservan su flujo.

@@ -19,7 +19,6 @@ fun ReceivedRequestsRoute(
     nav: UiNavigator,
     uid: String,
     shelterId: String,
-    shelterName: String,
     id: String?,
     repository: ReceivedRequestsRepository,
     evaluationRepository:
@@ -33,14 +32,7 @@ fun ReceivedRequestsRoute(
     if (id == null) {
         val state by model.list.collectAsStateWithLifecycle()
         val filter by model.filter.collectAsStateWithLifecycle()
-        HScaffold(
-            nav,
-            "Solicitudes recibidas",
-            shelterName,
-            back = false,
-            shelter = true,
-            tab = "Solicitudes",
-        ) {
+        HScaffold(nav, "Solicitudes recibidas", back = false, shelter = true, tab = "Solicitudes") {
             HScreenIntro(
                 "Revisa a las personas interesadas",
                 "Selecciona una solicitud para leer sus respuestas y registrar tu decisión.",

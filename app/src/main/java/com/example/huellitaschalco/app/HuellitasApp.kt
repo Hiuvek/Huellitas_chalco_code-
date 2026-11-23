@@ -245,7 +245,6 @@ fun HuellitasApp(
                                         nav,
                                         requireNotNull(user).uid,
                                         scope.current.id,
-                                        scope.current.name,
                                         if (destination.screen == UiScreen.EvaluateRequest)
                                             destination.recordId
                                         else null,

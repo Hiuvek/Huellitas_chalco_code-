@@ -83,7 +83,13 @@ class AdoptionDeliveryFlowTest {
                 .SimpleDateFormat("yyyy-MM-dd", java.util.Locale.ROOT)
                 .apply { timeZone = java.util.TimeZone.getTimeZone("America/Mexico_City") }
                 .format(java.util.Date())
-        compose.onNodeWithTag("adoption-date").performScrollTo().performTextInput(date)
+        compose.onNodeWithTag("adoption-date").assertTextContains(date)
+        val yesterday =
+            java.text
+                .SimpleDateFormat("yyyy-MM-dd", java.util.Locale.ROOT)
+                .apply { timeZone = java.util.TimeZone.getTimeZone("America/Mexico_City") }
+                .format(java.util.Date(System.currentTimeMillis() - 86_400_000L))
+        compose.onNodeWithTag("adoption-date").performScrollTo().performTextReplacement(yesterday)
         androidx.test.espresso.Espresso.closeSoftKeyboard()
         compose.onNodeWithTag("adoption-signed").performScrollTo().performClick()
         compose.onNodeWithTag("adoption-prepare").performSemanticsAction(SemanticsActions.OnClick) {
@@ -97,6 +103,12 @@ class AdoptionDeliveryFlowTest {
             compose.onAllNodesWithText("Adopción registrada").fetchSemanticsNodes().isNotEmpty()
         }
         compose.onNodeWithTag("adoption-prepare").assertDoesNotExist()
+        compose.onNodeWithTag("adoption-close-pending").assertDoesNotExist()
+        compose
+            .onNodeWithText(
+                "Cierre completado. No quedan otras solicitudes pendientes para este perrito."
+            )
+            .assertExists()
         val db =
             com.google.firebase.firestore.FirebaseFirestore.getInstance(
                 com.google.firebase.FirebaseApp.getInstance("huellitas-auth-emulator")
@@ -108,6 +120,10 @@ class AdoptionDeliveryFlowTest {
                 .await()
         org.junit.Assert.assertEquals(id, record.getString("solicitudId"))
         org.junit.Assert.assertTrue(record.getBoolean("cartaFirmada") == true)
+        org.junit.Assert.assertEquals(
+            com.example.huellitaschalco.core.date.civilDateMillis(yesterday),
+            record.getTimestamp("fechaEntrega")!!.toDate().time,
+        )
     }
 
     private fun click(tag: String) {

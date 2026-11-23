@@ -85,6 +85,11 @@ fun ProfileScreen(
             HBody("Inicia sesión o crea una cuenta para solicitar una adopción.", muted = true)
             HButton("Iniciar sesión", { nav.open(UiScreen.Login) }, outlined = true)
             HTextAction("Crear cuenta", { nav.open(UiScreen.SignUp) })
+            HTextAction(
+                "Acceso para refugios",
+                { nav.root(UiScreen.ShelterDogs) },
+                icon = HSymbol.Shield,
+            )
         }
         if (user != null || shelter)
             HButton("Cerrar sesión", { logout = true }, outlined = true, icon = HSymbol.Logout)

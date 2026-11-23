@@ -119,4 +119,5 @@ La fecha se inicializa al abrir un formulario nuevo; editarla no cambia las fech
 ### Perfil de visitante — versión 1.4.2
 
 - [x] Perfil con accesos a explorar perritos, iniciar sesión y crear cuenta.
-- [x] Sin acceso a refugios ni mensajes repetidos sobre borradores, conexión o demostración.
+- [x] Sin mensajes repetidos sobre borradores, conexión o demostración.
+- [x] Acceso para refugios disponible desde el perfil de visitante (versión 1.4.3), con autenticación y membresía requeridas.

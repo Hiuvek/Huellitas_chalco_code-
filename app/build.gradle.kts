@@ -49,8 +49,8 @@ android {
         buildConfigField("String", "GEMINI_MODEL", quotedConfig(aiModel))
         minSdk = 24
         targetSdk = 37
-        versionCode = 10
-        versionName = "1.4.2"
+        versionCode = 11
+        versionName = "1.4.3"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         manifestPlaceholders["appLabel"] = "@string/app_name"

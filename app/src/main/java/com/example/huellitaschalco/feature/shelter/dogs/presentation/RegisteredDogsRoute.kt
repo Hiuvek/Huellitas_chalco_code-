@@ -84,7 +84,11 @@ fun RegisteredDogsRoute(
             recordId != null && selected == null ->
                 HBody("No encontramos este registro en el refugio seleccionado.")
             selected != null -> {
-                StoredDogPhoto(selected.photos.firstOrNull()?.path, repository)
+                StoredDogPhoto(
+                    selected.photos.firstOrNull()?.path,
+                    repository,
+                    showFullPhoto = true,
+                )
                 HTag(selected.status)
                 HHeading(selected.name)
                 HBody("${selected.ageMonths} meses · ${selected.size} · ${selected.sex}")
@@ -174,12 +178,20 @@ fun RegisteredDogsRoute(
 }
 
 @Composable
-internal fun StoredDogPhoto(path: String?, repository: DogRepository) {
-    key(path) { StoredDogPhotoContent(path, repository) }
+internal fun StoredDogPhoto(
+    path: String?,
+    repository: DogRepository,
+    showFullPhoto: Boolean = false,
+) {
+    key(path) { StoredDogPhotoContent(path, repository, showFullPhoto) }
 }
 
 @Composable
-private fun StoredDogPhotoContent(path: String?, repository: DogRepository) {
+private fun StoredDogPhotoContent(
+    path: String?,
+    repository: DogRepository,
+    showFullPhoto: Boolean,
+) {
     var retry by remember(path) { mutableIntStateOf(0) }
     var failed by remember(path, retry) { mutableStateOf(false) }
     val image by
@@ -201,14 +213,17 @@ private fun StoredDogPhotoContent(path: String?, repository: DogRepository) {
                     }
         }
     // Reserva el espacio para que una imagen tardía no cambie la tarjeta bajo un toque.
-    Box(Modifier.fillMaxWidth().height(200.dp), contentAlignment = Alignment.Center) {
+    Box(
+        Modifier.fillMaxWidth().height(if (showFullPhoto) 320.dp else 200.dp),
+        contentAlignment = Alignment.Center,
+    ) {
         when {
             image != null ->
                 Image(
                     requireNotNull(image),
                     "Fotografía del perrito",
                     Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop,
+                    contentScale = if (showFullPhoto) ContentScale.Fit else ContentScale.Crop,
                 )
             failed -> TextButton(onClick = { retry++ }) { Text("Reintentar fotografía") }
             path == null -> HCaption("Sin fotografía")

@@ -75,7 +75,7 @@ fun PublicDogDetailRoute(
                         dog.photos.indexOfFirst { it.id == selectedPhoto }.takeIf { it >= 0 } ?: 0
                     val photo = dog.photos.getOrNull(index)
                     Column(Modifier.testTag("detail-photo-${photo?.id.orEmpty()}")) {
-                        StoredDogPhoto(photo?.path, repository)
+                        StoredDogPhoto(photo?.path, repository, showFullPhoto = true)
                     }
                     if (dog.photos.isNotEmpty())
                         HCaption("Fotografía ${index + 1} de ${dog.photos.size}")

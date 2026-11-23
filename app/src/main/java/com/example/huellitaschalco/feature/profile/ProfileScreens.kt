@@ -16,7 +16,6 @@ import com.example.huellitaschalco.core.navigation.*
 import com.example.huellitaschalco.feature.access.presentation.LocalShelterScope
 import com.example.huellitaschalco.feature.auth.domain.AuthUser
 import com.example.huellitaschalco.feature.refuge.domain.*
-import com.example.huellitaschalco.feature.refuge.maps.PublicMapPanel
 import com.example.huellitaschalco.ui.theme.*
 import kotlinx.coroutines.flow.flowOf
 
@@ -43,84 +42,29 @@ fun ProfileScreen(
         tab = "Perfil",
         shelter = shelter,
     ) {
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Box(
-                Modifier.size(64.dp).background(Forest, CircleShape),
-                contentAlignment = Alignment.Center,
+        if (!shelter) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text(
-                    if (shelter) refuge?.name?.take(2)?.uppercase() ?: "HC"
-                    else user?.label?.take(2)?.uppercase() ?: "HC",
-                    style = MaterialTheme.typography.titleLarge,
-                    color = Color.White,
-                )
-            }
-            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(5.dp)) {
-                Text(
-                    if (shelter) refuge?.name ?: "Refugio" else user?.label ?: "Visitante",
-                    style = MaterialTheme.typography.titleLarge,
-                )
-                HCaption(user?.email ?: "Sin sesión iniciada")
-                if (shelter) HTag("Cuenta autorizada")
+                Box(
+                    Modifier.size(64.dp).background(Forest, CircleShape),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(
+                        user?.label?.take(2)?.uppercase() ?: "HC",
+                        style = MaterialTheme.typography.titleLarge,
+                        color = Color.White,
+                    )
+                }
+                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                    Text(user?.label ?: "Visitante", style = MaterialTheme.typography.titleLarge)
+                    HCaption(user?.email ?: "Sin sesión iniciada")
+                }
             }
         }
         if (shelter) {
-            HScreenIntro(
-                "Tu espacio de administración",
-                "Elige qué quieres revisar. Los registros se consultan desde tu refugio actual.",
-            )
-            HButton("Ver mis perritos", { nav.root(UiScreen.ShelterDogs) }, icon = HSymbol.Paw)
-            HButton(
-                "Revisar solicitudes",
-                { nav.root(UiScreen.ShelterRequests) },
-                outlined = true,
-                icon = HSymbol.Inbox,
-            )
-            HButton(
-                "Abrir seguimientos",
-                { nav.root(UiScreen.FollowUps) },
-                outlined = true,
-                icon = HSymbol.Calendar,
-            )
-            HHeading("Información pública del refugio")
-            HCard {
-                HKeyValue("Zona", refuge?.publicZone?.takeIf { it.isNotBlank() } ?: "Sin registrar")
-                HKeyValue(
-                    "Horario",
-                    refuge?.publicHours?.takeIf { it.isNotBlank() } ?: "Sin registrar",
-                    true,
-                )
-            }
-            when {
-                publicState.loading -> LinearProgressIndicator(Modifier.fillMaxWidth())
-                publicState.shelter != null -> {
-                    val info = requireNotNull(publicState.shelter)
-                    info.policy?.let { policy ->
-                        HHeading("Requisitos publicados")
-                        HCard {
-                            policy.requirements.forEachIndexed { i, text ->
-                                HBody("${i + 1}. $text")
-                            }
-                        }
-                        HHeading("Pasos de adopción")
-                        HCard {
-                            policy.steps.forEachIndexed { i, text -> HBody("${i + 1}. $text") }
-                        }
-                    }
-                    PublicMapPanel(info)
-                }
-                publicState.error != null -> {
-                    HBanner(
-                        "No se pudo actualizar la información pública. Revisa tu conexión.",
-                        HSymbol.Alert,
-                    )
-                    HButton("Actualizar información", { refresh++ }, outlined = true)
-                }
-            }
-            HButton("Ver catálogo público", { nav.root(UiScreen.Catalog) }, outlined = true)
+            ShelterProfileContent(nav, refuge, user, publicState) { refresh++ }
         } else {
             HScreenIntro(
                 if (user == null) "Explora y conoce a los perritos"
@@ -156,9 +100,10 @@ fun ProfileScreen(
                 icon = HSymbol.Shield,
             )
         }
-        HCaption(
-            "Proyecto académico. Los registros identificados como demostración son ejemplos escolares."
-        )
+        if (!shelter)
+            HCaption(
+                "Proyecto académico. Los registros identificados como demostración son ejemplos escolares."
+            )
         if (user == null && !shelter)
             HButton("Iniciar sesión", { nav.open(UiScreen.Login) }, outlined = true)
         else HButton("Cerrar sesión", { logout = true }, outlined = true, icon = HSymbol.Logout)

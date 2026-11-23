@@ -73,13 +73,10 @@ fun RequirementsScreen(nav: UiNavigator) {
         nav,
         "Requisitos de adopción",
         "${PreviewData.dog(nav.current.dogId).name} · ${PreviewData.dog(nav.current.dogId).refuge}",
-        bottom = {
-            HButton("Iniciar solicitud", { nav.open(UiScreen.ApplicationContact) })
-        },
+        bottom = { HButton("Iniciar solicitud", { nav.open(UiScreen.ApplicationContact) }) },
     ) {
         HBanner(
-            "Requisitos de ejemplo. Cada refugio define sus propias condiciones; confírmalas durante la entrevista.",
-            error = true,
+            "Requisitos de ejemplo. Cada refugio define sus propias condiciones; confírmalas durante la entrevista."
         )
         HHeading("Condiciones del refugio")
         PreviewData.requirements.forEach { requirement ->

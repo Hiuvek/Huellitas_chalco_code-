@@ -12,10 +12,14 @@ private val HuellitasColors =
         onPrimary = Color.White,
         primaryContainer = Sage,
         onPrimaryContainer = Forest,
-        secondary = Terracotta,
+        secondary = Forest,
         onSecondary = Color.White,
-        secondaryContainer = Peach,
-        onSecondaryContainer = Terracotta,
+        secondaryContainer = Sage,
+        onSecondaryContainer = Forest,
+        tertiary = Forest,
+        onTertiary = Color.White,
+        tertiaryContainer = Sage,
+        onTertiaryContainer = Forest,
         background = Cream,
         onBackground = Ink,
         surface = Cream,
@@ -28,6 +32,7 @@ private val HuellitasColors =
         error = Terracotta,
         onError = Color.White,
         errorContainer = Peach,
+        onErrorContainer = Terracotta,
     )
 
 @Composable

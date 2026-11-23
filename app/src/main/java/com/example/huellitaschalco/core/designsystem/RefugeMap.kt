@@ -60,14 +60,14 @@ fun HMap(error: Boolean = false, showAction: Boolean = true, onOpen: () -> Unit)
                             10f,
                         )
                     }
-                    drawCircle(Terracotta.copy(alpha = .12f), 48.dp.toPx())
+                    drawCircle(Forest.copy(alpha = .12f), 48.dp.toPx())
                     drawCircle(
-                        Terracotta.copy(alpha = .3f),
+                        Forest.copy(alpha = .3f),
                         48.dp.toPx(),
                         style = androidx.compose.ui.graphics.drawscope.Stroke(1.dp.toPx()),
                     )
                 }
-                HIcon(HSymbol.Pin, Modifier.size(34.dp), Terracotta)
+                HIcon(HSymbol.Pin, Modifier.size(34.dp), Forest)
                 Text(
                     "Mapa ilustrativo",
                     style = MaterialTheme.typography.labelSmall,

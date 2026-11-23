@@ -161,14 +161,7 @@ fun ProfileScreen(
         )
         if (user == null && !shelter)
             HButton("Iniciar sesión", { nav.open(UiScreen.Login) }, outlined = true)
-        else
-            HButton(
-                "Cerrar sesión",
-                { logout = true },
-                outlined = true,
-                danger = true,
-                icon = HSymbol.Logout,
-            )
+        else HButton("Cerrar sesión", { logout = true }, outlined = true, icon = HSymbol.Logout)
         if (BuildConfig.SHOW_PREVIEW_GALLERY)
             HTextAction(
                 "Ver todas las pantallas",

@@ -17,8 +17,8 @@ import com.example.huellitaschalco.ui.theme.*
 
 @Composable
 fun HTag(text: String) {
-    val warm = text in listOf("No", "No aprobada", "En proceso", "En revisión", "Esta semana")
-    val color = if (warm) Terracotta else Forest
+    val neutral = text in listOf("No", "No aprobada")
+    val color = if (neutral) Muted else Forest
     val icon =
         when (text) {
             "No",
@@ -33,7 +33,7 @@ fun HTag(text: String) {
         }
     Row(
         Modifier.clip(CircleShape)
-            .background(if (warm) Peach else Sage)
+            .background(if (neutral) Line else Sage)
             .padding(horizontal = 8.dp, vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(4.dp),

@@ -121,3 +121,12 @@ La fecha se inicializa al abrir un formulario nuevo; editarla no cambia las fech
 - [x] Perfil con accesos a explorar perritos, iniciar sesión y crear cuenta.
 - [x] Sin mensajes repetidos sobre borradores, conexión o demostración.
 - [x] Acceso para refugios disponible desde el perfil de visitante (versión 1.4.3), con autenticación y membresía requeridas.
+
+### Contenido y catálogo — versión 1.5.0
+
+- [x] Avisos sobre el origen del contenido retirados de la interfaz.
+- [x] Campos existentes del refugio actualizados, sin ampliar el modelo.
+- [x] Doce fichas anteriores reescritas, conservando estados e historial.
+- [x] Diez perritos nuevos con descripciones completas y fotos distintas de hasta 100 KiB.
+- [x] Lectura pública de 17 perritos y sus imágenes verificada en Firebase.
+- [x] [Lista de pantallas y textos revisados](docs/revision-contenido.md).

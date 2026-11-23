@@ -108,3 +108,11 @@ La fecha se inicializa al abrir un formulario nuevo; editarla no cambia las fech
 - [x] Ofrecer propuestas de Gemini en Editar perrito con revisión y aceptación manual.
 
 [Edición del refugio](docs/editar-refugio.md). Crear refugios y asignar responsables sigue siendo administrativo.
+
+### Contenido y catálogo — versión 1.5.0
+
+- [x] Textos visibles del refugio y de las 12 fichas anteriores actualizados.
+- [x] Diez perritos nuevos con fotos distintas, conservando los campos y la estructura actuales.
+- [x] Catálogo inicial de 17 perritos verificado en Firebase y en la tableta.
+- [x] 126 pruebas unitarias, compilación y Lint correctos.
+- [x] [Pantallas revisadas y textos modificados](docs/revision-contenido.md).

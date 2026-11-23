@@ -60,11 +60,25 @@ fun ProfileScreen(
                 Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(5.dp)) {
                     Text(user?.label ?: "Visitante", style = MaterialTheme.typography.titleLarge)
                     HCaption(user?.email ?: "Sin sesión iniciada")
+                    if (user != null) HTag("Adoptante")
                 }
             }
         }
         if (shelter) {
             ShelterProfileContent(nav, refuge, user, publicState) { refresh++ }
+        } else if (user != null) {
+            HHeading("Mis adopciones")
+            HButton(
+                "Ver mis solicitudes",
+                { nav.root(UiScreen.MyRequests) },
+                icon = HSymbol.Document,
+            )
+            HButton(
+                "Explorar perritos",
+                { nav.root(UiScreen.Catalog) },
+                outlined = true,
+                icon = HSymbol.Paw,
+            )
         } else {
             HScreenIntro(
                 if (user == null) "Explora y conoce a los perritos"
@@ -100,7 +114,7 @@ fun ProfileScreen(
                 icon = HSymbol.Shield,
             )
         }
-        if (!shelter)
+        if (!shelter && user == null)
             HCaption(
                 "Proyecto académico. Los registros identificados como demostración son ejemplos escolares."
             )

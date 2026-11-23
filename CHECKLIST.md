@@ -115,3 +115,8 @@ La fecha se inicializa al abrir un formulario nuevo; editarla no cambia las fech
 - [x] Se conserva un espacio reservado mientras carga la imagen y la opción de reintento.
 
 - [x] Perfil del adoptante con nombre, correo, rol y accesos a solicitudes y catálogo; sin acceso a refugios ni mensajes repetidos. El perfil de visitante y del refugio conservan su flujo.
+
+### Perfil de visitante — versión 1.4.2
+
+- [x] Perfil con accesos a explorar perritos, iniciar sesión y crear cuenta.
+- [x] Sin acceso a refugios ni mensajes repetidos sobre borradores, conexión o demostración.

@@ -63,3 +63,15 @@ Los estados rutinarios En proceso, En revisión y Esta semana dejan de usar terr
 El cambio solo afecta la presentación: no modifica estados de solicitudes, permisos ni operaciones en Firebase.
 
 Verificación 1.2.2: compilación normal y Android Lint correctos. Se revisaron los colores heredados por los controles Material y los usos directos de terracota; la revisión visual en la tableta confirmó el foco verde del formulario de seguimiento. Se conserva la evidencia local en `forest-theme-build.log` y `forest-selection-tablet.png`. Esta actualización visual no repitió las pruebas funcionales anteriores. APK firmado con la clave original, instalado sin borrar datos y actualizado en Descargas.
+
+## Organización del perfil — versión 1.2.3
+
+El perfil del refugio se concentra en cuatro bloques: información pública (zona, horario y un solo enlace a Google Maps), proceso de adopción desplegable, acceso al catálogo para adoptantes y cuenta responsable. Los requisitos y pasos se pueden abrir y cerrar sin navegar a otra pantalla. El estado de esa sección se conserva al recrear la pantalla y se separa por refugio.
+
+Se retiraron los botones de perritos, solicitudes y seguimientos que duplicaban las pestañas inferiores, el mapa como segunda tarjeta de ubicación y la identidad del refugio repetida dentro del contenido. El encabezado conserva el refugio actual y su selector cuando hay varios. La cuenta y el cierre de sesión permanecen al final. Los datos provienen de los repositorios existentes y la información guardada o los errores de actualización se indican junto a sus datos.
+
+En Solicitudes recibidas se quitó el subtítulo con el nombre del refugio: ahora solo lo muestra el encabezado compartido, conservando la selección entre refugios.
+
+Verificación 1.2.3: compilación y Lint correctos. Revisión visual de la sección de proceso contraída y expandida en la tableta. Se comprobó mediante el árbol de interfaz que Solicitudes recibidas muestra una sola coincidencia del nombre del refugio. Capturas locales: `profile-cleanup-expanded.png`, `profile-cleanup-collapsed.png` y `requests-single-refuge.png`. No se ejecutaron nuevamente las pruebas funcionales completas; los intentos de comprobar automáticamente el estado contraído no se contabilizan como pruebas aprobadas, debido a que la pantalla cambió durante la revisión. El cambio no altera los repositorios ni permisos.
+
+APK 1.2.3 (código 6), compilación normal firmada con la clave original, instalado y copiado a Descargas. Registro final: `profile-cleanup-final-build.log`.

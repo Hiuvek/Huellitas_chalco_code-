@@ -82,3 +82,11 @@ La fecha se inicializa al abrir un formulario nuevo; editarla no cambia las fech
 - [x] Fondos de selección verde salvia; estados negativos en neutro, identificados con texto e icono.
 - [x] Rojo reservado para errores, avisos críticos y acciones destructivas.
 - [x] Retirar rojo de estados rutinarios, mapa ilustrativo normal y cierre de sesión.
+
+## Perfil del refugio — versión 1.2.3
+
+- [x] Agrupar zona, horario y acceso a Maps sin repetir la ubicación.
+- [x] Reunir requisitos y pasos en una sección desplegable.
+- [x] Retirar accesos que duplicaban las pestañas de administración.
+- [x] Separar información pública, catálogo para adoptantes y cuenta responsable.
+- [x] Mostrar el nombre del refugio una sola vez en Solicitudes recibidas.

@@ -6,12 +6,12 @@ import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import com.example.huellitaschalco.app.HuellitasApp
-import com.example.huellitaschalco.app.HuellitasApplication
-import com.example.huellitaschalco.core.navigation.UiDestination
-import com.example.huellitaschalco.core.navigation.UiScreen
-import com.example.huellitaschalco.core.navigation.UiVariant
+import com.example.huellitaschalco.aplicacion.AplicacionHuellitas
+import com.example.huellitaschalco.aplicacion.InicioHuellitas
 import com.example.huellitaschalco.ui.theme.HuellitasChalcoTheme
+import com.example.huellitaschalco.nucleo.navegacion.DestinoInterfaz
+import com.example.huellitaschalco.nucleo.navegacion.PantallaInterfaz
+import com.example.huellitaschalco.nucleo.navegacion.VarianteInterfaz
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -30,8 +30,8 @@ class MainActivity : ComponentActivity() {
             ) {
                 intent.getStringExtra("preview_screen")?.let { name ->
                     runCatching {
-                            UiDestination(
-                                screen = UiScreen.valueOf(name),
+                            DestinoInterfaz(
+                                screen = PantallaInterfaz.valueOf(name),
                                 dogId =
                                     intent.getIntExtra("preview_dog_id", 6).takeIf { it in 1..8 }
                                         ?: 6,
@@ -42,17 +42,17 @@ class MainActivity : ComponentActivity() {
                                 variant =
                                     intent
                                         .getStringExtra("preview_variant")
-                                        ?.let(UiVariant::valueOf) ?: UiVariant.Normal,
+                                        ?.let(VarianteInterfaz::valueOf) ?: VarianteInterfaz.Normal,
                             )
                         }
                         .getOrNull()
                 }
             } else null
-        val container = (application as HuellitasApplication).container
+        val container = (application as InicioHuellitas).container
         val authRepository = container.authRepository
         setContent {
             HuellitasChalcoTheme {
-                HuellitasApp(authRepository, container.shelterAccessRepository, preview)
+                AplicacionHuellitas(authRepository, container.shelterAccessRepository, preview)
             }
         }
     }

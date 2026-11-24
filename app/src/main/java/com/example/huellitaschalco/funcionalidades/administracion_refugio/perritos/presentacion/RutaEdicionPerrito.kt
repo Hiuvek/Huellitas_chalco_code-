@@ -1,0 +1,258 @@
+package com.example.huellitaschalco.funcionalidades.administracion_refugio.perritos.presentacion
+
+import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.huellitaschalco.funcionalidades.administracion_refugio.descripcion.dominio.*
+import com.example.huellitaschalco.funcionalidades.administracion_refugio.descripcion.presentacion.*
+import com.example.huellitaschalco.funcionalidades.administracion_refugio.perritos.dominio.*
+import com.example.huellitaschalco.nucleo.navegacion.NavegadorInterfaz
+import com.example.huellitaschalco.nucleo.sistema_diseno.*
+
+@Composable
+fun RutaEdicionPerrito(
+    nav: NavegadorInterfaz,
+    uid: String,
+    initial: PerritoRegistrado,
+    session: Int,
+    repository: RepositorioPerritos,
+    importer: ImportadorFotoPerrito,
+    generator: GeneradorDescripcion? = null,
+    onClose: () -> Unit,
+) {
+    val model: ModeloVistaEdicionPerrito =
+        viewModel(
+            key = "dog-edit-$uid-${initial.shelterId}-${initial.id}-$session",
+            factory = ModeloVistaEdicionPerrito.factory(repository, importer, uid, initial),
+        )
+    val state by model.state.collectAsStateWithLifecycle()
+    var assistantOpen by remember(uid, initial.id, session) { mutableStateOf(false) }
+    val assistant: ModeloVistaAsistenteDescripcion? =
+        if (generator != null)
+            viewModel(
+                key = "edit-description-$uid-${initial.shelterId}-${initial.id}-$session",
+                factory = ModeloVistaAsistenteDescripcion.factory(generator),
+            )
+        else null
+    DisposableEffect(assistant) { onDispose { assistant?.close() } }
+    if (assistantOpen && assistant != null)
+        DialogoAsistenteDescripcion(
+            assistant,
+            { model.edit(CampoPerrito.Description, it) },
+            { assistantOpen = false },
+        )
+    var confirmDiscard by rememberSaveable { mutableStateOf(false) }
+    val picker =
+        rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+            model.addPhotos(listOfNotNull(uri?.toString()))
+        }
+    val close = {
+        model.releasePhotos()
+        onClose()
+    }
+    val cancel = { if (state.dirty && state.saved == null) confirmDiscard = true else close() }
+    BackHandler {
+        if (!state.saving && !state.importing) {
+            if (state.review && !state.locked) model.returnToForm() else cancel()
+        }
+    }
+    val editable = !state.locked && !state.importing
+    HScaffold(
+        nav,
+        if (state.saved != null) "Cambios guardados"
+        else if (state.review) "Revisar cambios" else "Editar perrito",
+        back = false,
+        bottom = {
+            when {
+                state.saved != null ->
+                    HButton("Volver al registro", close, Modifier.testTag("edit-done"))
+                state.review -> {
+                    HButton(
+                        if (state.saving) state.progress
+                        else if (state.error != null) "Reintentar guardado" else "Guardar cambios",
+                        model::save,
+                        Modifier.testTag("edit-save"),
+                        enabled = !state.saving && state.conflict == null,
+                    )
+                    if (!state.locked)
+                        HButton("Volver a editar", model::returnToForm, outlined = true)
+                }
+                else ->
+                    HButton(
+                        if (state.importing) "Preparando fotografías…" else "Revisar cambios",
+                        model::review,
+                        Modifier.testTag("edit-review"),
+                        enabled = editable && state.dirty,
+                    )
+            }
+            if (state.saved == null)
+                HButton(
+                    "Cancelar edición",
+                    cancel,
+                    outlined = true,
+                    enabled = !state.saving && !state.importing,
+                )
+        },
+    ) {
+        if (state.saved != null) {
+            HSuccessHeader(
+                "¡Cambios guardados!",
+                "La ficha de ${state.saved!!.name} se actualizó correctamente.",
+            )
+            HCaption("Folio: ${initial.id}")
+        } else if (state.review) {
+            EditPhotos(state.draft.photos, repository, false, model::removePhoto, model::cover)
+            HHeading(state.draft.form.name.trim())
+            HBody(
+                "${state.draft.form.ageMonths()} meses · ${state.draft.form.size} · ${state.draft.form.sex}"
+            )
+            HBody(state.draft.form.description.trim())
+            HCaption("La salud se administra por separado desde el registro del perrito.")
+        } else {
+            HCaption(
+                "Folio: ${initial.id}. Conserva al menos una fotografía; la primera será la portada."
+            )
+            EditPhotos(state.draft.photos, repository, editable, model::removePhoto, model::cover)
+            HButton(
+                "Agregar fotografías",
+                {
+                    picker.launch(
+                        PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                    )
+                },
+                Modifier.testTag("edit-add-photos"),
+                outlined = true,
+                enabled = editable && state.draft.photos.size < 1,
+            )
+            HCaption("${state.draft.photos.size} de 1 fotografía. JPEG, PNG o WebP de hasta 20 MB.")
+            state.errors[CampoPerrito.Photos]?.let { HBody(it) }
+            HInput(
+                "Nombre",
+                state.draft.form.name,
+                { model.edit(CampoPerrito.Name, it) },
+                Modifier.testTag("edit-name"),
+                error = state.errors[CampoPerrito.Name],
+                enabled = editable,
+            )
+            HInput(
+                "Edad aproximada",
+                state.draft.form.age,
+                { model.edit(CampoPerrito.Age, it) },
+                Modifier.testTag("edit-age"),
+                error = state.errors[CampoPerrito.Age],
+                keyboard = KeyboardType.Number,
+                enabled = editable,
+            )
+            DogChoices("Unidad", listOf("Meses", "Años"), state.draft.form.ageUnit, editable) {
+                model.edit(CampoPerrito.AgeUnit, it)
+            }
+            DogChoices(
+                "Tamaño",
+                listOf("Chico", "Mediano", "Grande"),
+                state.draft.form.size,
+                editable,
+            ) {
+                model.edit(CampoPerrito.Size, it)
+            }
+            state.errors[CampoPerrito.Size]?.let { HBody(it) }
+            DogChoices("Sexo", listOf("Hembra", "Macho"), state.draft.form.sex, editable) {
+                model.edit(CampoPerrito.Sex, it)
+            }
+            state.errors[CampoPerrito.Sex]?.let { HBody(it) }
+            HInput(
+                "Descripción",
+                state.draft.form.description,
+                { model.edit(CampoPerrito.Description, it) },
+                Modifier.testTag("edit-description"),
+                error = state.errors[CampoPerrito.Description],
+                lines = 5,
+                enabled = editable,
+            )
+            if (assistant != null) {
+                HButton(
+                    "Redactar con Gemini",
+                    {
+                        assistant.open(DatosDescripcion.fromDraft(state.draft.form))
+                        assistantOpen = true
+                    },
+                    Modifier.testTag("edit-ai"),
+                    outlined = true,
+                    enabled = editable,
+                    icon = SimboloHuellitas.Sparkles,
+                )
+                HCaption(
+                    "Revisa y acepta la propuesta. Solo se guardará al confirmar los cambios del perrito."
+                )
+            }
+        }
+        if (state.saving || state.importing) LinearProgressIndicator(Modifier.fillMaxWidth())
+        state.error?.let { HBanner(it, SimboloHuellitas.Alert, error = true) }
+        if (state.conflict != null)
+            HButton(
+                "Cargar registro actual",
+                model::reloadConflict,
+                Modifier.testTag("edit-reload"),
+                outlined = true,
+            )
+    }
+    if (confirmDiscard)
+        AlertDialog(
+            onDismissRequest = { confirmDiscard = false },
+            title = { Text("¿Salir de la edición?") },
+            text = {
+                Text(
+                    if (state.locked)
+                        "No se confirmó el resultado del último intento. Consulta la ficha al salir para comprobar si se guardó."
+                    else "Los cambios sin guardar se perderán."
+                )
+            },
+            confirmButton = { TextButton(onClick = close) { Text("Salir") } },
+            dismissButton = {
+                TextButton(onClick = { confirmDiscard = false }) { Text("Continuar editando") }
+            },
+        )
+}
+
+@Composable
+private fun EditPhotos(
+    photos: List<FotoPerritoEditable>,
+    repository: RepositorioPerritos,
+    editable: Boolean,
+    remove: (String) -> Unit,
+    cover: (String) -> Unit,
+) {
+    photos.forEachIndexed { index, photo ->
+        HCard {
+            photo.remote?.let { StoredDogPhoto(it.path, repository) }
+            photo.local?.let { PhotoStrip(listOf(it), showCaption = false) }
+            HCaption(if (index == 0) "Portada" else "Fotografía ${index + 1}")
+            if (editable) {
+                Row {
+                    TextButton(
+                        onClick = { remove(photo.id) },
+                        modifier = Modifier.testTag("edit-remove-$index"),
+                    ) {
+                        Text("Quitar")
+                    }
+                    if (index > 0)
+                        TextButton(
+                            onClick = { cover(photo.id) },
+                            modifier = Modifier.testTag("edit-cover-$index"),
+                        ) {
+                            Text("Usar como portada")
+                        }
+                }
+            }
+        }
+    }
+}

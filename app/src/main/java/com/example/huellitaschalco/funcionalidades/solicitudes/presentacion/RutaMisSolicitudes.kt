@@ -8,6 +8,8 @@ import androidx.compose.ui.platform.testTag
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.huellitaschalco.funcionalidades.autenticacion.dominio.UsuarioAutenticado
+import com.example.huellitaschalco.funcionalidades.refugio.dominio.EstadoRefugioPublico
+import com.example.huellitaschalco.funcionalidades.refugio.dominio.RepositorioRefugioPublico
 import com.example.huellitaschalco.funcionalidades.solicitud.dominio.OpcionesSolicitud
 import com.example.huellitaschalco.funcionalidades.solicitudes.dominio.*
 import com.example.huellitaschalco.nucleo.navegacion.*
@@ -23,6 +25,7 @@ fun RutaMisSolicitudes(
     user: UsuarioAutenticado?,
     id: String?,
     repository: RepositorioSolicitudesAdopcion,
+    refugios: RepositorioRefugioPublico,
 ) {
     if (user == null) {
         HScaffold(nav, "Mis solicitudes", back = false, tab = "Solicitudes") {
@@ -86,7 +89,7 @@ fun RutaMisSolicitudes(
                 else ->
                     state.request?.let { item ->
                         HHeading(item.dogName ?: "Perrito ${item.dogId}")
-                        HCaption("Refugio: ${item.shelterId}")
+                        NombreRefugioSolicitud(item.shelterId, refugios)
                         HTag(item.status)
                         HBanner(item.nextStep)
                         item.rejectionReason?.let { HKeyValue("Motivo de la decisión", it) }
@@ -117,6 +120,20 @@ fun RutaMisSolicitudes(
             }
         }
     }
+}
+
+@Composable
+private fun NombreRefugioSolicitud(id: String, repositorio: RepositorioRefugioPublico) {
+    val consulta = remember(id, repositorio) { repositorio.observe(id) }
+    val estado by consulta.collectAsStateWithLifecycle(EstadoRefugioPublico())
+    val nombre = estado.shelter?.name?.takeIf { it.isNotBlank() }
+    HCaption(
+        when {
+            nombre != null -> "Refugio: $nombre"
+            estado.loading -> "Consultando nombre del refugio…"
+            else -> "Nombre del refugio no disponible."
+        }
+    )
 }
 
 @Composable

@@ -156,6 +156,7 @@ fun AplicacionHuellitas(
                                     user,
                                     null,
                                     container.adoptionRequestsRepository,
+                                    container.publicShelterRepository,
                                 )
                         else MyRequestsScreen(nav, destination)
                     PantallaInterfaz.RequestDetail ->
@@ -165,6 +166,7 @@ fun AplicacionHuellitas(
                                     user,
                                     destination.recordId,
                                     container.adoptionRequestsRepository,
+                                    container.publicShelterRepository,
                                 )
                         else RequestDetailScreen(nav, destination)
                     PantallaInterfaz.AdopterProfile ->

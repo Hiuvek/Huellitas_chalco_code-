@@ -14,7 +14,6 @@ class FirebaseFollowUpRepository(
     private val auth: AuthRepository,
     private val db: FirebaseFirestore?,
     private val functions: CallableFunctions?,
-    private val storage: com.google.firebase.storage.FirebaseStorage? = null,
 ) : FollowUpRepository {
     override fun observe(uid: String, shelterId: String): Flow<FollowUpBoard> =
         auth.user.flatMapLatest { user ->

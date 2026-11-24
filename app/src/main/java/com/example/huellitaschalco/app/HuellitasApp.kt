@@ -9,7 +9,6 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.huellitaschalco.BuildConfig
 import com.example.huellitaschalco.core.navigation.*
 import com.example.huellitaschalco.feature.access.domain.*
 import com.example.huellitaschalco.feature.access.presentation.*
@@ -19,7 +18,6 @@ import com.example.huellitaschalco.feature.auth.domain.AuthRepository
 import com.example.huellitaschalco.feature.auth.presentation.AuthRoute
 import com.example.huellitaschalco.feature.catalog.*
 import com.example.huellitaschalco.feature.catalog.presentation.CatalogRoute
-import com.example.huellitaschalco.feature.preview.*
 import com.example.huellitaschalco.feature.profile.*
 import com.example.huellitaschalco.feature.requests.*
 import com.example.huellitaschalco.feature.shelter.adoption.*
@@ -301,8 +299,7 @@ fun HuellitasApp(
                                     )
                             }
                     UiScreen.PreviewGallery ->
-                        if (BuildConfig.SHOW_PREVIEW_GALLERY) PreviewGalleryScreen(nav)
-                        else LaunchedEffect(Unit) { nav.root(UiScreen.Catalog) }
+                        LaunchedEffect(Unit) { nav.root(UiScreen.Catalog) }
                 }
             }
         }

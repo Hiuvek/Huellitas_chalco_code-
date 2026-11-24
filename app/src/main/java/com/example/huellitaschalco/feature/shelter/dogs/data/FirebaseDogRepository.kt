@@ -3,7 +3,6 @@ package com.example.huellitaschalco.feature.shelter.dogs.data
 import com.example.huellitaschalco.feature.auth.domain.AuthRepository
 import com.example.huellitaschalco.feature.shelter.dogs.domain.*
 import com.google.firebase.firestore.*
-import com.google.firebase.storage.*
 import java.io.File
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -13,7 +12,6 @@ import kotlinx.coroutines.tasks.await
 class FirebaseDogRepository(
     private val auth: AuthRepository,
     private val db: FirebaseFirestore?,
-    private val storage: FirebaseStorage?,
     override val usesEmulator: Boolean,
 ) : DogRepository {
     override val isConfigured

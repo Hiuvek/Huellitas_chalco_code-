@@ -1,118 +1,29 @@
-# Checklist — Huellitas Chalco
+# Huellitas Chalco
 
-Actualización: 22 de noviembre de 2026. La app normal está adaptada a Firebase Spark: Authentication, Firestore e imágenes pequeñas en documentos separados. No utiliza Cloud Storage ni Cloud Functions. Room conserva borradores y caché local.
+Aplicación Android para adopción de perritos en Chalco, Estado de México.
 
-## Historias de usuario
+## Requisitos y compilación
 
-| Historia | Funcionalidad | Estado de implementación |
-| --- | --- | --- |
-| HU-01 | Registro e inicio de sesión | [x] Firebase Authentication |
-| HU-02 | Catálogo de perritos de Chalco | [x] Firestore, búsqueda y filtros |
-| HU-03 | Fotografía, edad, tamaño, sexo y descripción | [x] Ficha del registro seleccionado |
-| HU-04 | Requisitos y pasos de adopción | [x] Configuración pública por refugio; requiere datos completos |
-| HU-05 | Solicitud de adopción | [x] Formulario validado, envío e historial atómicos |
-| HU-06 | Mis solicitudes | [x] Consulta privada y estados |
-| HU-07 | Acceso del responsable | [x] Membresías y rutas protegidas |
-| HU-08 | Registrar perritos | [x] Datos y una foto comprimida en Firestore |
-| HU-09 | Vacunación, desparasitación y esterilización | [x] Captura y edición |
-| HU-10 | Consultar y editar mis perritos | [x] Datos, reemplazo de foto y detección de conflictos |
-| HU-11 | Descripción con Gemini | [x] Propuesta editable, revisión humana y alternativa manual |
-| HU-12 | Solicitudes recibidas | [x] Bandeja privada por refugio |
-| HU-13 | Evaluación de solicitudes | [x] Estados, motivo e historial; aprobación única |
-| HU-14 | Confirmar entrega | [x] Transacción de Firestore, adopción única y cierre recuperable de pendientes |
-| HU-15 | Programar revisiones | [x] Agenda vinculada a la adopción |
-| HU-16 | Seguimiento posterior | [x] Resultado, foto privada opcional y próxima revisión |
-| HU-17 | Uso local con Room | [x] Borradores por cuenta y caché pública |
-| HU-18 | Ubicación del refugio | [x] Zona pública aproximada y apertura de Google Maps |
+Abre el proyecto en Android Studio y configura el SDK indicado en `app/build.gradle.kts`. Utiliza el JDK definido por Gradle y agrega localmente `app/google-services.json`, correspondiente a la aplicación `com.example.huellitaschalco` de tu proyecto Firebase. Este archivo y `local.properties` no se versionan.
 
-## Adaptación a Spark
+```sh
+./gradlew :app:assembleDebug :app:lintDebug
+```
 
-- [x] Sustituir las tres operaciones de Cloud Functions por transacciones del SDK Android.
-- [x] Validar permisos, estados, fechas y operaciones relacionadas en reglas de Firestore.
-- [x] Fotografías JPEG de hasta 100 KiB, una por perrito y una opcional por seguimiento.
-- [x] Descargar imágenes individualmente y excluir su contenido de los índices.
-- [x] Conservar la separación de datos entre cuentas, refugios y roles.
-- [x] Mantener emuladores de Auth/Firestore solo para pruebas aisladas.
-- [x] Publicar reglas e índices en el proyecto real, sin activar facturación.
-- [x] Probar los recorridos de ambos roles en la tableta y corregir los problemas encontrados.
-- [x] Comprobar fotografías con clientes independientes contra el proyecto real.
-- [x] Instalar y entregar el APK normal actualizado, versión 1.2.
+El APK se genera en `app/build/outputs/apk/debug/app-debug.apk`. Para instalarlo en un dispositivo con depuración USB:
 
-No se ha comprobado el uso simultáneo de dos dispositivos físicos. El modo normal usa internet; el APK `.local` continúa siendo una instalación separada para pruebas con emuladores. Gemini conserva su propia cuota gratuita y configuración de App Check.
+```sh
+adb install -r app/build/outputs/apk/debug/app-debug.apk
+```
 
-Detalles técnicos y limitaciones: [modo Spark](docs/spark.md). Resultados anteriores a esta adaptación: [checklist histórico](docs/checklist-anterior-a-spark.md).
+Si actualizas una instalación existente, utiliza su misma clave de firma; Android no permite actualizarla con otra clave.
 
-Verificación anterior de Spark: **114 pruebas unitarias, 85 de reglas y 63 comprobaciones en tableta correctas**, incluida una generación real con Gemini. [Reporte de pruebas y limitaciones](docs/pruebas-spark.md).
+## Servicios y datos
 
-- [x] Catálogo real preparado con ocho perritos ficticios, fotografías y controles para probar solicitudes y adopciones.
+Utiliza Firebase Authentication, Cloud Firestore, Firebase AI Logic con Gemini y App Check. El catálogo, las fotografías y la información del refugio se consultan en Firestore; no se cargan semillas al iniciar. Se necesita conexión para consultar datos remotos y realizar operaciones privadas. Room conserva caché pública y borradores locales.
 
-## Interfaz para entrega — versión 1.2
+Las fotografías comprimidas se guardan en documentos separados de Firestore. No se utilizan Cloud Storage ni Cloud Functions. La ubicación abre Google Maps mediante un enlace externo. Se conserva el alcance actual de Firebase Spark.
 
-- [x] Mejorar tamaños, contraste y jerarquía de títulos, instrucciones y botones.
-- [x] Identificar las tarjetas con acciones claras: ver ficha, revisar solicitud y consultar estado.
-- [x] Mantener visibles las acciones de requisitos e inicio de solicitud.
-- [x] Explicar el paso siguiente del formulario y cuándo se envía la solicitud.
-- [x] Ocultar el muestrario en la compilación habitual y retirar cifras ficticias del perfil.
-- [x] Mostrar los datos publicados del refugio y accesos a sus funciones reales.
-- [x] Verificar compilación, Lint, 114 pruebas unitarias y 39 comprobaciones de interfaz.
-- [x] Revisar un ancho de teléfono de 411 dp y la bienvenida con letra al 130 % en la tableta; restaurar sus ajustes originales.
+`firestore.rules`, `firestore.indexes.json` y `firebase.json` definen la configuración del backend. Los responsables requieren una membresía autorizada de su refugio. Gemini necesita que Firebase AI Logic y App Check estén configurados; el APK de desarrollo requiere registrar su instalación de App Check.
 
-[Detalle de cambios y validación](docs/interfaz-entregable.md). El APK 1.2 conserva la firma y los datos de la instalación normal.
-
-## Verificación en la nube
-
-- [x] Recorrido completo con repositorios Android en Firebase real: solicitud, evaluación, entrega simulada, revisión y seguimiento con foto privada.
-- [x] Comprobar cambios entre sesiones independientes, reintentos sin duplicación y rechazo del acceso privado del adoptante.
-- [ ] Comprobar simultaneidad entre dos dispositivos físicos y redes distintas.
-
-[Resultado y evidencia de la adopción en la nube](docs/adopcion-nube.md). El recorrido automatizado no equivale a completar manualmente todos los formularios en producción.
-
-## Fecha de entrega — versión 1.2.1
-
-- [x] Mostrar la fecha actual por defecto al abrir el formulario, según la zona de Ciudad de México.
-- [x] Permitir cambiarla para registrar una entrega anterior, manteniendo las validaciones de fecha y confirmación.
-
-La fecha se inicializa al abrir un formulario nuevo; editarla no cambia las fechas de entregas ya guardadas.
-
-- [x] Ocultar «Completar cierre de solicitudes» al confirmar el cierre y mostrar «Cierre completado». El botón sigue disponible para recuperar un cierre que se haya interrumpido.
-
-## Colores — versión 1.2.2
-
-- [x] Verde bosque para las selecciones y controles activos en el tema global.
-- [x] Fondos de selección verde salvia; estados negativos en neutro, identificados con texto e icono.
-- [x] Rojo reservado para errores, avisos críticos y acciones destructivas.
-- [x] Retirar rojo de estados rutinarios, mapa ilustrativo normal y cierre de sesión.
-
-## Perfil del refugio — versión 1.2.3
-
-- [x] Agrupar zona, horario y acceso a Maps sin repetir la ubicación.
-- [x] Reunir requisitos y pasos en una sección desplegable.
-- [x] Retirar accesos que duplicaban las pestañas de administración.
-- [x] Separar información pública, catálogo para adoptantes y cuenta responsable.
-- [x] Mostrar el nombre del refugio una sola vez en Solicitudes recibidas.
-
-## Eliminar perritos — versión 1.3.0
-
-- [x] Eliminar de Mis perritos con confirmación por nombre.
-- [x] Retirar disponibles del catálogo público y conservar el historial relacionado.
-- [x] Proteger adopciones en proceso y restringir la operación al refugio autorizado.
-- [x] Permitir cancelación y reintento sin duplicar la operación.
-
-[Comportamiento, permisos y pruebas](docs/eliminar-perritos.md). Las solicitudes pendientes se resuelven desde Solicitudes; no se cierran automáticamente.
-
-## Edición del refugio y Gemini — versión 1.4.0
-
-- [x] Editar datos públicos, requisitos, pasos y ubicación desde Perfil.
-- [x] Validar permisos y evitar sobrescribir otra edición del refugio.
-- [x] Confirmar antes de descartar cambios y permitir reintentos ante errores.
-- [x] Ofrecer propuestas de Gemini en Editar perrito con revisión y aceptación manual.
-
-[Edición del refugio](docs/editar-refugio.md). Crear refugios y asignar responsables sigue siendo administrativo.
-
-### Contenido y catálogo — versión 1.5.0
-
-- [x] Textos visibles del refugio y de las 12 fichas anteriores actualizados.
-- [x] Diez perritos nuevos con fotos distintas, conservando los campos y la estructura actuales.
-- [x] Catálogo inicial de 17 perritos verificado en Firebase y en la tableta.
-- [x] 126 pruebas unitarias, compilación y Lint correctos.
-- [x] [Pantallas revisadas y textos modificados](docs/revision-contenido.md).
+Las credenciales, claves de firma y configuraciones privadas se conservan fuera de Git. No publiques tokens de desarrollo ni archivos de cuentas de servicio.

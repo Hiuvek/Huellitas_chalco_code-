@@ -56,7 +56,6 @@ class AppContainer(context: Context) {
             authRepository,
             firebase.firestore,
             firebase.functions,
-            firebase.storage,
         )
     val descriptionGenerator by lazy {
         com.example.huellitaschalco.feature.shelter.description.data.FirebaseDescriptionGenerator(
@@ -68,7 +67,6 @@ class AppContainer(context: Context) {
         FirebaseDogRepository(
             authRepository,
             firebase.firestore,
-            firebase.storage,
             firebase.usesEmulator,
         )
     val dogRepository = CachedDogRepository(remoteDogs, publicCache)

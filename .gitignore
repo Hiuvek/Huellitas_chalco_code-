@@ -1,6 +1,5 @@
 *.iml
 .gradle
-/local.properties
 /.idea/caches
 /.idea/libraries
 /.idea/modules.xml
@@ -17,7 +16,24 @@ local.properties
 firebase-debug.log*
 ui-debug.log*
 node_modules/
-
 /.kotlin/
-
 firestore-debug.log*
+
+# Material conservado fuera de la entrega.
+/.idea/
+/docs/
+/tools/
+/functions/
+/CHECKLIST.md
+/storage.rules
+/app/src/test/
+/app/src/androidTest/
+/app/src/debug/AndroidManifest.xml
+/app/src/debug/res/xml/auth_emulator_network_security_config.xml
+/app/src/main/java/com/example/huellitaschalco/feature/preview/
+.env
+.env.*
+!.env.example
+*.keystore
+*.jks
+*service-account*.json
